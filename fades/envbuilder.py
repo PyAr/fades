@@ -22,33 +22,45 @@ import os
 from venv import EnvBuilder
 from uuid import uuid4
 from xdg import BaseDirectory
+from subprocess import Popen
 
 
 logger = logging.getLogger(__name__)
-basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
 
 
 class FadesEnvBuilder(EnvBuilder):
     """create always a virtualenv and install the dependencies"""
 
     def __init__(self, libs_to_install):
-
+        basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
         self.venv_path = "{}/{}".format(basedir, uuid4())
         self.libs_to_install = libs_to_install
-        super().__init__()
+        self.install_from = "pip"
+        self.bin_path = None
+        super().__init__(with_pip=True)
+        logger.info(("libs to install: {}".format(self.libs_to_install)))
+        logger.info("venv will be created on: {}".format(self.venv_path))
 
     def post_setup(self, context):
-        print("acá se ejecutan muchas cosas")
-        print("path: {}".format(self.venv_path))
-        print("libs: {}".format(self.libs_to_install))
+        self.bin_path = context.bin_path
+        if self.install_from == "pip":
+            self.pip_install()
 
-    def pip_install(self, libs_to_install):
-        pass
+
+
+    def pip_install(self):
+        "install libs with pip"
+        pip_exe = "{}/pip".format(self.bin_path)
+        args = [pip_exe, "install"]
+        args.extend(self.libs_to_install)
+        logger.debug("running: %s", args)
+        process = Popen(args)
+        return process
 
 
 def main():
-    libs_to_install = ["requests", "touchandgo"]
-    builder = FadesEnvBuilder(libs_to_install=libs_to_install)
+    libs_to_install = ["requests", "flask"]
+    builder = FadesEnvBuilder(libs_to_install)
     builder.create(builder.venv_path)
 
 if __name__ == '__main__':
