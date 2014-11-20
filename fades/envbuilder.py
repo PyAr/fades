@@ -31,14 +31,11 @@ basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
 class FadesEnvBuilder(EnvBuilder):
     """create always a virtualenv and install the dependencies"""
 
-    def __init__(self, system_site_packages=False, clear=False,
-                 symlinks=False, upgrade=False, with_pip=True,
-                 libs_to_install=None):
+    def __init__(self, libs_to_install):
 
         self.venv_path = "{}/{}".format(basedir, uuid4())
         self.libs_to_install = libs_to_install
-        super().__init__(system_site_packages, clear, symlinks, upgrade,
-                         with_pip)
+        super().__init__()
 
     def post_setup(self, context):
         print("acá se ejecutan muchas cosas")
