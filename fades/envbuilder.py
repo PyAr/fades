@@ -14,16 +14,18 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-"""Main 'fades' class."""
+""" class extended from EnvBuilder to create a venv and install
+    deps from diferents sources in it"""
 
 import logging
 import os
 from venv import EnvBuilder
 from uuid import uuid4
+from xdg import BaseDirectory
+
 
 logger = logging.getLogger(__name__)
-
-VENV_STORAGE_DIR = '/tmp'
+basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
 
 
 class FadesEnvBuilder(EnvBuilder):
@@ -33,7 +35,7 @@ class FadesEnvBuilder(EnvBuilder):
                  symlinks=False, upgrade=False, with_pip=True,
                  libs_to_install=None):
 
-        self.venv_path = "{}/{}".format(VENV_STORAGE_DIR, uuid4())
+        self.venv_path = "{}/{}".format(basedir, uuid4())
         self.libs_to_install = libs_to_install
         super().__init__(system_site_packages, clear, symlinks, upgrade,
                          with_pip)
