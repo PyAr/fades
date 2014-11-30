@@ -76,5 +76,5 @@ def _parse_content(fh):
 
 def parse_file(filepath):
     """Parse a file and return its marked dependencies."""
-    with open(filepath, 'rt', coding='utf8') as fh:
+    with open(filepath, 'rt', encoding='utf8') as fh:
         return _parse_content(fh)

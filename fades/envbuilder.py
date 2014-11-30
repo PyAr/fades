@@ -19,10 +19,11 @@
 
 import logging
 import os
+import subprocess
 from venv import EnvBuilder
 from uuid import uuid4
 from xdg import BaseDirectory
-from subprocess import Popen
+from fades.parsing import Repo
 
 
 logger = logging.getLogger(__name__)
@@ -30,38 +31,44 @@ logger = logging.getLogger(__name__)
 
 class FadesEnvBuilder(EnvBuilder):
     """create always a virtualenv and install the dependencies"""
-
-    def __init__(self, libs_to_install):
+    def __init__(self, deps):
         basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
-        self.venv_path = "{}/{}".format(basedir, uuid4())
-        self.libs_to_install = libs_to_install
-        self.install_from = "pip"
-        self.bin_path = None
+        self.env_path = "{}/{}".format(basedir, uuid4())
+        self.env_bin_path = ""
+        self.deps = deps
         super().__init__(with_pip=True)
-        logger.info(("libs to install: {}".format(self.libs_to_install)))
-        logger.info("venv will be created on: {}".format(self.venv_path))
+        logger.info("libs to install: %s", self.deps)
+        logger.info("env will be created at: %s", self.env_path)
+
+    def create_and_install(self):
+        self.create(self.env_path)
 
     def post_setup(self, context):
-        self.bin_path = context.bin_path
-        if self.install_from == "pip":
-            self.pip_install()
+        "Install deps into the enviroment being created"
+        self.env_bin_path = context.bin_path
+        for dependency in self.deps:
+            if dependency.repo == Repo.pypi:
+                self._pip_install(dependency)
+            else:
+                logger.warning(
+                    "install from %s not implemented", dependency.repo)
+        self._save_fades_info()
 
+    def _pip_install(self, dependency):
+        "install a dependency with pip"
+        pip_exe = "{}/pip".format(self.env_bin_path)
+        if dependency.version is None:
+            module = dependency.module
+        else:
+            module = dependency.module+dependency.version
+        args = [pip_exe, "install", module]
+        logger.info("running: %s", args)
+        try:
+            #FIXME : send stdout and stderror to logfile? print human info
+            subprocess.check_call(args)
+        except Exception as error:
+            logger.error("Error installing %s : %s", module, error)
 
-
-    def pip_install(self):
-        "install libs with pip"
-        pip_exe = "{}/pip".format(self.bin_path)
-        args = [pip_exe, "install"]
-        args.extend(self.libs_to_install)
-        logger.debug("running: %s", args)
-        process = Popen(args)
-        return process
-
-
-def main():
-    libs_to_install = ["requests", "flask"]
-    builder = FadesEnvBuilder(libs_to_install)
-    builder.create(builder.venv_path)
-
-if __name__ == '__main__':
-    main()
+    def _save_fades_info(self):
+        "Save env and deps info in file's xattr"
+        pass
