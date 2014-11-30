@@ -19,6 +19,7 @@
 import logging
 import logging.handlers
 
+
 def set_up():
     """Set up the logging."""
     # all to the syslog
