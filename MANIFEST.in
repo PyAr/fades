@@ -1,0 +1,5 @@
+include README.md
+include COPYING
+include AUTHORS
+include version.txt
+include man/fades.1
