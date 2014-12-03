@@ -7,22 +7,93 @@ FAst DEpendencies for Scripts
 What does it do?
 ----------------
 
-When you execute your script with *fades*, it will automagically create 
-a new virtualenv (or reuse a previous created one for that script), 
-installing or updating the necessary dependencies, and execute your
-script inside that virtualenv.
-
-FIXME: tell how to mark the dependencies in the python script
-
-FIXME: alert that when hitting the network to install/update dependencies it
-will show information to stderr (-q can be used to avoid this).
+*fades* will automagically create a new virtualenv (or reuse a previous 
+created one for your script), installing or updating the necessary 
+dependencies, and execute your script inside that virtualenv, with the
+only requirement of executing the script with *fades* and also marking 
+the required dependencies. 
 
 
 How to use it?
---------------
+==============
 
-FIXME write here:
- - that the script can be called directly:  fades myscript.py
- - that the script can have a  #!/usr/bin/fades  at the beginning
- - that if you call fades with -q it will never show anything to stderr
- - that if you call fades with -v will show all internal debugging lines to stderr!
+When you write an script, you have to take two special measures:
+
+ - need to execute it with *fades* (not *python*)
+
+ - need to mark those dependencies
+
+At the moment you execute the script, fades will create (if needed) a 
+virtualenv, install/update/remove dependencies (if needed), and execute
+the script in that environment.
+
+
+How to execute the script with fades?
+-------------------------------------
+
+You can always call your script directly with fades::
+
+    fades myscript.py
+
+However, for you to not forget about fades and to not execute it 
+directly with python, it's better if you put at the beggining of 
+the script the indication for the operating system that it should
+be executed with fades... ::
+
+    #!/usr/bin/fades
+
+...and also set the executable bit in the script::
+
+    chmod +x yourscript.py
+
+
+How to mark the dependencies to be installed?
+---------------------------------------------
+
+The procedure to mark a module imported by the script as a *dependency
+to be installed by fades* is by using a comment.
+
+This comment will normally be in the same line of the import (recommended,
+less confusing and less error prone in the future), but it also can be in
+the previous one.
+
+The simplest comment is like::
+
+    import somemodule   # fades.pypi
+    from somepackage import othermodule    # fades.pypi
+
+The ``fades.pypi`` is mandatory, it may allow more options in the future.
+
+With that comment, *fades* will install automatically in the virtualenv the 
+``somemodule`` or ``somepackage`` from PyPI.
+
+Also, you can indicate a particular version condition, examples::
+
+    import somemodule   # fades.pypi == 3
+    import somemodule   # fades.pypi >= 2.1
+
+
+How to control the virtualenv creation and usage?
+-------------------------------------------------
+
+You can influence several details of all the virtualenv related process.
+
+The most important detail is which version of Python will be used in
+the virtualenv. Of course, the corresponding version of Python needs to 
+be installed in your system, but you can control exactly which one to use.
+
+No matter which way you're executing the script (see above), you can 
+pass a ``-p`` or ``--python`` argument, indicating the Python version to 
+be used just with the number (``2.7``), the whole name (``python2.7``) or 
+the whole path (``/usr/bin/python2.7``).
+
+Other detail is the verbosity of *fades* when telling what is doing. By 
+default, *fades* only will use stderr to tell if a virtualenv is being 
+created, and to let the user know that is doing an operation that 
+requires an active network connection (e.g. installing a new depenency).
+
+If you call *fades* with ``-v`` or ``--verbose``, it will send all internal
+debugging lines to stderr, which may be very useful if any problem arises.
+On the other hand if you pass the ``-q`` or ``--quiet`` parameter, *fades*
+will not show anything (unless it has a real problem), so the original 
+script stderr is not polluted at all.

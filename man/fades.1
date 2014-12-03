@@ -1,1 +1,49 @@
-TODO
+.TH FADES 1
+.SH NAME
+fades \- FAst DEpendencies for Scripts.
+
+
+.SH SYNOPSYS
+.B fades 
+[\fB-v\fR][\fB--verbose\fR]
+[\fB-q\fR][\fB--quiet\fR]
+[\fB-p\fR \fIversion\fR][\fB--python\fR=\fIversion\fR]
+
+\fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
+
+
+.SH DESCRIPTION
+
+\fBfades\fR will automagically create a new virtualenv (or reuse a previous 
+created one for your script), installing or updating the necessary 
+dependencies, and execute your script inside that virtualenv, with the
+only requirement of executing the script with \fBfades\fR and also marking 
+the required dependencies. 
+
+
+.SH OPTIONS
+
+.TP
+.BR -v ", "--verbose
+Send all internal debugging lines to stderr, which may be very useful if any problem arises.
+
+.TP
+.BR -q ", " --quiet
+Don't show anything (unless it has a real problem), so the original script stderr is not polluted at all.
+
+.TP
+.BR -p " " \fIversion\fR ", " --python=\fIversion\fR
+Select which Python version to be used; the argument can be just the number (2.7), the whole name (python2.7) or the whole path (/usr/bin/python2.7).  Of course, the corresponding version of Python needs to be installed in your system.
+
+
+.SH SEE ALSO
+Development is centralized in https://github.com/PyAr/fades
+
+Check that site for a better explanation of \fBfades\fR usage.
+
+.SH AUTHORS
+Facundo Batista, Nicolás Demarchi (see development page for contact info).
+
+.SH LICENSING
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 3, as published by the Free Software Foundation.
+
