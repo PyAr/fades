@@ -93,7 +93,7 @@ setup(
     version=open('version.txt').read().strip(),
     license='GPL-3',
     author='Facundo Batista, Nicolás Demarchi',
-    author_email='facundo@taniquetil.com.ar, FIXME',
+    author_email='facundo@taniquetil.com.ar, mail@gilgamezh.me',
     description='FAst DEpendencies for Scripts.',
     long_description=LONG_DESCRIPTION,
     url='https://github.com/PyAr/fades',

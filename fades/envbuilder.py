@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class FadesEnvBuilder(EnvBuilder):
-    """create always a virtualenv and install the dependencies"""
+    """Create always a virtualenv and install the dependencies."""
     def __init__(self, deps):
         basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
         self.env_path = "{}/{}".format(basedir, uuid4())
@@ -44,7 +44,7 @@ class FadesEnvBuilder(EnvBuilder):
         self.create(self.env_path)
 
     def post_setup(self, context):
-        "Install deps into the enviroment being created"
+        """Install deps into the enviroment being created."""
         self.env_bin_path = context.bin_path
         for dependency in self.deps:
             if dependency.repo == Repo.pypi:
@@ -70,5 +70,5 @@ class FadesEnvBuilder(EnvBuilder):
             logger.error("Error installing %s : %s", module, error)
 
     def _save_fades_info(self):
-        "Save env and deps info in file's xattr"
+        """Save env and deps info in file's xattr."""
         pass
