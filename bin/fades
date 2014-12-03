@@ -30,7 +30,7 @@ if os.path.exists(INSTALLED_BASE_DIR):
     project_basedir = INSTALLED_BASE_DIR
 else:
     project_basedir = os.path.abspath(os.path.dirname(os.path.dirname(
-                                            os.path.realpath(sys.argv[0]))))
+        os.path.realpath(sys.argv[0]))))
 
 version_file = os.path.join(project_basedir, 'version.txt')
 if os.path.exists(version_file):

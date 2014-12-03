@@ -19,13 +19,16 @@
 import logging
 import subprocess
 
+from fades.envbuilder import FadesEnvBuilder
+from fades import parsing
+
 logger = logging.getLogger(__name__)
 
 
 def go(argv):
     """Make the magic happen."""
-    logger.debug("TEST debug")
-    logger.info("TEST info")
-    logger.warning("TEST warning")
-
-    subprocess.check_call(['python3'] + argv[1:])
+    deps = parsing.parse_file(argv[1])
+    env = FadesEnvBuilder(deps)
+    env.create_and_install()
+    python_exe = "{}/python3".format(env.env_bin_path)
+    subprocess.check_call([python_exe] + argv[1:])
