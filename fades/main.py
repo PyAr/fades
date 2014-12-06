@@ -56,8 +56,11 @@ def go(version, argv):
     """Make the magic happen."""
     fades_options, child_program, child_options = _parse_argv(sys.argv)
     verbose = "-v" in fades_options or "--verbose" in fades_options
+    quiet = "-q" in fades_options or "--quiet" in fades_options
     if verbose:
         log_level = logging.DEBUG
+    elif quiet:
+        log_level = logging.WARNING
     else:
         log_level = logging.INFO
 
@@ -65,6 +68,9 @@ def go(version, argv):
     l = logger.set_up(log_level)
     l.debug("Running Python %s on %r", sys.version_info, sys.platform)
     l.debug("Starting fades v. %s", version)
+
+    if verbose and quiet:
+        l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     deps = parsing.parse_file(child_program)
     env = FadesEnvBuilder(deps)
