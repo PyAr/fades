@@ -32,6 +32,13 @@ logger = logging.getLogger(__name__)
 PIP_INSTALLER = "https://bootstrap.pypa.io/get-pip.py"
 
 
+def _logged_exec(cmd):
+    """Execute a command, redirecting the output to the log."""
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    for line in p.stdout:
+        logger.debug(line[:-1].decode("utf8"))
+
+
 class FadesEnvBuilder(EnvBuilder):
     """Create always a virtualenv and install the dependencies."""
     def __init__(self, deps):
@@ -82,7 +89,7 @@ class FadesEnvBuilder(EnvBuilder):
 
         logger.debug("Installing PIP manually in the virtualenv")
         python_exe = os.path.join(self.env_bin_path, "python")
-        subprocess.check_call([python_exe, self.pip_installer_fname])
+        _logged_exec([python_exe, self.pip_installer_fname])
 
     def _pip_install(self, dependency):
         """Install a dependency with pip."""
@@ -98,9 +105,9 @@ class FadesEnvBuilder(EnvBuilder):
         else:
             module = dependency.module + dependency.version
         args = [pip_exe, "install", module]
-        logger.info("Installing dependencies: %s", module)
+        logger.info("Installing dependency: %s", module)
         try:
-            subprocess.check_call(args)
+            _logged_exec(args)
         except Exception as error:
             logger.error("Error installing %s: %s", module, error)
 
