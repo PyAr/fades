@@ -24,6 +24,7 @@ def set_up():
     """Set up the logging."""
     # all to the syslog
     logger = logging.getLogger('fades')
+    logger.setLevel(logging.DEBUG)
     handler = logging.handlers.SysLogHandler(address='/dev/log')
     logger.addHandler(handler)
     formatter = logging.Formatter("%(name)s[%(process)d]: "
@@ -32,9 +33,9 @@ def set_up():
 
     # and to the stdout
     handler = logging.StreamHandler()
-    handler.setLevel(logging.WARNING)
+    handler.setLevel(logging.INFO)
     logger.addHandler(handler)
-    formatter = logging.Formatter("*** fades ***  %(asctime)s  %(name)-15s"
+    formatter = logging.Formatter("*** fades ***  %(asctime)s  %(name)-18s"
                                   "%(levelname)-8s %(message)s")
     handler.setFormatter(formatter)
 
