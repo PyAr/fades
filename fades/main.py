@@ -17,18 +17,60 @@
 """Main 'fades' modules."""
 
 import logging
+import os
 import subprocess
+import sys
 
 from fades.envbuilder import FadesEnvBuilder
-from fades import parsing
-
-logger = logging.getLogger(__name__)
+from fades import parsing, logger
 
 
-def go(argv):
+def _parse_argv(argv):
+    """Ad-hoc argv parsing for the complicated rules.
+
+    As fades is a program that executes programs, at first there is the
+    complexity of deciding which of the parameters are for fades and which
+    ones are for the executed child program. For this, we decided that after
+    fades itself, everything starting with a "-" is a parameter for fade,
+    then the rest is for child program.
+
+    Also, it happens that if you pass several parameters to fades when
+    calling it using the "!#/usr/bin/fades" magic at the beginning of a file,
+    all the parameters you put there come as a single string.
+    """
+    # get a copy, as we'll destroy this; in the same move ignore first
+    # parameter that is the name of fades executable itself
+    argv = argv[1:]
+
+    fades_options = []
+    while argv and argv[0][0] == '-':
+        fades_options.extend(argv.pop(0).split())
+    if not argv:
+        return fades_options, "", []
+
+    child_program = argv[0]
+    return fades_options, child_program, argv[1:]
+
+
+def go(version, argv):
     """Make the magic happen."""
-    deps = parsing.parse_file(argv[1])
+    fades_options, child_program, child_options = _parse_argv(sys.argv)
+    verbose = "-v" in fades_options or "--verbose" in fades_options
+    if verbose:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
+
+    # set up logger and dump basic version info
+    l = logger.set_up(log_level)
+    l.debug("Running Python %s on %r", sys.version_info, sys.platform)
+    l.debug("Starting fades v. %s", version)
+
+    deps = parsing.parse_file(child_program)
     env = FadesEnvBuilder(deps)
     env.create_and_install()
-    python_exe = "{}/python3".format(env.env_bin_path)
-    subprocess.check_call([python_exe] + argv[1:])
+
+    l.debug("Calling the child Python program %r with options %s",
+             child_program, child_options)
+    python_exe = os.path.join(env.env_bin_path, "python3")
+    subprocess.check_call([python_exe, child_program] + child_options)

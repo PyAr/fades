@@ -41,11 +41,5 @@ else:
 if project_basedir not in sys.path:
     sys.path.insert(0, project_basedir)
 
-# set up logger and dump basic version info
-from fades import logger
-l = logger.set_up()
-l.info("Running Python %s on %r", sys.version_info, sys.platform)
-l.info("Starting fades v. %s", version)
-
 from fades import main
-main.go(sys.argv)
+main.go(version, sys.argv)

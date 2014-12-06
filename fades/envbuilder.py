@@ -14,8 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-""" class extended from EnvBuilder to create a venv and install
-    deps from diferents sources in it"""
+"""Create a venv and install deps from diferents sources in it."""
 
 import logging
 import os
@@ -37,24 +36,25 @@ class FadesEnvBuilder(EnvBuilder):
     """Create always a virtualenv and install the dependencies."""
     def __init__(self, deps):
         basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
-        self.env_path = "{}/{}".format(basedir, uuid4())
+        self.env_path = os.path.join(basedir, str(uuid4()))
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
         self.env_bin_path = ""
         self.deps = deps
         super().__init__(with_pip=False)
-        logger.info("libs to install: %s", self.deps)
-        logger.info("env will be created at: %s", self.env_path)
+        logger.debug("Libs to install: %s", self.deps)
+        logger.debug("Env will be created at: %s", self.env_path)
 
         # try to install pip using default machinery (which will work in a lot
         # of systems, noticeably it won't in some debians or ubuntus, like
         # Trusty; in that cases mark it to install manually later)
-        self._builtin_pip = True
         try:
-            import ensurepip
+            import ensurepip  # NOQA
+            self._pip_installed = True
         except ImportError:
-            self._builtin_pip = False
+            self._pip_installed = False
 
     def create_and_install(self):
+        """Create and install the venv."""
         self.create(self.env_path)
 
     def post_setup(self, context):
@@ -64,45 +64,45 @@ class FadesEnvBuilder(EnvBuilder):
             if dependency.repo == Repo.pypi:
                 self._pip_install(dependency)
             else:
-                logger.warning(
-                    "install from %s not implemented", dependency.repo)
+                logger.warning("Install from %s not implemented",
+                               dependency.repo)
         self._save_fades_info()
 
     def _brute_force_install_pip(self):
         """A brute force install of pip itself."""
         if os.path.exists(self.pip_installer_fname):
-            logger.info("Using pip installer from %r",
-                        self.pip_installer_fname)
+            logger.debug("Using pip installer from %r",
+                         self.pip_installer_fname)
         else:
-            logger.info("Installer for pip not found in %r, downloading it",
+            logger.debug("Installer for pip not found in %r, downloading it",
                         self.pip_installer_fname)
             u = request.urlopen(PIP_INSTALLER)
             with open(self.pip_installer_fname, 'wb') as fh:
                 fh.write(u.read())
 
-        logger.info("Installing PIP manually in the virtualenv")
+        logger.debug("Installing PIP manually in the virtualenv")
         python_exe = os.path.join(self.env_bin_path, "python")
         subprocess.check_call([python_exe, self.pip_installer_fname])
 
     def _pip_install(self, dependency):
-        "install a dependency with pip"
-        if not self._builtin_pip:
+        """Install a dependency with pip."""
+        if not self._pip_installed:
             logger.info("Need to install a dependency with pip, "
-                        "but no builtin, install it manually")
+                         "but no builtin, install it manually")
             self._brute_force_install_pip()
+            self._pip_installed = True
 
-        pip_exe = "{}/pip".format(self.env_bin_path)
+        pip_exe = os.path.join(self.env_bin_path, "pip")
         if dependency.version is None:
             module = dependency.module
         else:
-            module = dependency.module+dependency.version
+            module = dependency.module + dependency.version
         args = [pip_exe, "install", module]
-        logger.info("running: %s", args)
+        logger.info("Installing dependencies: %s", module)
         try:
-            #FIXME : send stdout and stderror to logfile? print human info
             subprocess.check_call(args)
         except Exception as error:
-            logger.error("Error installing %s : %s", module, error)
+            logger.error("Error installing %s: %s", module, error)
 
     def _save_fades_info(self):
         """Save env and deps info in file's xattr."""

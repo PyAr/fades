@@ -20,7 +20,7 @@ import logging
 import logging.handlers
 
 
-def set_up():
+def set_up(level):
     """Set up the logging."""
     # all to the syslog
     logger = logging.getLogger('fades')
@@ -33,7 +33,7 @@ def set_up():
 
     # and to the stdout
     handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
+    handler.setLevel(level)
     logger.addHandler(handler)
     formatter = logging.Formatter("*** fades ***  %(asctime)s  %(name)-18s"
                                   "%(levelname)-8s %(message)s")
