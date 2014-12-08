@@ -47,7 +47,6 @@ class FadesEnvBuilder(EnvBuilder):
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
         self.env_bin_path = ""
         self.deps = deps
-        super().__init__(with_pip=False)
         logger.debug("Libs to install: %s", self.deps)
         logger.debug("Env will be created at: %s", self.env_path)
 
@@ -59,6 +58,11 @@ class FadesEnvBuilder(EnvBuilder):
             self._pip_installed = True
         except ImportError:
             self._pip_installed = False
+
+        if self._pip_installed:
+            super().__init__(with_pip=True)
+        else:
+            super().__init__(with_pip=False)
 
     def create_and_install(self):
         """Create and install the venv."""
