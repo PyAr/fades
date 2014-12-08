@@ -77,6 +77,6 @@ def go(version, argv):
     env.create_and_install()
 
     l.debug("Calling the child Python program %r with options %s",
-             child_program, child_options)
+            child_program, child_options)
     python_exe = os.path.join(env.env_bin_path, "python3")
     subprocess.check_call([python_exe, child_program] + child_options)

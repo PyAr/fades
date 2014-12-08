@@ -82,7 +82,7 @@ class FadesEnvBuilder(EnvBuilder):
                          self.pip_installer_fname)
         else:
             logger.debug("Installer for pip not found in %r, downloading it",
-                        self.pip_installer_fname)
+                         self.pip_installer_fname)
             u = request.urlopen(PIP_INSTALLER)
             with open(self.pip_installer_fname, 'wb') as fh:
                 fh.write(u.read())
@@ -95,7 +95,7 @@ class FadesEnvBuilder(EnvBuilder):
         """Install a dependency with pip."""
         if not self._pip_installed:
             logger.info("Need to install a dependency with pip, "
-                         "but no builtin, install it manually")
+                        "but no builtin, install it manually")
             self._brute_force_install_pip()
             self._pip_installed = True
 
