@@ -4,6 +4,10 @@ fades
 FAst DEpendencies for Scripts
 
 
+*NOTE: still in pre-alpha state, lot of functionality described here 
+is still not available*
+
+
 What does it do?
 ----------------
 
