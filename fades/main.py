@@ -83,7 +83,7 @@ def go(version, argv):
     if installed_deps is not None:
         pass
         deps = []
-        #fixme: Compare parsed_deps with installed_deps and build de deps list regard the result of comparing.
+        #fixme: Compare parsed_deps with installed_deps and build the deps list regarding the result of comparing.
     else:
         deps = parsed_deps
 
