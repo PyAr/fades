@@ -27,16 +27,14 @@ def set_up(level):
     logger.setLevel(logging.DEBUG)
     handler = logging.handlers.SysLogHandler(address='/dev/log')
     logger.addHandler(handler)
-    formatter = logging.Formatter("%(name)s[%(process)d]: "
-                                  "%(levelname)-8s %(message)s")
+    formatter = logging.Formatter("%(name)s[%(process)d]: %(levelname)-8s %(message)s")
     handler.setFormatter(formatter)
 
     # and to the stdout
     handler = logging.StreamHandler()
     handler.setLevel(level)
     logger.addHandler(handler)
-    formatter = logging.Formatter("*** fades ***  %(asctime)s  %(name)-18s"
-                                  "%(levelname)-8s %(message)s")
+    formatter = logging.Formatter("*** fades ***  %(asctime)s  %(name)-18s %(levelname)-8s %(message)s")
     handler.setFormatter(formatter)
 
     return logger

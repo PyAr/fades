@@ -16,14 +16,12 @@
 
 """Script parsing to get needed dependencies."""
 
-import collections
 import enum
 import logging
 
 
 logger = logging.getLogger(__name__)
 
-Dependency = collections.namedtuple("Dependency", "module version repo")
 Repo = enum.Enum('Repo', 'pypi')
 
 
@@ -69,7 +67,7 @@ def _parse_content(fh):
             continue
 
         # record the dependency
-        deps.append(Dependency(module=module, repo=repo, version=version_info))
+        deps.append({'module': module, 'repo': repo, 'version': version_info})
 
     return deps
 
