@@ -28,7 +28,10 @@ Repo = enum.Enum('Repo', 'pypi')
 def _parse_content(fh):
     """Parse the content of a script to find marked dependencies."""
     content = iter(fh)
-    deps = []
+    deps = {}
+    for repo in Repo:
+        deps[repo] = {}
+
     for line in content:
         # quickly discard most of the lines
         if 'fades' not in line:
@@ -67,7 +70,8 @@ def _parse_content(fh):
             continue
 
         # record the dependency
-        deps.append({'module': module, 'repo': repo, 'version': version_info})
+
+        deps[repo][module] = {'version': version_info}
 
     return deps
 

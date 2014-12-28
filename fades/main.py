@@ -34,6 +34,7 @@ def _parse_argv(argv):
 
     Also, it happens that if you pass several parameters to fades when calling it using the "!#/usr/bin/fades"
     magic at the beginning of a file, all the parameters you put there come as a single string."""
+
     # get a copy, as we'll destroy this; in the same move ignore first
     # parameter that is the name of fades executable itself
     argv = argv[1:]
@@ -69,38 +70,55 @@ def go(version, argv):
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # parse file and get deps
-    parsed_deps = parsing.parse_file(child_program)
+    deps = parsing.parse_file(child_program)
 
     # get xattr
-    installed_deps, env_path, env_bin_path = get_xattr(child_program)
+    installed_deps, env_path, env_bin_path, pip_installed = get_xattr(child_program)
 
     if env_path is None:
+        l.info('%s has not a virtualenv yet. Creating one', child_program)
         #create virtualenv
         env = FadesEnvBuilder()
-        env_path, env_bin_path = env.create_env()
+        env_path, env_bin_path, pip_installed = env.create_env()
 
-    #compare deps
-    if installed_deps is not None:
-        pass
-        deps = []
-        #fixme: Compare parsed_deps with installed_deps and build the deps list regarding the result of comparing.
-    else:
-        deps = parsed_deps
+    #compare and install deps
+    for repo in deps.keys():
+        if repo == parsing.Repo.pypi:
+            pip_mng = PipManager(env_bin_path, pip_installed=pip_installed)
+            for dependency in deps[repo].keys():
+                if installed_deps is None or not installed_deps[repo].get(dependency):
+                    module = dependency
+                    version = deps[repo][dependency]['version']
+                    pip_mng.handle_dep(module, version)
+                else:
+                    if deps[repo][dependency]['version'] is None:
+                        l.debug("compare installed versión with last release not implemented yet see #XXX")
+                    else:
+                        if deps[repo][dependency]['version'] != installed_deps[repo][dependency]['version']:
+                            module = dependency
+                            version = deps[repo][dependency]['version']
+                            pip_mng.handle_dep(module, version, ignore_installed=True)
+                        else:
+                            l.info('%s already installed with the required version', dependency)
 
-    if len(deps) > 0:
-        pip_mng = PipManager(env_bin_path, pip_installed=env.pip_installed)
-        for dependency in deps:
-            if dependency['repo'] == parsing.Repo.pypi:
-                pip_mng.handle_deps(dependency)
-                if dependency['version'] is None:
+                if deps[repo][dependency]['version'] is None:
                     # if version is not specified. store the installed version.
-                    dependency['version'] = pip_mng.get_version(dependency)
-            else:
-                logger.warning("Install from %s not implemented", dependency['repo'])
+                    deps[repo][dependency]['version'] = pip_mng.get_version(dependency)
 
-        save_xattr(child_program, deps, env_path, env_bin_path)
+        else:
+            l.warning("Install from %s not implemented", repo)
 
+    # save/update xattr
+    if not installed_deps:
+        l.debug("saving xattr")
+        save_xattr(child_program, deps, env_path, env_bin_path, pip_installed)
+    elif installed_deps and installed_deps != deps:
+        l.debug("updating xattr")
+        update_xattr(child_program, deps)
+    else:
+        l.debug("Nothing to save in xattr")
+
+    # run forest run!!
     l.debug("Calling the child Python program %r with options %s", child_program, child_options)
     python_exe = os.path.join(env_bin_path, "python3")
-    # run forest run!!
     subprocess.check_call([python_exe, child_program] + child_options)

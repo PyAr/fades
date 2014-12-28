@@ -33,7 +33,7 @@ def logged_exec(cmd):
         logger.debug(line[:-1].decode("utf8"))
 
 
-def save_xattr(child_program, deps, env_path, env_bin_path):
+def save_xattr(child_program, deps, env_path, env_bin_path, pip_installed):
     """Saves fades info into xattr"""
     logger.info('Saving fades info in xattr of %s', child_program)
 
@@ -41,6 +41,7 @@ def save_xattr(child_program, deps, env_path, env_bin_path):
     xattr['deps'] = deps
     xattr['env_path'] = env_path
     xattr['env_bin_path'] = env_bin_path
+    xattr['pip_installed'] = pip_installed
 
     logger.debug('xattr dict == %s', xattr)
 
@@ -52,21 +53,25 @@ def save_xattr(child_program, deps, env_path, env_bin_path):
         logger.error('Error saving xattr: %s', error)
 
 
-def get_xattr(child_program):
+def get_xattr(child_program, return_dict=False):
     """Gets fades info from xattr"""
     logger.info('Getting fades info from xattr for %s', child_program)
     try:
         xattr = pickle.loads(os.getxattr(child_program, FADES_XATTR))
-        logger.debug('Xattr obtainded from %s == %s', child_program, xattr)
-        deps = xattr['deps']
-        env_path = xattr['env_path']
-        env_bin_path = xattr['env_bin_path']
-        return deps, env_path, env_bin_path
+        logger.debug('Xattr obtainded from %s: %s', child_program, xattr)
+        if return_dict:
+            return xattr
+        else:
+            deps = xattr['deps']
+            env_path = xattr['env_path']
+            env_bin_path = xattr['env_bin_path']
+            pip_installed = xattr['pip_installed']
+            return deps, env_path, env_bin_path, pip_installed
 
     except OSError as error:
         if error.errno == errno.ENODATA:  # No data available
             logger.debug('%s has no fades xattr', child_program)
-            return None, None, None
+            return None, None, None, None
         else:
             logger.error('Error getting xattr: %s', error)
             raise
@@ -76,7 +81,7 @@ def update_xattr(child_program, deps):
     """Overrite fades info into xattr"""
     logger.info('Updating xattr fades info for %s', child_program)
     logger.debug('Updating xattr with: %s', deps)
-    xattr = get_xattr(child_program)
+    xattr = get_xattr(child_program, return_dict=True)
     xattr['deps'] = deps
 
     serialized_xattr = pickle.dumps(xattr)

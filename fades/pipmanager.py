@@ -37,18 +37,18 @@ class PipManager():
         basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
 
-    def handle_deps(self, dependency):
-        """Install a dependency with pip."""
+    def handle_dep(self, module, version, ignore_installed=False):
+        """Install/upgrade/downgrade a dependency wit pip."""
         if not self.pip_installed:
             logger.info("Need to install a dependency with pip, but no builtin, install it manually")
             self._brute_force_install_pip()
             self.pip_installed = True
 
-        if dependency['version'] is None:
-            module = dependency['module']
-        else:
-            module = dependency['module'] + dependency['version']
+        if version is not None:
+            module = module + version
         args = [self.pip_exe, "install", module]
+        if ignore_installed:
+            args.insert(2,'-I')
         logger.info("Installing dependency: %s", module)
         try:
             logged_exec(args)
@@ -57,9 +57,11 @@ class PipManager():
 
     def get_version(self, dependency):
         """Returns the installed version parsing the output of 'pip show'."""
-        cmd = [self.pip_exe, "show", dependency['module']]
+        logger.debug("getting installed versión for %s", dependency)
+        cmd = [self.pip_exe, "show", dependency]
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         version = p.stdout.readlines()[2].decode('utf-8').strip().split()[1]
+        logger.info("Installed versión of %s is: %s", dependency, version)
         return version
 
     def _brute_force_install_pip(self):

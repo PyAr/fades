@@ -14,7 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-"""Create a venv and install deps from diferents sources in it."""
+"""Extended class from EnvBuilder to create a venv using a uuid4 id."""
 
 import logging
 import os
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class FadesEnvBuilder(EnvBuilder):
-    """Create always a virtualenv and install the dependencies."""
+    """Create always a virtualenv"""
     def __init__(self):
         basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
         self.env_path = os.path.join(basedir, str(uuid4()))
@@ -50,10 +50,11 @@ class FadesEnvBuilder(EnvBuilder):
             super().__init__(with_pip=False)
 
     def create_env(self):
-        """Create and install the venv."""
+        """Create the virtualenv and return its info."""
         self.create(self.env_path)
-        return self.env_path, self.env_bin_path
+        logger.debug("env_bin_path: %s", self.env_bin_path)
+        return self.env_path, self.env_bin_path, self.pip_installed
 
     def post_setup(self, context):
-        """Install deps into the enviroment being created."""
+        """Gets the bin path from context."""
         self.env_bin_path = context.bin_path
