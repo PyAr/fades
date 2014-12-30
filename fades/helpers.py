@@ -55,10 +55,10 @@ def save_xattr(child_program, deps, env_path, env_bin_path, pip_installed):
 
 def get_xattr(child_program, return_dict=False):
     """Gets fades info from xattr"""
-    logger.info('Getting fades info from xattr for %s', child_program)
+    logger.debug('Getting fades info from xattr for %s', child_program)
     try:
         xattr = pickle.loads(os.getxattr(child_program, FADES_XATTR))
-        logger.debug('Xattr obtainded from %s: %s', child_program, xattr)
+        logger.debug('Xattr obtained from %s: %s', child_program, xattr)
         if return_dict:
             return xattr
         else:

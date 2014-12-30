@@ -61,7 +61,7 @@ class PipManager():
         cmd = [self.pip_exe, "show", dependency]
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         version = p.stdout.readlines()[2].decode('utf-8').strip().split()[1]
-        logger.info("Installed versión of %s is: %s", dependency, version)
+        logger.debug("Installed versión of %s is: %s", dependency, version)
         return version
 
     def _brute_force_install_pip(self):

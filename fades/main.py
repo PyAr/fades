@@ -121,4 +121,6 @@ def go(version, argv):
     # run forest run!!
     l.debug("Calling the child Python program %r with options %s", child_program, child_options)
     python_exe = os.path.join(env_bin_path, "python3")
-    subprocess.check_call([python_exe, child_program] + child_options)
+    rc = subprocess.call([python_exe, child_program] + child_options)
+    if rc:
+        l.debug("Child process not finished correctly: returncode=%d", rc)

@@ -101,3 +101,19 @@ debugging lines to stderr, which may be very useful if any problem arises.
 On the other hand if you pass the ``-q`` or ``--quiet`` parameter, *fades*
 will not show anything (unless it has a real problem), so the original 
 script stderr is not polluted at all.
+
+
+More help
+=========
+
+Some questions, hints, etc...
+
+ - *Everytime I edit my script with vim/gvim, ``fades`` installs everything again*: this is because vim doesn't keep extended attributes in the mambo-jambo it does when saving; to fix this add ``set backupcopy=yes`` in your ``$HOME/.vimrc`` file.
+
+
+Even more help
+--------------
+
+We will open a mail list or IRC channel soon... meanwhile please open a issue here::
+
+  https://github.com/PyAr/fades/issues/new
