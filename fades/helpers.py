@@ -28,9 +28,11 @@ FADES_XATTR = 'user.fades'
 
 def logged_exec(cmd):
     """Execute a command, redirecting the output to the log."""
+    logger = logging.getLogger('fades.exec')
+    logger.debug("Executing external command: %r", cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     for line in p.stdout:
-        logger.debug(line[:-1].decode("utf8"))
+        logger.debug(":: " + line[:-1].decode("utf8"))
 
 
 def save_xattr(child_program, deps, env_path, env_bin_path, pip_installed):
