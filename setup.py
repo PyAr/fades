@@ -43,11 +43,11 @@ class CustomInstall(install):
         for script in self.distribution.scripts:
             script_path = os.path.join(self.install_scripts,
                                        os.path.basename(script))
-            with open(script_path, 'rb') as fh:
+            with open(script_path, 'rt', encoding='utf8') as fh:
                 content = fh.read()
             content = content.replace('@ INSTALLED_BASE_DIR @',
                                       self._custom_data_dir)
-            with open(script_path, 'wb') as fh:
+            with open(script_path, 'wt', encoding='utf8') as fh:
                 fh.write(content)
 
         # man directory
