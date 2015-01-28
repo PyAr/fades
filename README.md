@@ -103,6 +103,28 @@ will not show anything (unless it has a real problem), so the original
 script stderr is not polluted at all.
 
 
+How to install it
+=================
+
+The classical way is to branch the project and run ``setup.py``::
+
+    git clone https://github.com/PyAr/fades.git
+    cd fades
+    ./setup.py install
+
+Other methods soon! Keep tuned...
+
+
+Can I try it without installing it?
+-----------------------------------
+
+Yes! Branch the project and use the executable::
+
+    git clone https://github.com/PyAr/fades.git
+    cd fades
+    bin/fades your_script.py
+
+
 More help
 =========
 
