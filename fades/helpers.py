@@ -33,6 +33,9 @@ def logged_exec(cmd):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     for line in p.stdout:
         logger.debug(":: " + line[:-1].decode("utf8"))
+    retcode = p.wait()
+    if retcode:
+        raise subprocess.CalledProcessError(retcode, cmd)
 
 
 def save_xattr(child_program, deps, env_path, env_bin_path, pip_installed):

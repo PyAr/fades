@@ -53,7 +53,8 @@ class PipManager():
         try:
             logged_exec(args)
         except Exception as error:
-            logger.error("Error installing %s: %s", module, error)
+            logger.exception("Error installing %s: %s", module, error)
+            exit()
 
     def get_version(self, dependency):
         """Returns the installed version parsing the output of 'pip show'."""
