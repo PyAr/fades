@@ -1,4 +1,4 @@
-# Copyright 2014 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2015 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General
 # Public License version 3, as published by the Free Software Foundation.
@@ -22,7 +22,9 @@ import subprocess
 from fades import parsing, logger
 from fades.pipmanager import PipManager
 from fades.envbuilder import FadesEnvBuilder
-from fades.helpers import save_xattr, get_xattr, update_xattr
+from fades.helpers import save_xattr, get_xattr, update_xattr, is_version_satisfied
+
+#logger = logging.getLogger(__name__)
 
 
 def _parse_argv(argv):
@@ -49,6 +51,33 @@ def _parse_argv(argv):
     return fades_options, child_program, argv[1:]
 
 
+def _manage_dependencies(manager, requested_deps, previous_deps):
+    """Decide the action to take for the dependencies of a repo.
+
+    Note that it will change the requested_deps version accordingly to
+    what was really installed.
+    """
+    for dependency, requested_data in requested_deps.items():
+        requested_version = requested_data['version']
+        try:
+            previous_data = previous_deps[dependency]
+        except KeyError:
+            # this dependency wasn't isntalled before!
+            manager.install(dependency, requested_version)
+        else:
+            # dependency installed before... do action only on version not satisfied by current
+            if not is_version_satisfied(previous_data['version'], requested_version):
+                manager.update(dependency, requested_version)
+
+        # always store the installed dependency, as in the future we'll want to react
+        # based on what is installed, not what used requested (remember that user may
+        # request >, >=, etc!)
+        requested_data['version'] = manager.get_version(dependency)
+
+    for dependency in set(previous_deps) - set(requested_deps):
+        manager.remove(dependency)
+
+
 def go(version, argv):
     """Make the magic happen."""
     fades_options, child_program, child_options = _parse_argv(sys.argv)
@@ -70,10 +99,10 @@ def go(version, argv):
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # parse file and get deps
-    deps = parsing.parse_file(child_program)
+    requested_deps = parsing.parse_file(child_program)
 
     # get xattr
-    installed_deps, env_path, env_bin_path, pip_installed = get_xattr(child_program)
+    previous_deps, env_path, env_bin_path, pip_installed = get_xattr(child_program)
 
     if env_path is None:
         l.info('%s has not a virtualenv yet. Creating one', child_program)
@@ -81,40 +110,28 @@ def go(version, argv):
         env = FadesEnvBuilder()
         env_path, env_bin_path, pip_installed = env.create_env()
 
-    #compare and install deps
-    for repo in deps.keys():
+    # compare and install deps
+    for repo in requested_deps.keys():
         if repo == parsing.Repo.pypi:
-            pip_mng = PipManager(env_bin_path, pip_installed=pip_installed)
-            for dependency in deps[repo].keys():
-                if installed_deps is None or not installed_deps[repo].get(dependency):
-                    module = dependency
-                    version = deps[repo][dependency]['version']
-                    pip_mng.handle_dep(module, version)
-                else:
-                    if deps[repo][dependency]['version'] is None:
-                        l.debug("compare installed versión with last release not implemented yet see #XXX")
-                    else:
-                        if deps[repo][dependency]['version'] != installed_deps[repo][dependency]['version']:
-                            module = dependency
-                            version = deps[repo][dependency]['version']
-                            pip_mng.handle_dep(module, version, ignore_installed=True)
-                        else:
-                            l.info('%s already installed with the required version', dependency)
-
-                if deps[repo][dependency]['version'] is None:
-                    # if version is not specified. store the installed version.
-                    deps[repo][dependency]['version'] = pip_mng.get_version(dependency)
-
+            mgr = PipManager(env_bin_path, pip_installed=pip_installed)
         else:
             l.warning("Install from %s not implemented", repo)
+            continue
+
+        repo_requested = requested_deps[repo]
+        repo_previous = previous_deps.get(repo, {})
+        l.debug("Managing dependencies for repo %r: requested=%s previous=%s",
+                repo, repo_requested, repo_previous)
+        _manage_dependencies(mgr, repo_requested, repo_previous)
+        l.debug("Resulted dependencies: %s", repo_requested)
 
     # save/update xattr
-    if not installed_deps:
+    if not previous_deps:
         l.debug("saving xattr")
-        save_xattr(child_program, deps, env_path, env_bin_path, pip_installed)
-    elif installed_deps and installed_deps != deps:
+        save_xattr(child_program, requested_deps, env_path, env_bin_path, pip_installed)
+    elif previous_deps and previous_deps != requested_deps:
         l.debug("updating xattr")
-        update_xattr(child_program, deps)
+        update_xattr(child_program, requested_deps)
     else:
         l.debug("Nothing to save in xattr")
 

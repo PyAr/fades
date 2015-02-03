@@ -37,8 +37,8 @@ class PipManager():
         basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
 
-    def handle_dep(self, module, version, ignore_installed=False):
-        """Install/upgrade/downgrade a dependency wit pip."""
+    def _handle_dep(self, module, version, ignore_installed=False):
+        """Install/upgrade a dependency wit pip."""
         if not self.pip_installed:
             logger.info("Need to install a dependency with pip, but no builtin, install it manually")
             self._brute_force_install_pip()
@@ -48,13 +48,25 @@ class PipManager():
             module = module + version
         args = [self.pip_exe, "install", module]
         if ignore_installed:
-            args.insert(2,'-I')
+            args.insert(2, '-I')
         logger.info("Installing dependency: %s", module)
         try:
             logged_exec(args)
         except Exception as error:
             logger.exception("Error installing %s: %s", module, error)
             exit()
+
+    def install(self, module, version):
+        """Install a new dependency."""
+        self._handle_dep(module, version)
+
+    def update(self, module, version):
+        """Update a dependency revision."""
+        self._handle_dep(module, version, ignore_installed=True)
+
+    def remove(self, module, version):
+        """Remove a dependency."""
+        # FIXME: needs to be done, see issue #4
 
     def get_version(self, dependency):
         """Returns the installed version parsing the output of 'pip show'."""

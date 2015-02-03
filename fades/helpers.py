@@ -1,4 +1,4 @@
-# Copyright 2014 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2015 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -76,7 +76,7 @@ def get_xattr(child_program, return_dict=False):
     except OSError as error:
         if error.errno == errno.ENODATA:  # No data available
             logger.debug('%s has no fades xattr', child_program)
-            return None, None, None, None
+            return {}, None, None, None
         else:
             logger.error('Error getting xattr: %s', error)
             raise
@@ -94,3 +94,32 @@ def update_xattr(child_program, deps):
         os.setxattr(child_program, FADES_XATTR, serialized_xattr, flags=os.XATTR_REPLACE)
     except OSError as error:
         logger.error('Error updating xattr: %s', error)
+
+
+def is_version_satisfied(previous, requested):
+    """Decide if the previous version satisfies what is requested."""
+    if requested is None:
+        # don't care what we had before if nothing specific is requested
+        return True
+
+    if previous is None:
+        # something requested, and no info from the past, sure it's different
+        return False
+
+    previous = previous.strip()
+    requested = requested.strip()
+
+    if requested.startswith('=='):
+        req = requested[2:].strip()
+        return req == previous
+
+    if requested.startswith('>='):
+        req = requested[2:].strip()
+        return previous >= req
+
+    if requested.startswith('>'):
+        req = requested[1:].strip()
+        return previous > req
+
+    # no special case
+    return requested == previous
