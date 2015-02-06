@@ -33,48 +33,50 @@ class PyPIParsingTestCase(unittest.TestCase):
             import time
             from time import foo
         """))
-        self.assertEqual(parsed, [])
+        self.assertDictEqual(parsed, {parsing.Repo.pypi: {}})
 
     def test_simple(self):
         parsed = parsing._parse_content(io.StringIO("""
             import time
             import foo    # fades.pypi
         """))
-        dep, = parsed
-        self.assertEqual(dep['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep['module'], 'foo')
-        self.assertEqual(dep['version'], None)
+        dep = parsed
+        self.assertDictEqual(dep, {parsing.Repo.pypi: {'foo': {'version': None}}})
 
     def test_double(self):
         parsed = parsing._parse_content(io.StringIO("""
             import time  # fades.pypi
             import foo    # fades.pypi
         """))
-        dep1, dep2 = parsed
-        self.assertEqual(dep1['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep1['module'], 'time')
-        self.assertEqual(dep1['version'], None)
-        self.assertEqual(dep2['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep2['module'], 'foo')
-        self.assertEqual(dep2['version'], None)
+        deps = parsed
+        self.assertDictEqual(deps, {
+            parsing.Repo.pypi: {
+                'time': {'version': None},
+                'foo': {'version': None},
+            }
+        })
 
     def test_version_same(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi == 3.5
         """))
-        dep, = parsed
-        self.assertEqual(dep['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep['module'], 'foo')
-        self.assertEqual(dep['version'], '== 3.5')
+        deps = parsed
+        self.assertDictEqual(deps, {
+            parsing.Repo.pypi: {
+                'foo': {'version': '== 3.5'},
+            }
+        })
 
     def test_version_greater(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi > 2
         """))
-        dep, = parsed
-        self.assertEqual(dep['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep['module'], 'foo')
-        self.assertEqual(dep['version'], '> 2')
+        deps = parsed
+        self.assertDictEqual(deps, {
+            parsing.Repo.pypi: {
+                'foo': {'version': '> 2'},
+            }
+        })
 
     def test_continuation_line(self):
         parsed = parsing._parse_content(io.StringIO("""
@@ -82,46 +84,56 @@ class PyPIParsingTestCase(unittest.TestCase):
             # fades.pypi > 2
             import foo
         """))
-        dep, = parsed
-        self.assertEqual(dep['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep['module'], 'foo')
-        self.assertEqual(dep['version'], '> 2')
+        deps = parsed
+        self.assertDictEqual(deps, {
+            parsing.Repo.pypi: {
+                'foo': {'version': '> 2'},
+            }
+        })
 
     def test_from_import_simple(self):
         parsed = parsing._parse_content(io.StringIO("""
             from foo import bar   # fades.pypi
         """))
-        dep, = parsed
-        self.assertEqual(dep['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep['module'], 'foo')
-        self.assertEqual(dep['version'], None)
+        deps = parsed
+        self.assertDictEqual(deps, {
+            parsing.Repo.pypi: {
+                'foo': {'version': None},
+            }
+        })
 
     def test_import(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo.bar   # fades.pypi
         """))
-        dep, = parsed
-        self.assertEqual(dep['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep['module'], 'foo')
-        self.assertEqual(dep['version'], None)
+        deps = parsed
+        self.assertDictEqual(deps, {
+            parsing.Repo.pypi: {
+                'foo': {'version': None},
+            }
+        })
 
     def test_from_import_complex(self):
         parsed = parsing._parse_content(io.StringIO("""
             from baz.foo import bar   # fades.pypi
         """))
-        dep, = parsed
-        self.assertEqual(dep['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep['module'], 'baz')
-        self.assertEqual(dep['version'], None)
+        deps = parsed
+        self.assertDictEqual(deps, {
+            parsing.Repo.pypi: {
+                'baz': {'version': None},
+            }
+        })
 
     def test_allow_other_comments(self):
         parsed = parsing._parse_content(io.StringIO("""
             from foo import *   # NOQA   # fades.pypi
         """))
-        dep, = parsed
-        self.assertEqual(dep['repo'], parsing.Repo.pypi)
-        self.assertEqual(dep['module'], 'foo')
-        self.assertEqual(dep['version'], None)
+        deps = parsed
+        self.assertDictEqual(deps, {
+            parsing.Repo.pypi: {
+                'foo': {'version': None},
+            }
+        })
 
     def test_strange_import(self):
         with self.assertLogs(level=logging.WARNING) as cm:
