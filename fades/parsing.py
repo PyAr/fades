@@ -63,8 +63,8 @@ def _parse_content(fh):
         # get the fades info
         if fades_part.startswith("fades.pypi"):
             repo = Repo.pypi
-            parts = fades_part.split(maxsplit=1)
-            version_info = None if len(parts) == 1 else parts[1]
+            parts = fades_part[10:]  # Only works with fades.pypi
+            version_info = None if len(parts) == 0 else parts.replace(" ", "")
         else:
             logger.warning("Not understood fades info: %r", fades_part)
             continue

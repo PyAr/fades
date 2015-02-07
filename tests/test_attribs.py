@@ -57,7 +57,7 @@ class AttribsManagingTestCase(unittest.TestCase):
     """Basic functionality tests."""
 
     def setUp(self):
-        _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
+        _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file", dir='.')
         self.addCleanup(os.remove, self.tempfile)
         SetupLogChecker(self, 'fades.attribs')
 
