@@ -1,0 +1,23 @@
+# Maintainer: Diego Mascialino <dmascialino@gmail.com>
+
+pkgname=fades
+pkgver=1.0
+pkgrel=1
+pkgdesc="FAst DEpendencies for Scripts."
+url="https://github.com/PyAr/fades/"
+arch=('any')
+depends=('python')
+license=('GPL3')
+source=(https://github.com/PyAr/fades/archive/${pkgver}.tar.gz)
+
+md5sums=('dc11ed32e30bc3221f2d4b7d5b342dc1')
+
+build() {
+    cd ${srcdir}/fades-${pkgver}
+    python setup.py build
+}
+
+package() {
+    cd ${srcdir}/fades-${pkgver}
+    python setup.py install --root="${pkgdir}" --optimize=1
+}
