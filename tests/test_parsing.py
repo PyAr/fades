@@ -144,7 +144,7 @@ class PyPIParsingTestCase(unittest.TestCase):
             "WARNING:fades.parsing:Not understood import info: "
             "['from', 'foo', 'bar', 'import', ':(']"
         ))
-        self.assertEqual(parsed, [])
+        self.assertDictEqual(parsed, {parsing.Repo.pypi: {}})
 
     def test_strange_fadesinfo(self):
         with self.assertLogs(level=logging.WARNING) as cm:
@@ -154,4 +154,4 @@ class PyPIParsingTestCase(unittest.TestCase):
         self.assertEqual(cm.output[0], (
             "WARNING:fades.parsing:Not understood fades info: 'fades.broken'"
         ))
-        self.assertEqual(parsed, [])
+        self.assertDictEqual(parsed, {parsing.Repo.pypi: {}})
