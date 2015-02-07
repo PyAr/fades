@@ -42,7 +42,7 @@ class PipManager():
         basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
 
-    def _handle_dep(self, module, version, ignore_installed=False):
+    def _handle_dep(self, module, version):
         """Install/upgrade a dependency wit pip."""
         if not self.pip_installed:
             logger.info("Need to install a dependency with pip, but no builtin"
