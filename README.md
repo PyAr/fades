@@ -136,6 +136,12 @@ Some questions, hints, etc...
 Even more help
 --------------
 
-We will open a mail list or IRC channel soon... meanwhile please open a issue here::
+You can ask any question or send any recommendation or request to the mailing list:
+
+    http://listas.python.org.ar/mailman/listinfo/fades
+
+Also, you can open an issue here (please do if you find any problem!)::
 
   https://github.com/PyAr/fades/issues/new
+
+Thanks in advance for your time.
