@@ -4,10 +4,6 @@ fades
 FAst DEpendencies for Scripts
 
 
-*NOTE: still in pre-alpha state, lot of functionality described here
-is still not available*
-
-
 What does it do?
 ----------------
 
@@ -82,10 +78,12 @@ How to control the virtualenv creation and usage?
 
 You can influence several details of all the virtualenv related process.
 
+*Note: the functionality in this parragraph is still not ready*.
 The most important detail is which version of Python will be used in
 the virtualenv. Of course, the corresponding version of Python needs to
 be installed in your system, but you can control exactly which one to use.
 
+*Note: the functionality in this parragraph is still not ready*.
 No matter which way you're executing the script (see above), you can
 pass a ``-p`` or ``--python`` argument, indicating the Python version to
 be used just with the number (``2.7``), the whole name (``python2.7``) or
