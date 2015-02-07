@@ -19,12 +19,10 @@ import sys
 import logging
 import subprocess
 
-from fades import parsing, logger
+from fades import parsing, logger, attribs
 from fades.pipmanager import PipManager
 from fades.envbuilder import FadesEnvBuilder
-from fades.helpers import save_xattr, get_xattr, update_xattr, is_version_satisfied
-
-#logger = logging.getLogger(__name__)
+from fades.helpers import is_version_satisfied
 
 
 def _parse_argv(argv):
@@ -101,19 +99,23 @@ def go(version, argv):
     # parse file and get deps
     requested_deps = parsing.parse_file(child_program)
 
-    # get xattr
-    previous_deps, env_path, env_bin_path, pip_installed = get_xattr(child_program)
+    # start the attributes manager
+    xattrs = attribs.XAttrsManager(child_program)
 
-    if env_path is None:
+    if 'env_path' not in xattrs:
         l.info('%s has not a virtualenv yet. Creating one', child_program)
-        #create virtualenv
+        # create virtualenv
         env = FadesEnvBuilder()
         env_path, env_bin_path, pip_installed = env.create_env()
+        xattrs['env_path'] = env_path
+        xattrs['env_bin_path'] = env_bin_path
+        xattrs['pip_installed'] = pip_installed
 
     # compare and install deps
+    previous_deps = xattrs.get('requested_deps', {})
     for repo in requested_deps.keys():
         if repo == parsing.Repo.pypi:
-            mgr = PipManager(env_bin_path, pip_installed=pip_installed)
+            mgr = PipManager(xattrs['env_bin_path'], pip_installed=xattrs['pip_installed'])
         else:
             l.warning("Install from %s not implemented", repo)
             continue
@@ -125,19 +127,14 @@ def go(version, argv):
         _manage_dependencies(mgr, repo_requested, repo_previous)
         l.debug("Resulted dependencies: %s", repo_requested)
 
-    # save/update xattr
-    if not previous_deps:
-        l.debug("saving xattr")
-        save_xattr(child_program, requested_deps, env_path, env_bin_path, pip_installed)
-    elif previous_deps and previous_deps != requested_deps:
-        l.debug("updating xattr")
-        update_xattr(child_program, requested_deps)
-    else:
-        l.debug("Nothing to save in xattr")
+    # save/update xattr at this point, as the repo requested information may have changed
+    # in the installation process
+    xattrs['requested_deps'] = requested_deps
+    xattrs.save()
 
     # run forest run!!
     l.debug("Calling the child Python program %r with options %s", child_program, child_options)
-    python_exe = os.path.join(env_bin_path, "python3")
+    python_exe = os.path.join(xattrs['env_bin_path'], "python3")
     rc = subprocess.call([python_exe, child_program] + child_options)
     if rc:
         l.debug("Child process not finished correctly: returncode=%d", rc)

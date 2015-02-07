@@ -15,15 +15,11 @@
 # For further info, check  https://github.com/PyAr/fades
 
 """A collection of utilities for fades."""
-import os
-import errno
-import pickle
+
 import logging
 import subprocess
 
 logger = logging.getLogger(__name__)
-
-FADES_XATTR = 'user.fades'
 
 
 def logged_exec(cmd):
@@ -36,64 +32,6 @@ def logged_exec(cmd):
     retcode = p.wait()
     if retcode:
         raise subprocess.CalledProcessError(retcode, cmd)
-
-
-def save_xattr(child_program, deps, env_path, env_bin_path, pip_installed):
-    """Saves fades info into xattr"""
-    logger.info('Saving fades info in xattr of %s', child_program)
-
-    xattr = {}
-    xattr['deps'] = deps
-    xattr['env_path'] = env_path
-    xattr['env_bin_path'] = env_bin_path
-    xattr['pip_installed'] = pip_installed
-
-    logger.debug('xattr dict == %s', xattr)
-
-    serialized_xattr = pickle.dumps(xattr)
-
-    try:
-        os.setxattr(child_program, FADES_XATTR, serialized_xattr, flags=os.XATTR_CREATE)
-    except OSError as error:
-        logger.error('Error saving xattr: %s', error)
-
-
-def get_xattr(child_program, return_dict=False):
-    """Gets fades info from xattr"""
-    logger.debug('Getting fades info from xattr for %s', child_program)
-    try:
-        xattr = pickle.loads(os.getxattr(child_program, FADES_XATTR))
-        logger.debug('Xattr obtained from %s: %s', child_program, xattr)
-        if return_dict:
-            return xattr
-        else:
-            deps = xattr['deps']
-            env_path = xattr['env_path']
-            env_bin_path = xattr['env_bin_path']
-            pip_installed = xattr['pip_installed']
-            return deps, env_path, env_bin_path, pip_installed
-
-    except OSError as error:
-        if error.errno == errno.ENODATA:  # No data available
-            logger.debug('%s has no fades xattr', child_program)
-            return {}, None, None, None
-        else:
-            logger.error('Error getting xattr: %s', error)
-            raise
-
-
-def update_xattr(child_program, deps):
-    """Overrite fades info into xattr"""
-    logger.info('Updating xattr fades info for %s', child_program)
-    logger.debug('Updating xattr with: %s', deps)
-    xattr = get_xattr(child_program, return_dict=True)
-    xattr['deps'] = deps
-
-    serialized_xattr = pickle.dumps(xattr)
-    try:
-        os.setxattr(child_program, FADES_XATTR, serialized_xattr, flags=os.XATTR_REPLACE)
-    except OSError as error:
-        logger.error('Error updating xattr: %s', error)
 
 
 def is_version_satisfied(previous, requested):
