@@ -52,3 +52,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# archlinux
+!pkg/archlinux/PKGBUILD
+pkg/archlinux/*
