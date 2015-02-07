@@ -13,6 +13,11 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/fades
+#
+# NOTE: We are not using pip as a API because fades is not running in the same
+# env that the child program. So we have to call the pip binary that is inside
+# the created virtualenv.
+
 
 import os
 import logging
@@ -40,15 +45,13 @@ class PipManager():
     def _handle_dep(self, module, version, ignore_installed=False):
         """Install/upgrade a dependency wit pip."""
         if not self.pip_installed:
-            logger.info("Need to install a dependency with pip, but no builtin, install it manually")
+            logger.info("Need to install a dependency with pip, but no builtin"
+                        ", install it manually")
             self._brute_force_install_pip()
-            self.pip_installed = True
 
         if version is not None:
             module = module + version
         args = [self.pip_exe, "install", module]
-        if ignore_installed:
-            args.insert(2, '-I')
         logger.info("Installing dependency: %s", module)
         try:
             logged_exec(args)
@@ -62,11 +65,17 @@ class PipManager():
 
     def update(self, module, version):
         """Update a dependency revision."""
-        self._handle_dep(module, version, ignore_installed=True)
+        self._handle_dep(module, version)
 
-    def remove(self, module, version):
+    def remove(self, module):
         """Remove a dependency."""
-        # FIXME: needs to be done, see issue #4
+        args = [self.pip_exe, "uninstall", module, '--yes']
+        logger.info("Uninstalling dependency: %s", module)
+        try:
+            logged_exec(args)
+        except Exception as error:
+            logger.exception("Error uninstalling %s: %s", module, error)
+            exit()
 
     def get_version(self, dependency):
         """Returns the installed version parsing the output of 'pip show'."""

@@ -15,6 +15,9 @@
 # For further info, check  https://github.com/PyAr/fades
 
 """Extended class from EnvBuilder to create a venv using a uuid4 id."""
+# NOTE: this class only work in the same python version that Fades is running. So you don't need
+# to have installed a virtualenv tool. For other python versions Fades needs a
+# virtualenv tool installed.
 
 import logging
 import os
