@@ -1,4 +1,4 @@
-include README.md
+include README.rst
 include COPYING
 include AUTHORS
 include version.txt

@@ -26,7 +26,7 @@ Needed packages to run (using Debian/Ubuntu package names):
 import os
 import shutil
 
-from distutils.command.install import install
+from setuptools.command.install import install
 from distutils.core import setup
 
 
@@ -41,8 +41,7 @@ class CustomInstall(install):
 
         # fix installation path in the script(s)
         for script in self.distribution.scripts:
-            script_path = os.path.join(self.install_scripts,
-                                       os.path.basename(script))
+            script_path = os.path.join(self.install_scripts, os.path.basename(script))
             with open(script_path, 'rt', encoding='utf8') as fh:
                 content = fh.read()
             content = content.replace('@ INSTALLED_BASE_DIR @',
