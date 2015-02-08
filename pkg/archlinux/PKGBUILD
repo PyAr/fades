@@ -8,9 +8,9 @@ url="https://github.com/PyAr/fades/"
 arch=('any')
 depends=('python')
 license=('GPL3')
-source=(https://github.com/PyAr/fades/archive/${pkgver}.tar.gz)
+source=(https://pypi.python.org/packages/source/f/fades/fades-${pkgver}.tar.gz)
 
-md5sums=('dc11ed32e30bc3221f2d4b7d5b342dc1')
+md5sums=('ad46a7c512f150ab56e970eedbf84a7d')
 
 build() {
     cd ${srcdir}/fades-${pkgver}
