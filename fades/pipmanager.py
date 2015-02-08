@@ -91,7 +91,8 @@ class PipManager():
         if os.path.exists(self.pip_installer_fname):
             logger.debug("Using pip installer from %r", self.pip_installer_fname)
         else:
-            logger.debug("Installer for pip not found in %r, downloading it", self.pip_installer_fname)
+            logger.debug(
+                "Installer for pip not found in %r, downloading it", self.pip_installer_fname)
             u = request.urlopen(PIP_INSTALLER)
             with open(self.pip_installer_fname, 'wb') as fh:
                 fh.write(u.read())

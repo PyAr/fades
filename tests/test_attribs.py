@@ -69,7 +69,8 @@ class AttribsManagingTestCase(unittest.TestCase):
     def test_load_data(self):
         # save it "by hand"
         d = dict(foo='bar', baz=123)
-        os.setxattr(self.tempfile, XAttrsManager._namespace, pickle.dumps(d), flags=os.XATTR_CREATE)
+        os.setxattr(self.tempfile, XAttrsManager._namespace, pickle.dumps(d),
+                    flags=os.XATTR_CREATE)
 
         # read it
         xam = XAttrsManager(self.tempfile)
@@ -106,7 +107,8 @@ class AttribsManagingTestCase(unittest.TestCase):
     def test_update(self):
         # save it "by hand"
         d = dict(foo='bar', baz=123)
-        os.setxattr(self.tempfile, XAttrsManager._namespace, pickle.dumps(d), flags=os.XATTR_CREATE)
+        os.setxattr(self.tempfile, XAttrsManager._namespace, pickle.dumps(d),
+                    flags=os.XATTR_CREATE)
 
         # load, change, save it
         xam = XAttrsManager(self.tempfile)

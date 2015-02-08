@@ -12,4 +12,4 @@ fi
 
 
 nosetests3 -v -s $TARGET
-flake8 $TARGET --max-line-length=119
+flake8 $TARGET --max-line-length=99

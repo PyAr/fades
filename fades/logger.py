@@ -34,7 +34,8 @@ def set_up(level):
     handler = logging.StreamHandler()
     handler.setLevel(level)
     logger.addHandler(handler)
-    formatter = logging.Formatter("*** fades ***  %(asctime)s  %(name)-18s %(levelname)-8s %(message)s")
+    formatter = logging.Formatter(
+        "*** fades ***  %(asctime)s  %(name)-18s %(levelname)-8s %(message)s")
     handler.setFormatter(formatter)
 
     return logger
