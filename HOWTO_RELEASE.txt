@@ -1,0 +1,69 @@
+Steps before a release is done
+------------------------------
+
+Edit the ``version.txt`` file properly, then tag and commit/push
+
+  git tag release-VERSION
+  git commit -am "Release VERSION"
+  git push
+
+
+How to release it to PyPI
+-------------------------
+
+Dead simple:
+
+    ./setup.py sdist upload
+
+
+How to create a .deb
+--------------------
+
+WARNING: this creation is actually using sudo and messing with your system; it shouldn't (checkinstall should be called with no sudo but fakereoot before it, and with --fstrans parameter), but I wasn't able to make it work.
+
+Before starting checkinstall, do this so it gets the description automatically:
+
+    python3 setup.py --long-description > description-pak
+
+
+The following is the whole command (copy it, trim the comments, put everything in the same line):
+
+    sudo checkinstall
+        --install=no                               # don't install the .deb created
+        --pkgname=fades                            # package name
+        --pkgversion=`cat version.txt`             # automatically get the real version
+        --requires=python3                         # only dependency
+        --maintainer=facundo@taniquetil.com.ar     # maintainer contact
+        --deldoc=yes --deldesc=yes --delspec=yes   # some cleanup
+        --backup=no                                # don't save a backup file
+        -D                                         # create the .deb
+        -y                                         # yes, yes to all
+        python3 ./setup.py install --prefix=/usr   # the installation command
+
+
+This will leave some dirt behind, clean it:
+
+    sudo rm -r /usr/share/fades/ /usr/bin/fades
+    sudo rm -r build fades.egg-info description-pak
+
+
+It also should leave you a .deb in the same directory. Change its permission and rename properly
+
+    sudo chown $USER: *.deb
+    mv *.deb fades-`cat version.txt`.deb
+
+
+To test the .deb you just created:
+
+    sudo dpkg i *.deb
+
+
+If you want to uninstall it do:
+
+    sudo dpkg -r fades
+
+
+How to release it to Arch
+-------------------------
+
+FIXME: write this

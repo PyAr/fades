@@ -1,0 +1,50 @@
+Hello all,
+
+I'm glad to announce the release of fades 1.0.
+
+fades, a FAst DEpendencies for Scripts, is a system that automatically
+handles the virtualenvs in the simple cases normally found when
+writing scripts or simple programs.
+
+It will automagically create a new virtualenv (or reuse a previous
+created one for your script), installing or updating the necessary
+dependencies, and execute your script inside that virtualenv,
+
+You only need to execute the script with fades (instead of Python) and
+also mark the required dependencies. More details here:
+
+    https://github.com/PyAr/fades/
+
+
+To get it:
+
+- For debian/ubuntu you have a .deb here:
+
+    FIXME
+
+- Install it in Arch is very simple:
+
+    yaourt -S fades
+
+- Using pip if you want:
+
+    pip3 install fades
+
+- You can always get the multiplatform tarball and install it in the
+  old fashion way:
+
+    FIXME
+
+
+Help / questions:
+
+- You can ask any question or send any recommendation or request to the mailing list.
+
+    http://listas.python.org.ar/mailman/listinfo/fades
+
+- Also, you can open an issue here (please do if you find any problem!).
+
+    https://github.com/PyAr/fades/issues/new
+
+
+Thanks in advance for your time!
