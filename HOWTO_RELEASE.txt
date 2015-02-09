@@ -5,7 +5,7 @@ Edit the ``version.txt`` file properly, then tag and commit/push
 
   git tag release-VERSION
   git commit -am "Release VERSION"
-  git push
+  git push --tag
 
 
 How to release it to PyPI
@@ -66,4 +66,7 @@ If you want to uninstall it do:
 How to release it to Arch
 -------------------------
 
-FIXME: write this
+    Edit ``pkg/archlinux/PKGBUILD`` and set *pkgver* and *md5sums*, then run *makepkg -S* inside 
+    the same directory that PKGBUILD. It will generate a file named 'fades-X.X-X.src.tar.gz'. 
+    Finally submit this file at the AUR page.
+
