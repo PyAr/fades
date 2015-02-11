@@ -114,13 +114,13 @@ any GNU/Linux OS wiht a freedesktop.org GUI. However it is a **optionally** depe
 
 You can install it in Ubuntu/Debian with
 
-    ``apt-get install python-xdg``
+    apt-get install python-xdg
 
 And on Archlinux with
     
-    ``pacman -S python-xdg`` 
+    pacman -S python-xdg
 
-For debian/ubuntu you have a .deb here:
+For debian/ubuntu you have a .deb here
 ---------------------------------------
 
     http://taniquetil.com.ar/fades/fades-1.0.deb
@@ -128,20 +128,22 @@ For debian/ubuntu you have a .deb here:
 
 For Archlinux
 -------------
+We have a AUR package at https://aur.archlinux.org/packages/fades.
+If you are a yaourt user you can install fades with a simple::
 
-We have a AUR package at https://aur.archlinux.org/packages/fades
-If you are a yaourt user you can install fades with a simple:
-
-    ``yaourt -S fades``
+    yaourt -S fades
 
 
-Using pip if you want:
+Using pip if you want
 ----------------------
+::
 
-    ``pip3 install fades``
+    pip3 install fades
 
-Finally you can always get the multiplatform tarball and install it in thea old fashion way:
---------------------------------------------------------------------------------------------
+Finally you can always get the multiplatform tarball and install it in thea old fashion way
+-------------------------------------------------------------------------------------------
+
+::
 
     wget http://taniquetil.com.ar/fades/fades-1.0.tar.gz
     tar -xf fades-1.0.tar.gz
