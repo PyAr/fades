@@ -7,9 +7,9 @@ pkgdesc="FAst DEpendencies for Scripts."
 url="https://github.com/PyAr/fades/"
 arch=('any')
 depends=('python')
+optdepends=('python-xdg')
 license=('GPL3')
 source=(https://pypi.python.org/packages/source/f/fades/fades-${pkgver}.tar.gz)
-
 md5sums=('ad46a7c512f150ab56e970eedbf84a7d')
 
 build() {

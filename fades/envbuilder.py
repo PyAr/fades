@@ -24,7 +24,8 @@ import os
 
 from venv import EnvBuilder
 from uuid import uuid4
-from xdg import BaseDirectory
+
+from fades.helpers import get_basedir
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 class FadesEnvBuilder(EnvBuilder):
     """Create always a virtualenv"""
     def __init__(self):
-        basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
+        basedir = get_basedir()
         self.env_path = os.path.join(basedir, str(uuid4()))
         self.env_bin_path = ''
         logger.debug("Env will be created at: %s", self.env_path)

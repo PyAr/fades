@@ -16,6 +16,7 @@
 
 """A collection of utilities for fades."""
 
+import os
 import logging
 import subprocess
 
@@ -61,3 +62,13 @@ def is_version_satisfied(previous, requested):
 
     # no special case
     return requested == previous
+
+
+def get_basedir():
+    try:
+        from xdg import BaseDirectory  # NOQA
+        return os.path.join(BaseDirectory.xdg_data_home, 'fades')
+    except ImportError:
+        logger.debug("xdg not installed. Using home folder")
+        from os.path import expanduser
+        return expanduser("~/.fades")

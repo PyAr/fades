@@ -24,9 +24,8 @@ import logging
 import subprocess
 
 from urllib import request
-from xdg import BaseDirectory
 
-from fades.helpers import logged_exec
+from fades.helpers import logged_exec, get_basedir
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ class PipManager():
         self.env_bin_path = env_bin_path
         self.pip_installed = pip_installed
         self.pip_exe = os.path.join(self.env_bin_path, "pip")
-        basedir = os.path.join(BaseDirectory.xdg_data_home, 'fades')
+        basedir = get_basedir()
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
 
     def _handle_dep(self, module, version):

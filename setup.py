@@ -106,4 +106,7 @@ setup(
     cmdclass={
         'install': CustomInstall,
     },
+    extras_require = {
+            'pyxdg':  ["pyxdg", "Used to correctly get user folders"]
+        }
 )
