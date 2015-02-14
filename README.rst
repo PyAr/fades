@@ -136,7 +136,7 @@ Download it and install doing::
 For Archlinux
 -------------
 
-We have an AUR package at https://aur.archlinux.org/packages/fades.
+We have an AUR package `here <https://aur.archlinux.org/packages/fades>`_.
 If you are a yaourt user you can install fades with a simple::
 
     yaourt -S fades
