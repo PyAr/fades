@@ -21,6 +21,7 @@
 Needed packages to run (using Debian/Ubuntu package names):
 
     python3.4
+    python3-xdg   (optional)
 """
 
 import os

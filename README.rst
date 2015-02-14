@@ -94,7 +94,7 @@ the whole path (``/usr/bin/python2.7``).
 Other detail is the verbosity of *fades* when telling what is doing. By
 default, *fades* only will use stderr to tell if a virtualenv is being
 created, and to let the user know that is doing an operation that
-requires an active network connection (e.g. installing a new depenency).
+requires an active network connection (e.g. installing a new dependency).
 
 If you call *fades* with ``-v`` or ``--verbose``, it will send all internal
 debugging lines to stderr, which may be very useful if any problem arises.
@@ -106,29 +106,37 @@ script stderr is not polluted at all.
 How to install it
 =================
 
+Several instructions to install fades in different systems.
+
+
 Dependencies
 ------------
 
-Fades only depends on ``python-xdg`` package. This package should be installed on 
-any GNU/Linux OS wiht a freedesktop.org GUI. However it is a **optionally** dependency.
+Fades only depends on ``python-xdg`` package. This package should be installed on
+any GNU/Linux OS wiht a freedesktop.org GUI. However it is an **optional** dependency.
 
 You can install it in Ubuntu/Debian with
 
     apt-get install python-xdg
 
 And on Archlinux with
-    
+
     pacman -S python-xdg
 
-For debian/ubuntu you have a .deb here
----------------------------------------
 
-    http://taniquetil.com.ar/fades/fades-1.0.deb
+For debian/ubuntu
+-----------------
+
+You have a .deb `here <http://taniquetil.com.ar/fades/fades-latest.deb>`_.
+Download it and install doing::
+
+    sudo dpkg -i fades-latest.deb
 
 
 For Archlinux
 -------------
-We have a AUR package at https://aur.archlinux.org/packages/fades.
+
+We have an AUR package at https://aur.archlinux.org/packages/fades.
 If you are a yaourt user you can install fades with a simple::
 
     yaourt -S fades
@@ -140,16 +148,18 @@ Using pip if you want
 
     pip3 install fades
 
-Finally you can always get the multiplatform tarball and install it in thea old fashion way
--------------------------------------------------------------------------------------------
 
-::
+Multiplatform tarball
+---------------------
 
-    wget http://taniquetil.com.ar/fades/fades-1.0.tar.gz
-    tar -xf fades-1.0.tar.gz
-    cd fades-1.0
+Finally you can always get the multiplatform tarball and install
+it in the old fashion way::
+
+    wget http://taniquetil.com.ar/fades/fades-latest.tar.gz
+    tar -xf fades-latest.tar.gz
+    cd fades-*
     sudo ./setup.py install
-    
+
 
 Can I try it without installing it?
 -----------------------------------

@@ -65,10 +65,11 @@ def is_version_satisfied(previous, requested):
 
 
 def get_basedir():
+    """Get the base fades directory, from xdg or kinda hardcoded."""
     try:
         from xdg import BaseDirectory  # NOQA
         return os.path.join(BaseDirectory.xdg_data_home, 'fades')
     except ImportError:
-        logger.debug("xdg not installed. Using home folder")
+        logger.debug("Package xdg not installed; using ~/.fades folder")
         from os.path import expanduser
         return expanduser("~/.fades")
