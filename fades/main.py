@@ -28,6 +28,26 @@ from fades.envbuilder import FadesEnvBuilder
 from fades.helpers import is_version_satisfied
 
 
+USAGE = """
+Usage:  fades [<fades_options>] child_program [<child_program_options>]
+
+    All fades options are optional:
+        -h|--help:    show this help and quit
+        -V|--version: show version and info about the system
+        -v|--verbose: send all internal debugging lines to stderr, which
+                      may be very useful if any problem arises.
+        -q|--quiet:   don't show anything (unless it has a real problem),
+                      so the original script stderr is not polluted at all.
+
+    The "child program" is the script that fades will execute. It's a
+    mandatory parameter, the first thing received by fades that is not
+    a parameter.
+
+    The child program options (everything after the child program) are
+    parameters passed as is to the child program.
+"""
+
+
 def _parse_argv(argv):
     """Ad-hoc argv parsing for the complicated rules.
 
@@ -84,6 +104,21 @@ def _manage_dependencies(manager, requested_deps, previous_deps):
 def go(version, argv):
     """Make the magic happen."""
     fades_options, child_program, child_options = _parse_argv(sys.argv)
+
+    # validate input, parameters, and support some special options
+    if "-V" in fades_options or "--version" in fades_options:
+        print("Running 'fades' version", version)
+        print("    Python:", sys.version_info)
+        print("    System:", sys.platform)
+        sys.exit()
+    if "-h" in fades_options or "--help" in fades_options:
+        print(USAGE)
+        sys.exit()
+    if not child_program:
+        print("ERROR: the 'child program' is mandatory.")
+        print(USAGE)
+        sys.exit()
+
     verbose = "-v" in fades_options or "--verbose" in fades_options
     quiet = "-q" in fades_options or "--quiet" in fades_options
     if verbose:
