@@ -61,7 +61,7 @@ class TempfileTestCase(unittest.TestCase):
 
     def setUp(self):
         _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
-        self.addCleanup(os.remove, self.tempfile)
+        self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
         SetupLogChecker(self, 'fades.venvcache')
 
 
@@ -69,6 +69,7 @@ class GetTestCase(TempfileTestCase):
     """A shallow 'get'."""
 
     def test_missing_file(self):
+        os.remove(self.tempfile)
         cache = venvcache.VEnvsCache(self.tempfile)
         with patch.object(cache, '_select') as mock:
             mock.return_value = None
@@ -217,7 +218,7 @@ class SelectionTestCase(TempfileTestCase):
         }
         venv = {
             'metadata': 'foobar',
-            'installed': {'pypi': {'dep1': '5', 'dep2': 7}},
+            'installed': {'pypi': {'dep1': '5', 'dep2': '7'}},
         }
         resp = self.cache._select([venv], reqs)
         self.assertEqual(resp, 'foobar')
@@ -228,7 +229,7 @@ class SelectionTestCase(TempfileTestCase):
         }
         venv = {
             'metadata': 'foobar',
-            'installed': {'pypi': {'dep1': '5', 'dep2': 2}},
+            'installed': {'pypi': {'dep1': '5', 'dep2': '2'}},
         }
         resp = self.cache._select([venv], reqs)
         self.assertEqual(resp, None)

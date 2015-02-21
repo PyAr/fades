@@ -22,7 +22,7 @@ import sys
 import logging
 import subprocess
 
-from fades import parsing, logger, venvmgr, helpers
+from fades import parsing, logger, venvcache, helpers
 from fades.pipmanager import PipManager
 from fades.envbuilder import FadesEnvBuilder
 
@@ -112,7 +112,7 @@ def go(version, argv):
     requested_deps = parsing.parse_file(child_program)
 
     # start the virtualenvs manager
-    cache = venvmgr.CacheManager(os.path.join(helpers.get_basedir(), 'venvs.idx'))
+    cache = venvcache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
     useful_venv = cache.get_venv(requested_deps)
     if useful_venv is None:
         # create virtualenv
@@ -145,7 +145,7 @@ def go(version, argv):
             l.debug("Resulted dependencies: %s", repo_requested)
 
         # store this new venv in the cache
-        cache.store_venv(requested_deps, useful_venv)
+        cache.store(requested_deps, useful_venv)
 
     # run forest run!!
     l.debug("Calling the child Python program %r with options %s", child_program, child_options)

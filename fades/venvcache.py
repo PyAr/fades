@@ -19,6 +19,7 @@
 
 import json
 import logging
+import os
 import time
 
 logger = logging.getLogger(__name__)
@@ -28,50 +29,85 @@ class VEnvsCache:
     """A cache for virtualenvs."""
 
     def __init__(self, filepath):
+        logger.debug("Using cache index: %r", filepath)
         self.filepath = filepath
 
     def _venv_match(self, installed, requirements):
-        """Return True if what is installed satisfies the requirements."""
-        print("======= match?", installed)
+        """Return True if what is installed satisfies the requirements.
+
+        This method has multiple exit-points, but only for False (because
+        if *anything* is not satisified, the venv is no good). Only after
+        all was checked, and it didn't exit, the venv is ok so return True.
+        """
+        import pdb;pdb.set_trace()
         for repo, req_deps in requirements.items():
             if repo not in installed:
-                return
+                # the venv doesn't even have the repo
+                return False
 
             inst_deps = installed[repo]
-            print("======== deps?", req_deps, inst_deps)
             for dep, req_version in req_deps.items():
                 if dep not in inst_deps:
-                    return
+                    # the venv doesn't even have the dependency for that repo
+                    return False
+
+                if req_version is None:
+                    # no particular version requested, with the dependency present it's ok
+                    continue
 
                 inst_version = inst_deps[dep].strip()
                 req_version = req_version.strip()
 
                 if req_version.startswith('=='):
-                    req_version = req_version[2:].strip()
+                    req = req_version[2:].strip()
+                    if inst_version != req:
+                        return
 
                 elif req_version.startswith('>='):
                     req = req_version[2:].strip()
-                    return inst_version >= req
+                    if inst_version < req:
+                        return
 
                 elif req_version.startswith('>'):
                     req = req_version[1:].strip()
-                    return inst_version > req
+                    if inst_version <= req:
+                        return
 
-                # no special case or eq from above
-                return req_version == inst_version
+                elif req_version.startswith('<='):
+                    req = req_version[2:].strip()
+                    if inst_version > req:
+                        return
+
+                elif req_version.startswith('<'):
+                    req = req_version[1:].strip()
+                    if inst_version >= req:
+                        return
+
+                else:
+                    raise ValueError("Bad requirement received: " + repr(req_version))
+
+        # it did it through!
+        return True
 
     def _select(self, current_venvs, requirements):
         """Select which venv satisfy the received requirements."""
-        logger.debug("Searching a match for reqs: %s", requirements)
-        print("========== req", requirements)
-        for venv in current_venvs:
+        logger.debug("Searching a venv for reqs: %s", requirements)
+        for venv_str in current_venvs:
+            print("======== V?", repr(venv_str))
+            venv = json.loads(venv_str)
             if self._venv_match(venv['installed'], requirements):
+                logger.debug("Found a matching venv! %s", venv)
                 return venv['metadata']
+        logger.debug("No matching venv found :(")
 
     def get_venv(self, requirements):
         """Find a venv that serves these requirements, if any."""
-        with open(self.filepath, 'rt', encoding='utf8') as fh:
-            lines = [x.strip() for x in fh]
+        if os.path.exists(self.filepath):
+            with open(self.filepath, 'rt', encoding='utf8') as fh:
+                lines = [x.strip() for x in fh]
+        else:
+            logger.debug("Index not found, starting empty")
+            lines = []
         return self._select(lines, requirements)
 
     def store(self, installed_stuff, metadata):
@@ -81,6 +117,7 @@ class VEnvsCache:
             'installed': installed_stuff,
             'metadata': metadata,
         }
+        logger.debug("Storing installed=%s metadata=%s", installed_stuff, metadata)
         with open(self.filepath, 'at', encoding='utf8') as fh:
             fh.write(json.dumps(new_content) + '\n')
 

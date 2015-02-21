@@ -22,7 +22,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-Repo = enum.Enum('Repo', 'pypi')
+Repo = enum.IntEnum('Repo', 'pypi')
 
 
 def _parse_content(fh):
