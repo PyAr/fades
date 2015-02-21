@@ -18,11 +18,20 @@
 
 import enum
 import logging
-
+import re
 
 logger = logging.getLogger(__name__)
 
 Repo = enum.Enum('Repo', 'pypi')
+
+
+RE_PYPI_METADATA = re.compile("""
+    ([a-zA-Z0-9_.]*)    # a project name
+    \s*                 # separation
+    ([=<>]*)            # version comparison elements
+    \s*                 # separation
+    ([a-zA-Z0-9_.]*)    # version
+""", re.VERBOSE)
 
 
 def _parse_content(fh):
@@ -63,8 +72,28 @@ def _parse_content(fh):
         # get the fades info
         if fades_part.startswith("fades.pypi"):
             repo = Repo.pypi
-            parts = fades_part[10:]  # Only works with fades.pypi
-            version_info = None if len(parts) == 0 else parts.replace(" ", "")
+            marked = fades_part[10:].strip()  # Only works with fades.pypi
+            m = RE_PYPI_METADATA.match(marked)
+            if m:
+                project, vers_comp, vers_value = m.groups()
+
+                # assert what is found is ok
+                if vers_comp == '=':
+                    vers_comp = '=='
+                elif vers_comp in ('', '==', '<=', '>=', '<', '>'):
+                    pass
+                else:
+                    raise ValueError("Unknown version comparison: " + repr(vers_comp))
+
+                # use the project if it's there to override the module
+                if project:
+                    module = project
+
+                # prepare the version info with two values smashed together (FIXME: this
+                # will change in a near future, having these two splitted)
+                version_info = vers_comp + vers_value or None
+            else:
+                version_info = None
         else:
             logger.warning("Not understood fades info: %r", fades_part)
             continue
