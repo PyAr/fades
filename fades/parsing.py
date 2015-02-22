@@ -16,21 +16,17 @@
 
 """Script parsing to get needed dependencies."""
 
-import enum
 import logging
 
+from fades import REPO_PYPI
 
 logger = logging.getLogger(__name__)
-
-Repo = enum.IntEnum('Repo', 'pypi')
 
 
 def _parse_content(fh):
     """Parse the content of a script to find marked dependencies."""
     content = iter(fh)
     deps = {}
-    for repo in Repo:
-        deps[repo] = {}
 
     for line in content:
         # quickly discard most of the lines
@@ -62,7 +58,7 @@ def _parse_content(fh):
 
         # get the fades info
         if fades_part.startswith("fades.pypi"):
-            repo = Repo.pypi
+            repo = REPO_PYPI
             parts = fades_part[10:]  # Only works with fades.pypi
             version_info = None if len(parts) == 0 else parts.replace(" ", "")
         else:
@@ -70,8 +66,7 @@ def _parse_content(fh):
             continue
 
         # record the dependency
-
-        deps[repo][module] = {'version': version_info}
+        deps.setdefault(repo, {})[module] = version_info
 
     return deps
 

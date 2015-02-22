@@ -22,9 +22,7 @@ import sys
 import logging
 import subprocess
 
-from fades import parsing, logger, venvcache, helpers
-from fades.pipmanager import PipManager
-from fades.envbuilder import FadesEnvBuilder
+from fades import parsing, logger, cache, helpers, envbuilder
 
 
 USAGE = """
@@ -112,44 +110,16 @@ def go(version, argv):
     requested_deps = parsing.parse_file(child_program)
 
     # start the virtualenvs manager
-    cache = venvcache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
-    useful_venv = cache.get_venv(requested_deps)
-    if useful_venv is None:
-        # create virtualenv
-        env = FadesEnvBuilder()
-        env_path, env_bin_path, pip_installed = env.create_env()
-        useful_venv = {}
-        useful_venv['env_path'] = env_path
-        useful_venv['env_bin_path'] = env_bin_path
-        useful_venv['pip_installed'] = pip_installed
-
-        # install deps
-        for repo in requested_deps.keys():
-            if repo == parsing.Repo.pypi:
-                mgr = PipManager(env_bin_path, pip_installed=pip_installed)
-            else:
-                l.warning("Install from %s not implemented", repo)
-                continue
-
-            repo_requested = requested_deps[repo]
-            l.debug("Installing dependencies for repo %r: requested=%s", repo, repo_requested)
-            for dependency, requested_data in repo_requested.items():
-                requested_version = requested_data['version']
-                mgr.install(dependency, requested_version)
-
-                # always store the installed dependency, as in the future we'll select the venv
-                # based on what is installed, not what used requested (remember that user may
-                # request >, >=, etc!)
-                requested_data['version'] = mgr.get_version(dependency)
-
-            l.debug("Resulted dependencies: %s", repo_requested)
-
+    venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
+    venv_data = venvscache.get_venv(requested_deps)
+    if venv_data is None:
+        venv_data = envbuilder.create_venv(requested_deps)
         # store this new venv in the cache
-        cache.store(requested_deps, useful_venv)
+        venvscache.store(requested_deps, venv_data)
 
     # run forest run!!
     l.debug("Calling the child Python program %r with options %s", child_program, child_options)
-    python_exe = os.path.join(useful_venv['env_bin_path'], "python3")
+    python_exe = os.path.join(venv_data['env_bin_path'], "python3")
     rc = subprocess.call([python_exe, child_program] + child_options)
     if rc:
         l.debug("Child process not finished correctly: returncode=%d", rc)

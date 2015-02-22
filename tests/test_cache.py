@@ -23,7 +23,7 @@ import os
 import tempfile
 import unittest
 
-from fades import venvcache
+from fades import cache
 
 from unittest.mock import patch
 
@@ -62,7 +62,7 @@ class TempfileTestCase(unittest.TestCase):
     def setUp(self):
         _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
         self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
-        SetupLogChecker(self, 'fades.venvcache')
+        SetupLogChecker(self, 'fades.cache')
 
 
 class GetTestCase(TempfileTestCase):
@@ -70,29 +70,29 @@ class GetTestCase(TempfileTestCase):
 
     def test_missing_file(self):
         os.remove(self.tempfile)
-        cache = venvcache.VEnvsCache(self.tempfile)
-        with patch.object(cache, '_select') as mock:
+        venvscache = cache.VEnvsCache(self.tempfile)
+        with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
-            resp = cache.get_venv('requirements')
+            resp = venvscache.get_venv('requirements')
         mock.assert_called_with([], 'requirements')
         self.assertEqual(resp, None)
 
     def test_empty_file(self):
         open(self.tempfile, 'wt', encoding='utf8').close()
-        cache = venvcache.VEnvsCache(self.tempfile)
-        with patch.object(cache, '_select') as mock:
+        venvscache = cache.VEnvsCache(self.tempfile)
+        with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
-            resp = cache.get_venv('requirements')
+            resp = venvscache.get_venv('requirements')
         mock.assert_called_with([], 'requirements')
         self.assertEqual(resp, None)
 
     def test_some_file_content(self):
         with open(self.tempfile, 'wt', encoding='utf8') as fh:
             fh.write('foo\nbar\n')
-        cache = venvcache.VEnvsCache(self.tempfile)
-        with patch.object(cache, '_select') as mock:
+        venvscache = cache.VEnvsCache(self.tempfile)
+        with patch.object(venvscache, '_select') as mock:
             mock.return_value = 'resp'
-            resp = cache.get_venv('requirements')
+            resp = venvscache.get_venv('requirements')
         mock.assert_called_with(['foo', 'bar'], 'requirements')
         self.assertEqual(resp, 'resp')
 
@@ -101,8 +101,8 @@ class StoreTestCase(TempfileTestCase):
     """Store what received."""
 
     def test_missing_file(self):
-        cache = venvcache.VEnvsCache(self.tempfile)
-        cache.store('installed', 'metadata')
+        venvscache = cache.VEnvsCache(self.tempfile)
+        venvscache.store('installed', 'metadata')
 
         with open(self.tempfile, 'rt', encoding='utf8') as fh:
             data = json.loads(fh.readline())
@@ -114,8 +114,8 @@ class StoreTestCase(TempfileTestCase):
         with open(self.tempfile, 'wt', encoding='utf8') as fh:
             fh.write(json.dumps({'foo': 'bar'}) + '\n')
 
-        cache = venvcache.VEnvsCache(self.tempfile)
-        cache.store('installed', 'metadata')
+        venvscache = cache.VEnvsCache(self.tempfile)
+        venvscache.store('installed', 'metadata')
 
         with open(self.tempfile, 'rt', encoding='utf8') as fh:
             data = json.loads(fh.readline())
@@ -132,106 +132,106 @@ class SelectionTestCase(TempfileTestCase):
 
     def setUp(self):
         super().setUp()
-        self.cache = venvcache.VEnvsCache(self.tempfile)
+        self.venvscache = cache.VEnvsCache(self.tempfile)
 
     def test_empty(self):
-        resp = self.cache._select([], {})
+        resp = self.venvscache._select([], {})
         self.assertEqual(resp, None)
 
     def test_nomatch_repo(self):
         reqs = {
             'repoloco': {'dep': '==5'}
         }
-        venv = {
+        venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
-        }
-        resp = self.cache._select([venv], reqs)
+        })
+        resp = self.venvscache._select([venv], reqs)
         self.assertEqual(resp, None)
 
     def test_nomatch_dependency(self):
         reqs = {
             'pypi': {'dep1': '==5'}
         }
-        venv = {
+        venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep2': '5'}},
-        }
-        resp = self.cache._select([venv], reqs)
+        })
+        resp = self.venvscache._select([venv], reqs)
         self.assertEqual(resp, None)
 
     def test_nomatch_version(self):
         reqs = {
             'pypi': {'dep': '==5'}
         }
-        venv = {
+        venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '7'}},
-        }
-        resp = self.cache._select([venv], reqs)
+        })
+        resp = self.venvscache._select([venv], reqs)
         self.assertEqual(resp, None)
 
     def test_simple_match(self):
         reqs = {
             'pypi': {'dep': '==5'}
         }
-        venv = {
+        venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
-        }
-        resp = self.cache._select([venv], reqs)
+        })
+        resp = self.venvscache._select([venv], reqs)
         self.assertEqual(resp, 'foobar')
 
     def test_match_noversion(self):
         reqs = {
             'pypi': {'dep': None}
         }
-        venv = {
+        venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
-        }
-        resp = self.cache._select([venv], reqs)
+        })
+        resp = self.venvscache._select([venv], reqs)
         self.assertEqual(resp, 'foobar')
 
     def test_middle_match(self):
         reqs = {
             'pypi': {'dep': '==5'}
         }
-        venv1 = {
+        venv1 = json.dumps({
             'metadata': 'venv1',
             'installed': {'pypi': {'dep': '3'}},
-        }
-        venv2 = {
+        })
+        venv2 = json.dumps({
             'metadata': 'venv2',
             'installed': {'pypi': {'dep': '5'}},
-        }
-        venv3 = {
+        })
+        venv3 = json.dumps({
             'metadata': 'venv3',
             'installed': {'pypi': {'dep': '5'}},
-        }
-        resp = self.cache._select([venv1, venv2, venv3], reqs)
+        })
+        resp = self.venvscache._select([venv1, venv2, venv3], reqs)
         self.assertEqual(resp, 'venv2')
 
     def test_multiple_deps_ok(self):
         reqs = {
             'pypi': {'dep1': '==5', 'dep2': '==7'}
         }
-        venv = {
+        venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep1': '5', 'dep2': '7'}},
-        }
-        resp = self.cache._select([venv], reqs)
+        })
+        resp = self.venvscache._select([venv], reqs)
         self.assertEqual(resp, 'foobar')
 
     def test_multiple_deps_just_one(self):
         reqs = {
             'pypi': {'dep1': '==5', 'dep2': '==7'}
         }
-        venv = {
+        venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep1': '5', 'dep2': '2'}},
-        }
-        resp = self.cache._select([venv], reqs)
+        })
+        resp = self.venvscache._select([venv], reqs)
         self.assertEqual(resp, None)
 
 
@@ -240,18 +240,18 @@ class ComparisonsTestCase(TempfileTestCase):
 
     def setUp(self):
         super().setUp()
-        self.cache = venvcache.VEnvsCache(self.tempfile)
+        self.venvscache = cache.VEnvsCache(self.tempfile)
 
     def check(self, req, installed):
         """Check if the requirement is satisfied with what is installed."""
         reqs = {
             'pypi': {'dep': req}
         }
-        venv = {
+        venv = json.dumps({
             'metadata': 'ok',
             'installed': {'pypi': {'dep': installed}},
-        }
-        resp = self.cache._select([venv], reqs)
+        })
+        resp = self.venvscache._select([venv], reqs)
         return resp
 
     def test_comp_eq(self):
