@@ -41,8 +41,8 @@ class PipManager():
         basedir = get_basedir()
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
 
-    def _handle_dep(self, module, version):
-        """Install/upgrade a dependency wit pip."""
+    def install(self, module, version):
+        """Install a new dependency."""
         if not self.pip_installed:
             logger.info("Need to install a dependency with pip, but no builtin"
                         ", install it manually")
@@ -56,24 +56,6 @@ class PipManager():
             logged_exec(args)
         except Exception as error:
             logger.exception("Error installing %s: %s", module, error)
-            exit()
-
-    def install(self, module, version):
-        """Install a new dependency."""
-        self._handle_dep(module, version)
-
-    def update(self, module, version):
-        """Update a dependency revision."""
-        self._handle_dep(module, version)
-
-    def remove(self, module):
-        """Remove a dependency."""
-        args = [self.pip_exe, "uninstall", module, '--yes']
-        logger.info("Uninstalling dependency: %s", module)
-        try:
-            logged_exec(args)
-        except Exception as error:
-            logger.exception("Error uninstalling %s: %s", module, error)
             exit()
 
     def get_version(self, dependency):

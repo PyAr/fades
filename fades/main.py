@@ -22,10 +22,7 @@ import sys
 import logging
 import subprocess
 
-from fades import parsing, logger, attribs
-from fades.pipmanager import PipManager
-from fades.envbuilder import FadesEnvBuilder
-from fades.helpers import is_version_satisfied
+from fades import parsing, logger, cache, helpers, envbuilder
 
 
 USAGE = """
@@ -74,33 +71,6 @@ def _parse_argv(argv):
     return fades_options, child_program, argv[1:]
 
 
-def _manage_dependencies(manager, requested_deps, previous_deps):
-    """Decide the action to take for the dependencies of a repo.
-
-    Note that it will change the requested_deps version accordingly to
-    what was really installed.
-    """
-    for dependency, requested_data in requested_deps.items():
-        requested_version = requested_data['version']
-        try:
-            previous_data = previous_deps[dependency]
-        except KeyError:
-            # this dependency wasn't isntalled before!
-            manager.install(dependency, requested_version)
-        else:
-            # dependency installed before... do action only on version not satisfied by current
-            if not is_version_satisfied(previous_data['version'], requested_version):
-                manager.update(dependency, requested_version)
-
-        # always store the installed dependency, as in the future we'll want to react
-        # based on what is installed, not what used requested (remember that user may
-        # request >, >=, etc!)
-        requested_data['version'] = manager.get_version(dependency)
-
-    for dependency in set(previous_deps) - set(requested_deps):
-        manager.remove(dependency)
-
-
 def go(version, argv):
     """Make the magic happen."""
     fades_options, child_program, child_options = _parse_argv(sys.argv)
@@ -139,42 +109,17 @@ def go(version, argv):
     # parse file and get deps
     requested_deps = parsing.parse_file(child_program)
 
-    # start the attributes manager
-    xattrs = attribs.XAttrsManager(child_program)
-
-    if 'env_path' not in xattrs:
-        l.info('%s has not a virtualenv yet. Creating one', child_program)
-        # create virtualenv
-        env = FadesEnvBuilder()
-        env_path, env_bin_path, pip_installed = env.create_env()
-        xattrs['env_path'] = env_path
-        xattrs['env_bin_path'] = env_bin_path
-        xattrs['pip_installed'] = pip_installed
-
-    # compare and install deps
-    previous_deps = xattrs.get('requested_deps', {})
-    for repo in requested_deps.keys():
-        if repo == parsing.Repo.pypi:
-            mgr = PipManager(xattrs['env_bin_path'], pip_installed=xattrs['pip_installed'])
-        else:
-            l.warning("Install from %s not implemented", repo)
-            continue
-
-        repo_requested = requested_deps[repo]
-        repo_previous = previous_deps.get(repo, {})
-        l.debug("Managing dependencies for repo %r: requested=%s previous=%s",
-                repo, repo_requested, repo_previous)
-        _manage_dependencies(mgr, repo_requested, repo_previous)
-        l.debug("Resulted dependencies: %s", repo_requested)
-
-    # save/update xattr at this point, as the repo requested information may have changed
-    # in the installation process
-    xattrs['requested_deps'] = requested_deps
-    xattrs.save()
+    # start the virtualenvs manager
+    venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
+    venv_data = venvscache.get_venv(requested_deps)
+    if venv_data is None:
+        venv_data = envbuilder.create_venv(requested_deps)
+        # store this new venv in the cache
+        venvscache.store(requested_deps, venv_data)
 
     # run forest run!!
     l.debug("Calling the child Python program %r with options %s", child_program, child_options)
-    python_exe = os.path.join(xattrs['env_bin_path'], "python3")
+    python_exe = os.path.join(venv_data['env_bin_path'], "python3")
     rc = subprocess.call([python_exe, child_program] + child_options)
     if rc:
         l.debug("Child process not finished correctly: returncode=%d", rc)

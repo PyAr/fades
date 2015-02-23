@@ -20,7 +20,7 @@ import io
 import logging
 import unittest
 
-from fades import parsing
+from fades import parsing, REPO_PYPI
 
 
 class PyPIParsingTestCase(unittest.TestCase):
@@ -33,7 +33,7 @@ class PyPIParsingTestCase(unittest.TestCase):
             import time
             from time import foo
         """))
-        self.assertDictEqual(parsed, {parsing.Repo.pypi: {}})
+        self.assertDictEqual(parsed, {})
 
     def test_simple(self):
         parsed = parsing._parse_content(io.StringIO("""
@@ -41,7 +41,7 @@ class PyPIParsingTestCase(unittest.TestCase):
             import foo    # fades.pypi
         """))
         dep = parsed
-        self.assertDictEqual(dep, {parsing.Repo.pypi: {'foo': {'version': None}}})
+        self.assertDictEqual(dep, {REPO_PYPI: {'foo': None}})
 
     def test_double(self):
         parsed = parsing._parse_content(io.StringIO("""
@@ -50,9 +50,9 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'time': {'version': None},
-                'foo': {'version': None},
+            REPO_PYPI: {
+                'time': None,
+                'foo': None,
             }
         })
 
@@ -62,9 +62,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '==3.5'},
-            }
+            REPO_PYPI: {'foo': '==3.5'}
         })
 
     def test_version_same_only_one_equal(self):
@@ -73,9 +71,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '==3.5'},
-            }
+            REPO_PYPI: {'foo': '==3.5'},
         })
 
     def test_version_same_no_spaces(self):
@@ -84,9 +80,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '==3.5'},
-            }
+            REPO_PYPI: {'foo': '==3.5'}
         })
 
     def test_version_same_two_spaces(self):
@@ -95,9 +89,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '==3.5'},
-            }
+            REPO_PYPI: {'foo': '==3.5'}
         })
 
     def test_version_same_one_space_before(self):
@@ -106,9 +98,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '==3.5'},
-            }
+            REPO_PYPI: {'foo': '==3.5'}
         })
 
     def test_version_same_two_space_before(self):
@@ -117,9 +107,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '==3.5'},
-            }
+            REPO_PYPI: {'foo': '==3.5'}
         })
 
     def test_version_same_one_space_after(self):
@@ -128,9 +116,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '==3.5'},
-            }
+            REPO_PYPI: {'foo': '==3.5'}
         })
 
     def test_version_same_two_space_after(self):
@@ -139,9 +125,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '==3.5'},
-            }
+            REPO_PYPI: {'foo': '==3.5'}
         })
 
     def test_version_greater(self):
@@ -150,9 +134,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>2'},
-            }
+            REPO_PYPI: {'foo': '>2'}
         })
 
     def test_version_greater_no_space(self):
@@ -161,9 +143,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>2'},
-            }
+            REPO_PYPI: {'foo': '>2'}
         })
 
     def test_version_greater_two_spaces(self):
@@ -172,9 +152,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>2'},
-            }
+            REPO_PYPI: {'foo': '>2'}
         })
 
     def test_version_greater_one_space_after(self):
@@ -183,9 +161,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>2'},
-            }
+            REPO_PYPI: {'foo': '>2'}
         })
 
     def test_version_greater_two_space_after(self):
@@ -194,9 +170,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>2'},
-            }
+            REPO_PYPI: {'foo': '>2'}
         })
 
     def test_version_greater_one_space_before(self):
@@ -205,9 +179,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>2'},
-            }
+            REPO_PYPI: {'foo': '>2'}
         })
 
     def test_version_greater_two_space_before(self):
@@ -216,9 +188,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>2'},
-            }
+            REPO_PYPI: {'foo': '>2'}
         })
 
     def test_version_same_or_greater(self):
@@ -227,9 +197,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>=2'},
-            }
+            REPO_PYPI: {'foo': '>=2'}
         })
 
     def test_version_same_or_greater_no_spaces(self):
@@ -238,9 +206,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>=2'},
-            }
+            REPO_PYPI: {'foo': '>=2'}
         })
 
     def test_version_same_or_greater_one_space_before(self):
@@ -249,9 +215,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>=2'},
-            }
+            REPO_PYPI: {'foo': '>=2'}
         })
 
     def test_version_same_or_greater_two_space_before(self):
@@ -260,9 +224,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>=2'},
-            }
+            REPO_PYPI: {'foo': '>=2'}
         })
 
     def test_version_same_or_greater_one_space_after(self):
@@ -271,9 +233,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>=2'},
-            }
+            REPO_PYPI: {'foo': '>=2'}
         })
 
     def test_version_same_or_greater_two_space_after(self):
@@ -282,9 +242,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>=2'},
-            }
+            REPO_PYPI: {'foo': '>=2'}
         })
 
     def test_continuation_line(self):
@@ -295,9 +253,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': '>2'},
-            }
+            REPO_PYPI: {'foo': '>2'}
         })
 
     def test_from_import_simple(self):
@@ -306,9 +262,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': None},
-            }
+            REPO_PYPI: {'foo': None}
         })
 
     def test_import(self):
@@ -317,9 +271,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': None},
-            }
+            REPO_PYPI: {'foo': None}
         })
 
     def test_from_import_complex(self):
@@ -328,9 +280,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'baz': {'version': None},
-            }
+            REPO_PYPI: {'baz': None}
         })
 
     def test_allow_other_comments(self):
@@ -339,9 +289,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'foo': {'version': None},
-            }
+            REPO_PYPI: {'foo': None}
         })
 
     def test_strange_import(self):
@@ -353,7 +301,7 @@ class PyPIParsingTestCase(unittest.TestCase):
             "WARNING:fades.parsing:Not understood import info: "
             "['from', 'foo', 'bar', 'import', ':(']"
         ))
-        self.assertDictEqual(parsed, {parsing.Repo.pypi: {}})
+        self.assertDictEqual(parsed, {})
 
     def test_strange_fadesinfo(self):
         with self.assertLogs(level=logging.WARNING) as cm:
@@ -363,7 +311,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         self.assertEqual(cm.output[0], (
             "WARNING:fades.parsing:Not understood fades info: 'fades.broken'"
         ))
-        self.assertDictEqual(parsed, {parsing.Repo.pypi: {}})
+        self.assertDictEqual(parsed, {})
 
     def test_projectname_noversion(self):
         parsed = parsing._parse_content(io.StringIO("""
@@ -371,9 +319,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'othername': {'version': None},
-            }
+            REPO_PYPI: {'othername': None},
         })
 
     def test_projectname_version_nospace(self):
@@ -382,9 +328,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'othername': {'version': '==5'},
-            }
+            REPO_PYPI: {'othername': '==5'},
         })
 
     def test_projectname_version_space(self):
@@ -393,9 +337,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            parsing.Repo.pypi: {
-                'othername': {'version': '<5'},
-            }
+            REPO_PYPI: {'othername': '<5'},
         })
 
     def test_invalid_comparisons(self):

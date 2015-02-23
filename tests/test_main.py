@@ -18,8 +18,6 @@
 
 import unittest
 
-from unittest.mock import Mock
-
 from fades import main
 
 
@@ -67,48 +65,3 @@ class ArgvParsingTestCase(unittest.TestCase):
         self.assertEqual(fo, ["-v"])
         self.assertEqual(cp, "bar.py")
         self.assertEqual(co, ["-k", "--p=3"])
-
-
-class ManagingDepsTestCase(unittest.TestCase):
-    """Check all the dependency management."""
-
-    def test_new_dependency(self):
-        mgr_mock = Mock()
-        mgr_mock.get_version.return_value = '9'
-        requested_dep = {
-            'testdep': {'version': '7'},
-        }
-        previous_dep = {}
-        main._manage_dependencies(mgr_mock, requested_dep, previous_dep)
-        self.assertEqual(requested_dep, {
-            'testdep': {'version': '9'},
-        })
-        mgr_mock.install.assert_called_with('testdep', '7')
-        mgr_mock.get_version.assert_called_with('testdep')
-
-    def test_dependency_different_version(self):
-        mgr_mock = Mock()
-        mgr_mock.get_version.return_value = '9'
-        requested_dep = {
-            'testdep': {'version': '9'},
-        }
-        previous_dep = {
-            'testdep': {'version': '7'},
-        }
-        main._manage_dependencies(mgr_mock, requested_dep, previous_dep)
-        self.assertEqual(requested_dep, {
-            'testdep': {'version': '9'},
-        })
-        mgr_mock.update.assert_called_with('testdep', '9')
-        mgr_mock.get_version.assert_called_with('testdep')
-
-    def test_dependency_removed(self):
-        mgr_mock = Mock()
-        requested_dep = {}
-        previous_dep = {
-            'testdep': {'version': '7'},
-        }
-        main._manage_dependencies(mgr_mock, requested_dep, previous_dep)
-        self.assertEqual(requested_dep, {})
-        mgr_mock.remove.assert_called_with('testdep')
-        self.assertEqual(mgr_mock.get_version.call_count, 0)

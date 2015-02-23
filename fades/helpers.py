@@ -35,35 +35,6 @@ def logged_exec(cmd):
         raise subprocess.CalledProcessError(retcode, cmd)
 
 
-def is_version_satisfied(previous, requested):
-    """Decide if the previous version satisfies what is requested."""
-    if requested is None:
-        # don't care what we had before if nothing specific is requested
-        return True
-
-    if previous is None:
-        # something requested, and no info from the past, sure it's different
-        return False
-
-    previous = previous.strip()
-    requested = requested.strip()
-
-    if requested.startswith('=='):
-        req = requested[2:].strip()
-        return req == previous
-
-    if requested.startswith('>='):
-        req = requested[2:].strip()
-        return previous >= req
-
-    if requested.startswith('>'):
-        req = requested[1:].strip()
-        return previous > req
-
-    # no special case
-    return requested == previous
-
-
 def get_basedir():
     """Get the base fades directory, from xdg or kinda hardcoded."""
     try:

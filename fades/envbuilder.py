@@ -14,10 +14,12 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-"""Extended class from EnvBuilder to create a venv using a uuid4 id."""
-# NOTE: this class only work in the same python version that Fades is running. So you don't need
-# to have installed a virtualenv tool. For other python versions Fades needs a
-# virtualenv tool installed.
+"""Extended class from EnvBuilder to create a venv using a uuid4 id.
+
+NOTE: this class only work in the same python version that Fades is
+running. So, you don't need to have installed a virtualenv tool. For
+other python versions Fades needs a virtualenv tool installed.
+"""
 
 import logging
 import os
@@ -25,7 +27,9 @@ import os
 from venv import EnvBuilder
 from uuid import uuid4
 
+from fades import REPO_PYPI
 from fades.helpers import get_basedir
+from fades.pipmanager import PipManager
 
 
 logger = logging.getLogger(__name__)
@@ -62,3 +66,35 @@ class FadesEnvBuilder(EnvBuilder):
     def post_setup(self, context):
         """Gets the bin path from context."""
         self.env_bin_path = context.bin_path
+
+
+def create_venv(requested_deps):
+    """Create a new virtualvenv with the requirements of this script."""
+    # create virtualenv
+    env = FadesEnvBuilder()
+    env_path, env_bin_path, pip_installed = env.create_env()
+    venv_data = {}
+    venv_data['env_path'] = env_path
+    venv_data['env_bin_path'] = env_bin_path
+    venv_data['pip_installed'] = pip_installed
+
+    # install deps
+    for repo in requested_deps.keys():
+        if repo == REPO_PYPI:
+            mgr = PipManager(env_bin_path, pip_installed=pip_installed)
+        else:
+            logger.warning("Install from %r not implemented", repo)
+            continue
+
+        repo_requested = requested_deps[repo]
+        logger.debug("Installing dependencies for repo %r: requested=%s", repo, repo_requested)
+        for dependency, requested_version in repo_requested.items():
+            mgr.install(dependency, requested_version)
+
+            # always store the installed dependency, as in the future we'll select the venv
+            # based on what is installed, not what used requested (remember that user may
+            # request >, >=, etc!)
+            repo_requested[dependency] = mgr.get_version(dependency)
+
+        logger.debug("Resulted dependencies: %s", repo_requested)
+    return venv_data
