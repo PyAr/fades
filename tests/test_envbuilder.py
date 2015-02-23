@@ -53,7 +53,7 @@ class EnvCreationTestCase(unittest.TestCase):
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FakeManager()
-                venv_data = envbuilder._create_venv(requested)
+                venv_data = envbuilder.create_venv(requested)
 
         self.assertEqual(venv_data, {
             'env_bin_path': 'env_bin_path',
@@ -76,7 +76,7 @@ class EnvCreationTestCase(unittest.TestCase):
                 with self.assertLogs(level=logging.WARNING) as logcheck:
                     mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                     mock_mgr_c.return_value = self.FakeManager()
-                    envbuilder._create_venv(requested)
+                    envbuilder.create_venv(requested)
 
         self.assertEqual(logcheck.records[0].message, "Install from 'unknown' not implemented")
 
@@ -92,7 +92,7 @@ class EnvCreationTestCase(unittest.TestCase):
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
                 fake_manager.version_conversion = {'dep1': 'vX'}
-                envbuilder._create_venv(requested)
+                envbuilder.create_venv(requested)
 
         self.assertEqual(requested, {
             REPO_PYPI: {
