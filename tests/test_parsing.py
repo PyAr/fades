@@ -65,6 +65,15 @@ class PyPIParsingTestCase(unittest.TestCase):
             REPO_PYPI: {'foo': '==3.5'}
         })
 
+    def test_version_same_only_one_equal(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import foo    # fades.pypi =3.5
+        """))
+        deps = parsed
+        self.assertDictEqual(deps, {
+            REPO_PYPI: {'foo': '==3.5'},
+        })
+
     def test_version_same_no_spaces(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi==3.5
@@ -303,3 +312,34 @@ class PyPIParsingTestCase(unittest.TestCase):
             "WARNING:fades.parsing:Not understood fades info: 'fades.broken'"
         ))
         self.assertDictEqual(parsed, {})
+
+    def test_projectname_noversion(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import foo    # fades.pypi othername
+        """))
+        deps = parsed
+        self.assertDictEqual(deps, {
+            REPO_PYPI: {'othername': None},
+        })
+
+    def test_projectname_version_nospace(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import foo    # fades.pypi othername==5
+        """))
+        deps = parsed
+        self.assertDictEqual(deps, {
+            REPO_PYPI: {'othername': '==5'},
+        })
+
+    def test_projectname_version_space(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import foo    # fades.pypi othername <5
+        """))
+        deps = parsed
+        self.assertDictEqual(deps, {
+            REPO_PYPI: {'othername': '<5'},
+        })
+
+    def test_invalid_comparisons(self):
+        self.assertRaises(ValueError, parsing._parse_content,
+                          io.StringIO("import foo    # fades.pypi  <>2"))

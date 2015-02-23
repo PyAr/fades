@@ -74,6 +74,13 @@ Also, you can indicate a particular version condition, examples::
     import somemodule   # fades.pypi == 3
     import somemodule   # fades.pypi >= 2.1
 
+Sometimes, the project itself doesn't match the name of the module; in
+these cases you can specify the project name (optionally, before the
+version)::
+
+    import bs4   # fades.pypi beautifulsoup4
+    import bs4   # fades.pypi beautifulsoup4 == 4.2
+
 
 How to control the virtualenv creation and usage?
 -------------------------------------------------
