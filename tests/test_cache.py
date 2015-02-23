@@ -140,7 +140,7 @@ class SelectionTestCase(TempfileTestCase):
 
     def test_nomatch_repo(self):
         reqs = {
-            'repoloco': {'dep': '==5'}
+            'repoloco': {'dep': ('==', '5')}
         }
         venv = json.dumps({
             'metadata': 'foobar',
@@ -151,7 +151,7 @@ class SelectionTestCase(TempfileTestCase):
 
     def test_nomatch_dependency(self):
         reqs = {
-            'pypi': {'dep1': '==5'}
+            'pypi': {'dep1': ('==', '5')}
         }
         venv = json.dumps({
             'metadata': 'foobar',
@@ -162,7 +162,7 @@ class SelectionTestCase(TempfileTestCase):
 
     def test_nomatch_version(self):
         reqs = {
-            'pypi': {'dep': '==5'}
+            'pypi': {'dep': ('==', '5')}
         }
         venv = json.dumps({
             'metadata': 'foobar',
@@ -173,7 +173,7 @@ class SelectionTestCase(TempfileTestCase):
 
     def test_simple_match(self):
         reqs = {
-            'pypi': {'dep': '==5'}
+            'pypi': {'dep': ('==', '5')}
         }
         venv = json.dumps({
             'metadata': 'foobar',
@@ -195,7 +195,7 @@ class SelectionTestCase(TempfileTestCase):
 
     def test_middle_match(self):
         reqs = {
-            'pypi': {'dep': '==5'}
+            'pypi': {'dep': ('==', '5')}
         }
         venv1 = json.dumps({
             'metadata': 'venv1',
@@ -214,7 +214,7 @@ class SelectionTestCase(TempfileTestCase):
 
     def test_multiple_deps_ok(self):
         reqs = {
-            'pypi': {'dep1': '==5', 'dep2': '==7'}
+            'pypi': {'dep1': ('==', '5'), 'dep2': ('==', '7')}
         }
         venv = json.dumps({
             'metadata': 'foobar',
@@ -225,7 +225,7 @@ class SelectionTestCase(TempfileTestCase):
 
     def test_multiple_deps_just_one(self):
         reqs = {
-            'pypi': {'dep1': '==5', 'dep2': '==7'}
+            'pypi': {'dep1': ('==', '5'), 'dep2': ('==', '7')}
         }
         venv = json.dumps({
             'metadata': 'foobar',
@@ -255,25 +255,30 @@ class ComparisonsTestCase(TempfileTestCase):
         return resp
 
     def test_comp_eq(self):
-        self.assertEqual(self.check('==5', '5'), 'ok')
-        self.assertEqual(self.check('==5', '2'), None)
+        version = ('==', '5')
+        self.assertEqual(self.check(version, '5'), 'ok')
+        self.assertEqual(self.check(version, '2'), None)
 
     def test_comp_gt(self):
-        self.assertEqual(self.check('>5', '4'), None)
-        self.assertEqual(self.check('>5', '5'), None)
-        self.assertEqual(self.check('>5', '6'), 'ok')
+        version = ('>', '5')
+        self.assertEqual(self.check(version, '4'), None)
+        self.assertEqual(self.check(version, '5'), None)
+        self.assertEqual(self.check(version, '6'), 'ok')
 
     def test_comp_ge(self):
-        self.assertEqual(self.check('>=5', '4'), None)
-        self.assertEqual(self.check('>=5', '5'), 'ok')
-        self.assertEqual(self.check('>=5', '6'), 'ok')
+        version = ('>=', '5')
+        self.assertEqual(self.check(version, '4'), None)
+        self.assertEqual(self.check(version, '5'), 'ok')
+        self.assertEqual(self.check(version, '6'), 'ok')
 
     def test_comp_lt(self):
-        self.assertEqual(self.check('<5', '4'), 'ok')
-        self.assertEqual(self.check('<5', '5'), None)
-        self.assertEqual(self.check('<5', '6'), None)
+        version = ('<', '5')
+        self.assertEqual(self.check(version, '4'), 'ok')
+        self.assertEqual(self.check(version, '5'), None)
+        self.assertEqual(self.check(version, '6'), None)
 
     def test_comp_le(self):
-        self.assertEqual(self.check('<=5', '4'), 'ok')
-        self.assertEqual(self.check('<=5', '5'), 'ok')
-        self.assertEqual(self.check('<=5', '6'), None)
+        version = ('<=', '5')
+        self.assertEqual(self.check(version, '4'), 'ok')
+        self.assertEqual(self.check(version, '5'), 'ok')
+        self.assertEqual(self.check(version, '6'), None)

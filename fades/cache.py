@@ -55,31 +55,26 @@ class VEnvsCache:
                     continue
 
                 inst_version = inst_deps[dep].strip()
-                req_version = req_version.strip()
+                req_comp, req_value = req_version
 
-                if req_version.startswith('=='):
-                    req = req_version[2:].strip()
-                    if inst_version != req:
+                if req_comp == '==':
+                    if inst_version != req_value:
                         return
 
-                elif req_version.startswith('>='):
-                    req = req_version[2:].strip()
-                    if inst_version < req:
+                elif req_comp == '>=':
+                    if inst_version < req_value:
                         return
 
-                elif req_version.startswith('>'):
-                    req = req_version[1:].strip()
-                    if inst_version <= req:
+                elif req_comp == '>':
+                    if inst_version <= req_value:
                         return
 
-                elif req_version.startswith('<='):
-                    req = req_version[2:].strip()
-                    if inst_version > req:
+                elif req_comp == '<=':
+                    if inst_version > req_value:
                         return
 
-                elif req_version.startswith('<'):
-                    req = req_version[1:].strip()
-                    if inst_version >= req:
+                elif req_comp == '<':
+                    if inst_version >= req_value:
                         return
 
                 else:

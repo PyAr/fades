@@ -49,7 +49,8 @@ class PipManager():
             self._brute_force_install_pip()
 
         if version is not None:
-            module = module + version
+            vers_comp, vers_value = version
+            module = module + vers_comp + vers_value
         args = [self.pip_exe, "install", module]
         logger.info("Installing dependency: %s", module)
         try:
