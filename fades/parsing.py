@@ -86,9 +86,11 @@ def _parse_content(fh):
                 if project:
                     module = project
 
-                # prepare the version info with two values smashed together (FIXME: this
-                # will change in a near future, having these two splitted)
-                version_info = vers_comp + vers_value or None
+                # prepare the version info with two values, if any
+                if not vers_comp and not vers_value:
+                    version_info = None
+                else:
+                    version_info = (vers_comp, vers_value)
             else:
                 version_info = None
         else:

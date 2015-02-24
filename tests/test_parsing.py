@@ -62,7 +62,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '==3.5'}
+            REPO_PYPI: {'foo': ('==', '3.5')}
         })
 
     def test_version_same_only_one_equal(self):
@@ -71,7 +71,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '==3.5'},
+            REPO_PYPI: {'foo': ('==', '3.5')},
         })
 
     def test_version_same_no_spaces(self):
@@ -80,7 +80,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '==3.5'}
+            REPO_PYPI: {'foo': ('==', '3.5')}
         })
 
     def test_version_same_two_spaces(self):
@@ -89,7 +89,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '==3.5'}
+            REPO_PYPI: {'foo': ('==', '3.5')}
         })
 
     def test_version_same_one_space_before(self):
@@ -98,7 +98,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '==3.5'}
+            REPO_PYPI: {'foo': ('==', '3.5')}
         })
 
     def test_version_same_two_space_before(self):
@@ -107,7 +107,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '==3.5'}
+            REPO_PYPI: {'foo': ('==', '3.5')}
         })
 
     def test_version_same_one_space_after(self):
@@ -116,7 +116,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '==3.5'}
+            REPO_PYPI: {'foo': ('==', '3.5')}
         })
 
     def test_version_same_two_space_after(self):
@@ -125,7 +125,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '==3.5'}
+            REPO_PYPI: {'foo': ('==', '3.5')}
         })
 
     def test_version_greater(self):
@@ -134,7 +134,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>2'}
+            REPO_PYPI: {'foo': ('>', '2')}
         })
 
     def test_version_greater_no_space(self):
@@ -143,7 +143,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>2'}
+            REPO_PYPI: {'foo': ('>', '2')}
         })
 
     def test_version_greater_two_spaces(self):
@@ -152,7 +152,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>2'}
+            REPO_PYPI: {'foo': ('>', '2')}
         })
 
     def test_version_greater_one_space_after(self):
@@ -161,7 +161,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>2'}
+            REPO_PYPI: {'foo': ('>', '2')}
         })
 
     def test_version_greater_two_space_after(self):
@@ -170,7 +170,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>2'}
+            REPO_PYPI: {'foo': ('>', '2')}
         })
 
     def test_version_greater_one_space_before(self):
@@ -179,7 +179,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>2'}
+            REPO_PYPI: {'foo': ('>', '2')}
         })
 
     def test_version_greater_two_space_before(self):
@@ -188,7 +188,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>2'}
+            REPO_PYPI: {'foo': ('>', '2')}
         })
 
     def test_version_same_or_greater(self):
@@ -197,7 +197,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>=2'}
+            REPO_PYPI: {'foo': ('>=', '2')}
         })
 
     def test_version_same_or_greater_no_spaces(self):
@@ -206,7 +206,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>=2'}
+            REPO_PYPI: {'foo': ('>=', '2')}
         })
 
     def test_version_same_or_greater_one_space_before(self):
@@ -215,7 +215,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>=2'}
+            REPO_PYPI: {'foo': ('>=', '2')}
         })
 
     def test_version_same_or_greater_two_space_before(self):
@@ -224,7 +224,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>=2'}
+            REPO_PYPI: {'foo': ('>=', '2')}
         })
 
     def test_version_same_or_greater_one_space_after(self):
@@ -233,7 +233,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>=2'}
+            REPO_PYPI: {'foo': ('>=', '2')}
         })
 
     def test_version_same_or_greater_two_space_after(self):
@@ -242,7 +242,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>=2'}
+            REPO_PYPI: {'foo': ('>=', '2')}
         })
 
     def test_continuation_line(self):
@@ -253,7 +253,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': '>2'}
+            REPO_PYPI: {'foo': ('>', '2')}
         })
 
     def test_from_import_simple(self):
@@ -328,7 +328,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'othername': '==5'},
+            REPO_PYPI: {'othername': ('==', '5')},
         })
 
     def test_projectname_version_space(self):
@@ -337,7 +337,7 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         deps = parsed
         self.assertDictEqual(deps, {
-            REPO_PYPI: {'othername': '<5'},
+            REPO_PYPI: {'othername': ('<', '5')},
         })
 
     def test_invalid_comparisons(self):
