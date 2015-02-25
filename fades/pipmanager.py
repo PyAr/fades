@@ -41,27 +41,24 @@ class PipManager():
         basedir = get_basedir()
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
 
-    def install(self, module, version):
+    def install(self, dependency):
         """Install a new dependency."""
         if not self.pip_installed:
-            logger.info("Need to install a dependency with pip, but no builtin"
-                        ", install it manually")
+            logger.info("Need to install a dependency with pip, but no builtin, do it manually")
             self._brute_force_install_pip()
 
-        if version is not None:
-            vers_comp, vers_value = version
-            module = module + vers_comp + vers_value
-        args = [self.pip_exe, "install", module]
-        logger.info("Installing dependency: %s", module)
+        str_dep = str(dependency)
+        args = [self.pip_exe, "install", str_dep]
+        logger.info("Installing dependency: %s", str_dep)
         try:
             logged_exec(args)
         except Exception as error:
-            logger.exception("Error installing %s: %s", module, error)
+            logger.exception("Error installing %s: %s", str_dep, error)
             exit()
 
     def get_version(self, dependency):
         """Returns the installed version parsing the output of 'pip show'."""
-        logger.debug("getting installed versión for %s", dependency)
+        logger.debug("getting installed version for %s", dependency)
         cmd = [self.pip_exe, "show", dependency]
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         version = p.stdout.readlines()[2].decode('utf-8').strip().split()[1]

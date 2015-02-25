@@ -22,6 +22,8 @@ import logging
 import os
 import time
 
+from pkg_resources import Distribution
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,41 +46,15 @@ class VEnvsCache:
                 # the venv doesn't even have the repo
                 return False
 
-            inst_deps = installed[repo]
-            for dep, req_version in req_deps.items():
-                if dep not in inst_deps:
-                    # the venv doesn't even have the dependency for that repo
-                    return False
-
-                if req_version is None:
-                    # no particular version requested, with the dependency present it's ok
-                    continue
-
-                inst_version = inst_deps[dep].strip()
-                req_comp, req_value = req_version
-
-                if req_comp == '==':
-                    if inst_version != req_value:
-                        return
-
-                elif req_comp == '>=':
-                    if inst_version < req_value:
-                        return
-
-                elif req_comp == '>':
-                    if inst_version <= req_value:
-                        return
-
-                elif req_comp == '<=':
-                    if inst_version > req_value:
-                        return
-
-                elif req_comp == '<':
-                    if inst_version >= req_value:
-                        return
-
+            inst_deps = [Distribution(project_name=dep, version=ver)
+                         for (dep, ver) in installed[repo].items()]
+            for req in req_deps:
+                for inst in inst_deps:
+                    if inst in req:
+                        break
                 else:
-                    raise ValueError("Bad requirement received: " + repr(req_version))
+                    # nothing installed satisfied that requirement
+                    return False
 
         # it did it through!
         return True

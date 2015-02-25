@@ -79,22 +79,25 @@ def create_venv(requested_deps):
     venv_data['pip_installed'] = pip_installed
 
     # install deps
+    installed = {}
     for repo in requested_deps.keys():
         if repo == REPO_PYPI:
             mgr = PipManager(env_bin_path, pip_installed=pip_installed)
         else:
             logger.warning("Install from %r not implemented", repo)
             continue
+        installed[repo] = {}
 
         repo_requested = requested_deps[repo]
         logger.debug("Installing dependencies for repo %r: requested=%s", repo, repo_requested)
-        for dependency, requested_version in repo_requested.items():
-            mgr.install(dependency, requested_version)
+        for dependency in repo_requested:
+            mgr.install(dependency)
 
             # always store the installed dependency, as in the future we'll select the venv
             # based on what is installed, not what used requested (remember that user may
             # request >, >=, etc!)
-            repo_requested[dependency] = mgr.get_version(dependency)
+            project = dependency.project_name
+            installed[repo][project] = mgr.get_version(project)
 
-        logger.debug("Resulted dependencies: %s", repo_requested)
-    return venv_data
+        logger.debug("Installed dependencies: %s", installed)
+    return venv_data, installed

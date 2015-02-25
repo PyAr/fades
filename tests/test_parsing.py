@@ -14,13 +14,20 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-"""Tests for the parsing of "['module']"s imports."""
+"""Tests for the parsing of module imports."""
 
 import io
 import logging
 import unittest
 
+from pkg_resources import parse_requirements
+
 from fades import parsing, REPO_PYPI
+
+
+def get_req(text):
+    """Transform a text requirement into the pkg_resources object."""
+    return list(parse_requirements(text))[0]
 
 
 class PyPIParsingTestCase(unittest.TestCase):
@@ -40,209 +47,183 @@ class PyPIParsingTestCase(unittest.TestCase):
             import time
             import foo    # fades.pypi
         """))
-        dep = parsed
-        self.assertDictEqual(dep, {REPO_PYPI: {'foo': None}})
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
 
     def test_double(self):
         parsed = parsing._parse_content(io.StringIO("""
             import time  # fades.pypi
             import foo    # fades.pypi
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {
-                'time': None,
-                'foo': None,
-            }
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('time'), get_req('foo')]
         })
 
     def test_version_same(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi == 3.5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('==', '3.5')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo == 3.5')]
         })
 
-    def test_version_same_only_one_equal(self):
+    def test_version_different(self):
         parsed = parsing._parse_content(io.StringIO("""
-            import foo    # fades.pypi =3.5
+            import foo    # fades.pypi !=3.5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('==', '3.5')},
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo !=3.5')]
         })
 
     def test_version_same_no_spaces(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi==3.5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('==', '3.5')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo ==3.5')]
         })
 
     def test_version_same_two_spaces(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi  ==  3.5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('==', '3.5')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo ==  3.5')]
         })
 
     def test_version_same_one_space_before(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi == 3.5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('==', '3.5')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo == 3.5')]
         })
 
     def test_version_same_two_space_before(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi  == 3.5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('==', '3.5')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo == 3.5')]
         })
 
     def test_version_same_one_space_after(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi== 3.5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('==', '3.5')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo == 3.5')]
         })
 
     def test_version_same_two_space_after(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi==  3.5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('==', '3.5')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo ==  3.5')]
         })
 
     def test_version_greater(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi > 2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo > 2')]
         })
 
     def test_version_greater_no_space(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi>2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >2')]
         })
 
     def test_version_greater_two_spaces(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi  >  2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >  2')]
         })
 
     def test_version_greater_one_space_after(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi> 2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo > 2')]
         })
 
     def test_version_greater_two_space_after(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi>  2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo > 2')]
         })
 
     def test_version_greater_one_space_before(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi> 2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo > 2')]
         })
 
     def test_version_greater_two_space_before(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi>  2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo > 2')]
         })
 
     def test_version_same_or_greater(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi >= 2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>=', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >= 2')]
         })
 
     def test_version_same_or_greater_no_spaces(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi>=2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>=', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >= 2')]
         })
 
     def test_version_same_or_greater_one_space_before(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi >=2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>=', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >=2')]
         })
 
     def test_version_same_or_greater_two_space_before(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi  >=2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>=', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >=2')]
         })
 
     def test_version_same_or_greater_one_space_after(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi>= 2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>=', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >= 2')]
         })
 
     def test_version_same_or_greater_two_space_after(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi>=  2
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>=', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >= 2')]
         })
 
     def test_continuation_line(self):
@@ -251,45 +232,40 @@ class PyPIParsingTestCase(unittest.TestCase):
             # fades.pypi > 2
             import foo
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': ('>', '2')}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo > 2')]
         })
 
     def test_from_import_simple(self):
         parsed = parsing._parse_content(io.StringIO("""
             from foo import bar   # fades.pypi
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': None}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo')]
         })
 
     def test_import(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo.bar   # fades.pypi
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': None}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo')]
         })
 
     def test_from_import_complex(self):
         parsed = parsing._parse_content(io.StringIO("""
             from baz.foo import bar   # fades.pypi
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'baz': None}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('baz')]
         })
 
     def test_allow_other_comments(self):
         parsed = parsing._parse_content(io.StringIO("""
             from foo import *   # NOQA   # fades.pypi
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'foo': None}
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo')]
         })
 
     def test_strange_import(self):
@@ -317,29 +293,22 @@ class PyPIParsingTestCase(unittest.TestCase):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi othername
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'othername': None},
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('othername')]
         })
 
     def test_projectname_version_nospace(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi othername==5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'othername': ('==', '5')},
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('othername==5')]
         })
 
     def test_projectname_version_space(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi othername <5
         """))
-        deps = parsed
-        self.assertDictEqual(deps, {
-            REPO_PYPI: {'othername': ('<', '5')},
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('othername <5')]
         })
-
-    def test_invalid_comparisons(self):
-        self.assertRaises(ValueError, parsing._parse_content,
-                          io.StringIO("import foo    # fades.pypi  <>2"))
