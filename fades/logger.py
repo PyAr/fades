@@ -22,20 +22,24 @@ import logging.handlers
 
 def set_up(level):
     """Set up the logging."""
-    # all to the syslog
     logger = logging.getLogger('fades')
     logger.setLevel(logging.DEBUG)
-    handler = logging.handlers.SysLogHandler(address='/dev/log')
-    logger.addHandler(handler)
-    formatter = logging.Formatter("%(name)s[%(process)d]: %(levelname)-8s %(message)s")
-    handler.setFormatter(formatter)
-
-    # and to the stdout
+    # all to the stdout
     handler = logging.StreamHandler()
     handler.setLevel(level)
     logger.addHandler(handler)
     formatter = logging.Formatter(
         "*** fades ***  %(asctime)s  %(name)-18s %(levelname)-8s %(message)s")
     handler.setFormatter(formatter)
+
+    # and to the syslog
+    try:
+        handler = logging.handlers.SysLogHandler(address='/dev/log')
+        logger.addHandler(handler)
+        formatter = logging.Formatter("%(name)s[%(process)d]: %(levelname)-8s %(message)s")
+        handler.setFormatter(formatter)
+    except Exception as error:
+        logger.warning("Fades can't write logs to your syslog (/dev/log). "
+                       "Check your syslog daemon. Exception:  %s", error)
 
     return logger
