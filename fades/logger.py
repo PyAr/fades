@@ -24,6 +24,7 @@ def set_up(level):
     """Set up the logging."""
     logger = logging.getLogger('fades')
     logger.setLevel(logging.DEBUG)
+
     # all to the stdout
     handler = logging.StreamHandler()
     handler.setLevel(level)
@@ -35,11 +36,13 @@ def set_up(level):
     # and to the syslog
     try:
         handler = logging.handlers.SysLogHandler(address='/dev/log')
+    except:
+        # silently ignore that the user doesn't have a syslog active; can
+        # see all the info with "-v" anyway
+        pass
+    else:
         logger.addHandler(handler)
         formatter = logging.Formatter("%(name)s[%(process)d]: %(levelname)-8s %(message)s")
         handler.setFormatter(formatter)
-    except Exception as error:
-        logger.warning("Fades can't write logs to your syslog (/dev/log). "
-                       "Check your syslog daemon. Exception:  %s", error)
 
     return logger
