@@ -276,5 +276,5 @@ class ComparisonsTestCase(TempfileTestCase):
     def test_crazy_picky(self):
         self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.5.0'), None)
         self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.6.7'), 'ok')
-        self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.9.7'), 'ok')
+        self.assertEqual(self.check('>1.6,<1.9,!=1.8.6', '1.8.7'), 'ok')
         self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.9.6'), None)
