@@ -1,4 +1,4 @@
-# Copyright 2014 Facundo Batista, Nicolás Demarchi
+# Copyright 2014, 2015 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -42,6 +42,8 @@ def _parse_content(fh):
         # assure that it's a well commented line and no other stuff
         line = line.strip()
         import_part, fades_part = line.rsplit("#", 1)
+
+        # discard other comments in the same line that aren't for fades
         if "fades" not in fades_part:
             import_part, fades_part = import_part.rsplit("#", 1)
 
