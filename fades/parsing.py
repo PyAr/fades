@@ -42,6 +42,9 @@ def _parse_content(fh):
         # assure that it's a well commented line and no other stuff
         line = line.strip()
         import_part, fades_part = line.rsplit("#", 1)
+        if "fades" not in fades_part:
+            import_part, fades_part = import_part.rsplit("#", 1)
+
         fades_part = fades_part.strip()
         if not fades_part.startswith("fades."):
             continue

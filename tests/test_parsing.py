@@ -268,6 +268,14 @@ class PyPIParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('foo')]
         })
 
+    def test_allow_other_comments_reverse(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            from foo import * # fades.pypi # NOQA
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo')]
+        })
+
     def test_strange_import(self):
         with self.assertLogs(level=logging.WARNING) as cm:
             parsed = parsing._parse_content(io.StringIO("""
