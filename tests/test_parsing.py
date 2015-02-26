@@ -312,3 +312,21 @@ class PyPIParsingTestCase(unittest.TestCase):
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('othername <5')]
         })
+
+    def test_comma_separated_import(self):
+
+        parsed = parsing._parse_content(io.StringIO("""
+            from foo import bar, baz, qux   # fades.pypi
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo')]
+        })
+
+    def test_other_lines_with_fades_string(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bar # fades.pypi
+            print("screen fades to black")
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('bar')]
+        })

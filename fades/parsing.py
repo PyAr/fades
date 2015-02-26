@@ -35,6 +35,10 @@ def _parse_content(fh):
         if 'fades' not in line:
             continue
 
+        # discard other string with 'fades' that isn't a comment
+        if '#' not in line:
+            continue
+
         # assure that it's a well commented line and no other stuff
         line = line.strip()
         import_part, fades_part = line.rsplit("#", 1)
