@@ -113,9 +113,9 @@ def go(version, argv):
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
     venv_data = venvscache.get_venv(requested_deps)
     if venv_data is None:
-        venv_data = envbuilder.create_venv(requested_deps)
+        venv_data, installed = envbuilder.create_venv(requested_deps)
         # store this new venv in the cache
-        venvscache.store(requested_deps, venv_data)
+        venvscache.store(installed, venv_data)
 
     # run forest run!!
     l.debug("Calling the child Python program %r with options %s", child_program, child_options)

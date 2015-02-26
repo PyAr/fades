@@ -23,9 +23,16 @@ import os
 import tempfile
 import unittest
 
+from unittest.mock import patch
+
+from pkg_resources import parse_requirements
+
 from fades import cache
 
-from unittest.mock import patch
+
+def get_req(text):
+    """Transform a text requirement into the pkg_resources object."""
+    return list(parse_requirements(text))
 
 
 class SetupLogChecker(logging.handlers.MemoryHandler):
@@ -139,9 +146,7 @@ class SelectionTestCase(TempfileTestCase):
         self.assertEqual(resp, None)
 
     def test_nomatch_repo(self):
-        reqs = {
-            'repoloco': {'dep': ('==', '5')}
-        }
+        reqs = {'repoloco': get_req('dep == 5')}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
@@ -150,9 +155,7 @@ class SelectionTestCase(TempfileTestCase):
         self.assertEqual(resp, None)
 
     def test_nomatch_dependency(self):
-        reqs = {
-            'pypi': {'dep1': ('==', '5')}
-        }
+        reqs = {'pypi': get_req('dep1 == 5')}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep2': '5'}},
@@ -161,9 +164,7 @@ class SelectionTestCase(TempfileTestCase):
         self.assertEqual(resp, None)
 
     def test_nomatch_version(self):
-        reqs = {
-            'pypi': {'dep': ('==', '5')}
-        }
+        reqs = {'pypi': get_req('dep == 5')}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '7'}},
@@ -172,9 +173,7 @@ class SelectionTestCase(TempfileTestCase):
         self.assertEqual(resp, None)
 
     def test_simple_match(self):
-        reqs = {
-            'pypi': {'dep': ('==', '5')}
-        }
+        reqs = {'pypi': get_req('dep == 5')}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
@@ -183,9 +182,7 @@ class SelectionTestCase(TempfileTestCase):
         self.assertEqual(resp, 'foobar')
 
     def test_match_noversion(self):
-        reqs = {
-            'pypi': {'dep': None}
-        }
+        reqs = {'pypi': get_req('dep')}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
@@ -194,9 +191,7 @@ class SelectionTestCase(TempfileTestCase):
         self.assertEqual(resp, 'foobar')
 
     def test_middle_match(self):
-        reqs = {
-            'pypi': {'dep': ('==', '5')}
-        }
+        reqs = {'pypi': get_req('dep == 5')}
         venv1 = json.dumps({
             'metadata': 'venv1',
             'installed': {'pypi': {'dep': '3'}},
@@ -213,9 +208,7 @@ class SelectionTestCase(TempfileTestCase):
         self.assertEqual(resp, 'venv2')
 
     def test_multiple_deps_ok(self):
-        reqs = {
-            'pypi': {'dep1': ('==', '5'), 'dep2': ('==', '7')}
-        }
+        reqs = {'pypi': get_req(['dep1 == 5', 'dep2 == 7'])}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep1': '5', 'dep2': '7'}},
@@ -224,9 +217,7 @@ class SelectionTestCase(TempfileTestCase):
         self.assertEqual(resp, 'foobar')
 
     def test_multiple_deps_just_one(self):
-        reqs = {
-            'pypi': {'dep1': ('==', '5'), 'dep2': ('==', '7')}
-        }
+        reqs = {'pypi': get_req(['dep1 == 5', 'dep2 == 7'])}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep1': '5', 'dep2': '2'}},
@@ -244,9 +235,7 @@ class ComparisonsTestCase(TempfileTestCase):
 
     def check(self, req, installed):
         """Check if the requirement is satisfied with what is installed."""
-        reqs = {
-            'pypi': {'dep': req}
-        }
+        reqs = {'pypi': get_req('dep' + req)}
         venv = json.dumps({
             'metadata': 'ok',
             'installed': {'pypi': {'dep': installed}},
@@ -255,30 +244,37 @@ class ComparisonsTestCase(TempfileTestCase):
         return resp
 
     def test_comp_eq(self):
-        version = ('==', '5')
-        self.assertEqual(self.check(version, '5'), 'ok')
-        self.assertEqual(self.check(version, '2'), None)
+        self.assertEqual(self.check('==5', '5'), 'ok')
+        self.assertEqual(self.check('==5', '2'), None)
 
     def test_comp_gt(self):
-        version = ('>', '5')
-        self.assertEqual(self.check(version, '4'), None)
-        self.assertEqual(self.check(version, '5'), None)
-        self.assertEqual(self.check(version, '6'), 'ok')
+        self.assertEqual(self.check('>5', '4'), None)
+        self.assertEqual(self.check('>5', '5'), None)
+        self.assertEqual(self.check('>5', '6'), 'ok')
 
     def test_comp_ge(self):
-        version = ('>=', '5')
-        self.assertEqual(self.check(version, '4'), None)
-        self.assertEqual(self.check(version, '5'), 'ok')
-        self.assertEqual(self.check(version, '6'), 'ok')
+        self.assertEqual(self.check('>=5', '4'), None)
+        self.assertEqual(self.check('>=5', '5'), 'ok')
+        self.assertEqual(self.check('>=5', '6'), 'ok')
 
     def test_comp_lt(self):
-        version = ('<', '5')
-        self.assertEqual(self.check(version, '4'), 'ok')
-        self.assertEqual(self.check(version, '5'), None)
-        self.assertEqual(self.check(version, '6'), None)
+        self.assertEqual(self.check('<5', '4'), 'ok')
+        self.assertEqual(self.check('<5', '5'), None)
+        self.assertEqual(self.check('<5', '6'), None)
 
     def test_comp_le(self):
-        version = ('<=', '5')
-        self.assertEqual(self.check(version, '4'), 'ok')
-        self.assertEqual(self.check(version, '5'), 'ok')
-        self.assertEqual(self.check(version, '6'), None)
+        self.assertEqual(self.check('<=5', '4'), 'ok')
+        self.assertEqual(self.check('<=5', '5'), 'ok')
+        self.assertEqual(self.check('<=5', '6'), None)
+
+    def test_complex_cases(self):
+        self.assertEqual(self.check('== 2.5', '2.5.0'), 'ok')
+        self.assertEqual(self.check('> 2.7', '2.12'), 'ok')
+        self.assertEqual(self.check('> 2.7a0', '2.7'), 'ok')
+        self.assertEqual(self.check('> 2.7', '2.7a0'), None)
+
+    def test_crazy_picky(self):
+        self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.5.0'), None)
+        self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.6.7'), 'ok')
+        self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.9.7'), 'ok')
+        self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.9.6'), None)

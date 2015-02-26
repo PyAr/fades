@@ -17,20 +17,12 @@
 """Script parsing to get needed dependencies."""
 
 import logging
-import re
+
+from pkg_resources import parse_requirements
 
 from fades import REPO_PYPI
 
 logger = logging.getLogger(__name__)
-
-
-RE_PYPI_METADATA = re.compile("""
-    ([a-zA-Z0-9_.]*)    # a project name
-    \s*                 # separation
-    ([=<>]*)            # version comparison elements
-    \s*                 # separation
-    ([a-zA-Z0-9_.]*)    # version
-""", re.VERBOSE)
 
 
 def _parse_content(fh):
@@ -70,35 +62,22 @@ def _parse_content(fh):
         if fades_part.startswith("fades.pypi"):
             repo = REPO_PYPI
             marked = fades_part[10:].strip()  # Only works with fades.pypi
-            m = RE_PYPI_METADATA.match(marked)
-            if m:
-                project, vers_comp, vers_value = m.groups()
-
-                # assert what is found is ok
-                if vers_comp == '=':
-                    vers_comp = '=='
-                elif vers_comp in ('', '==', '<=', '>=', '<', '>'):
-                    pass
-                else:
-                    raise ValueError("Unknown version comparison: " + repr(vers_comp))
-
-                # use the project if it's there to override the module
-                if project:
-                    module = project
-
-                # prepare the version info with two values, if any
-                if not vers_comp and not vers_value:
-                    version_info = None
-                else:
-                    version_info = (vers_comp, vers_value)
+            if not marked:
+                # nothing after the pypi token
+                requirement = module
+            elif marked[0] in "<>=!":
+                # the rest is just the version
+                requirement = module + ' ' + marked
             else:
-                version_info = None
+                # the rest involves not only a version, but also the project name
+                requirement = marked
         else:
             logger.warning("Not understood fades info: %r", fades_part)
             continue
 
         # record the dependency
-        deps.setdefault(repo, {})[module] = version_info
+        dependency = list(parse_requirements(requirement))[0]
+        deps.setdefault(repo, []).append(dependency)
 
     return deps
 
