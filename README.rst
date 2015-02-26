@@ -73,6 +73,7 @@ Also, you can indicate a particular version condition, examples::
 
     import somemodule   # fades.pypi == 3
     import somemodule   # fades.pypi >= 2.1
+    import somemodule   # fades.pypi >=2.1,<2.8,!=2.6.5
 
 Sometimes, the project itself doesn't match the name of the module; in
 these cases you can specify the project name (optionally, before the
@@ -123,11 +124,11 @@ Fades depends on ``python-xdg`` package. This package should be installed on
 any GNU/Linux OS wiht a freedesktop.org GUI. However it is an
 **optional** dependency.
 
-You can install it in Ubuntu/Debian with
+You can install it in Ubuntu/Debian with::
 
     apt-get install python-xdg
 
-And on Archlinux with
+And on Archlinux with::
 
     pacman -S python-xdg
 
@@ -183,19 +184,14 @@ Yes! Branch the project and use the executable::
     bin/fades your_script.py
 
 
-More help
-=========
+Get some help, give some feedback
+=================================
 
-Some questions, hints, etc...
+You can ask any question or send any recommendation or request to
+the `mailing list <http://listas.python.org.ar/mailman/listinfo/fades>`_.
 
-- *Everytime I edit my script with vim/gvim, ``fades`` installs everything again*: this is because vim doesn't keep extended attributes in the mambo-jambo it does when saving; to fix this add ``set backupcopy=yes`` in your ``$HOME/.vimrc`` file.
-
-
-Even more help
---------------
-
-You can ask any question or send any recommendation or request to the `mailing list <http://listas.python.org.ar/mailman/listinfo/fades>`_.
-
-Also, you can open an issue `here <https://github.com/PyAr/fades/issues/new>`_ (please do if you find any problem!).
+Also, you can open an issue
+`here <https://github.com/PyAr/fades/issues/new>`_ (please do if you
+find any problem!).
 
 Thanks in advance for your time.
