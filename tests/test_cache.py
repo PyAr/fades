@@ -225,6 +225,24 @@ class SelectionTestCase(TempfileTestCase):
         resp = self.venvscache._select([venv], reqs)
         self.assertEqual(resp, None)
 
+    def test_not_too_crowded(self):
+        reqs = {'pypi': get_req(['dep1'])}
+        venv = json.dumps({
+            'metadata': 'foobar',
+            'installed': {'pypi': {'dep1': '5', 'dep2': '2'}},
+        })
+        resp = self.venvscache._select([venv], reqs)
+        self.assertEqual(resp, None)
+
+    def test_same_quantity_different_deps(self):
+        reqs = {'pypi': get_req(['dep1', 'dep2'])}
+        venv = json.dumps({
+            'metadata': 'foobar',
+            'installed': {'pypi': {'dep1': '5', 'dep3': '2'}},
+        })
+        resp = self.venvscache._select([venv], reqs)
+        self.assertEqual(resp, None)
+
 
 class ComparisonsTestCase(TempfileTestCase):
     """The comparison in the selection."""

@@ -41,20 +41,26 @@ class VEnvsCache:
         if *anything* is not satisified, the venv is no good). Only after
         all was checked, and it didn't exit, the venv is ok so return True.
         """
+        useful_inst = set()
         for repo, req_deps in requirements.items():
             if repo not in installed:
                 # the venv doesn't even have the repo
                 return False
 
-            inst_deps = [Distribution(project_name=dep, version=ver)
-                         for (dep, ver) in installed[repo].items()]
+            inst_deps = {Distribution(project_name=dep, version=ver)
+                         for (dep, ver) in installed[repo].items()}
             for req in req_deps:
                 for inst in inst_deps:
                     if inst in req:
+                        useful_inst.add(inst)
                         break
                 else:
                     # nothing installed satisfied that requirement
                     return False
+
+        # assure *all* that is installed is useful for the requirements
+        if useful_inst != inst_deps:
+            return False
 
         # it did it through!
         return True
