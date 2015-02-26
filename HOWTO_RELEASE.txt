@@ -32,7 +32,7 @@ The following is the whole command (copy it, trim the comments, put everything i
         --install=no                               # don't install the .deb created
         --pkgname=fades                            # package name
         --pkgversion=`cat version.txt`             # automatically get the real version
-        --requires=python3                         # only dependency
+        --requires=python3, python3-setuptools     # dependencies
         --maintainer=facundo@taniquetil.com.ar     # maintainer contact
         --deldoc=yes --deldesc=yes --delspec=yes   # some cleanup
         --backup=no                                # don't save a backup file
