@@ -10,9 +10,9 @@ What does it do?
 ----------------
 
 *fades* will automagically create a new virtualenv (or reuse a previous
-created one), installing the necessary dependencies, and execute 
-your script inside that virtualenv, with the only requirement 
-of executing the script with *fades* and also marking the required 
+created one), installing the necessary dependencies, and execute
+your script inside that virtualenv, with the only requirement
+of executing the script with *fades* and also marking the required
 dependencies.
 
 
@@ -25,7 +25,7 @@ When you write an script, you have to take two special measures:
 
 - need to mark those dependencies
 
-At the moment you execute the script, fades will search a 
+At the moment you execute the script, fades will search a
 virtualenv with the marked dependencies, if it doesn't exists
 fades will create it, and execute the script in that environment.
 
@@ -140,7 +140,7 @@ already included (it's even there in a clean virtualenv).
 For debian/ubuntu
 -----------------
 
-You have a .deb `here <http://taniquetil.com.ar/fades/fades-latest.deb>`_.
+You have a `.deb <http://taniquetil.com.ar/fades/fades-latest.deb>`_.
 Download it and install doing::
 
     sudo dpkg -i fades-latest.deb
@@ -149,7 +149,7 @@ Download it and install doing::
 For Archlinux
 -------------
 
-We have an AUR package `here <https://aur.archlinux.org/packages/fades>`_.
+We have an `AUR package <https://aur.archlinux.org/packages/fades>`_.
 If you are a yaourt user you can install fades with a simple::
 
     yaourt -S fades
