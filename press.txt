@@ -1,14 +1,14 @@
 Hello all,
 
-We're glad to announce the release of fades 1.0.
+We're glad to announce the release of fades 2.0.
 
 fades, a FAst DEpendencies for Scripts, is a system that automatically
 handles the virtualenvs in the simple cases normally found when
 writing scripts or simple programs.
 
 It will automagically create a new virtualenv (or reuse a previous
-created one for your script), installing or updating the necessary
-dependencies, and execute your script inside that virtualenv.
+created one), installing the necessary dependencies, and execute
+your script inside that virtualenv.
 
 You only need to execute the script with fades (instead of Python) and
 also mark the required dependencies. More details here:
@@ -16,11 +16,29 @@ also mark the required dependencies. More details here:
     https://github.com/PyAr/fades/
 
 
+What's new in this release?
+
+- Have a system-wide cache for created virtualenvs: improves reusing
+  and speed
+
+- As a result of previous feature, don't store metadata per-script
+  (*in* the script) anymore
+
+- Allow to indicate the project name if the module is different
+  (e.g. "import bs4  # fades.pypi beautifulsoup4 == 3.5")
+
+- Support complex version requirements (e.g. "<2.6,>1.3,!=1.9")
+
+- Handle packages that whose names are changed by pip
+
+- Other minor bugfixes and improvements
+
+
 To get it:
 
 - For debian/ubuntu you have a .deb here:
 
-    http://taniquetil.com.ar/fades/fades-1.0.deb
+    http://taniquetil.com.ar/fades/fades-latest.deb
 
 - Install it in Arch is very simple:
 
@@ -33,9 +51,9 @@ To get it:
 - You can always get the multiplatform tarball and install it in the
   old fashion way:
 
-    wget http://taniquetil.com.ar/fades/fades-1.0.tar.gz
-    tar -xf fades-1.0.tar.gz
-    cd fades-1.0
+    wget http://taniquetil.com.ar/fades/fades-latest.tar.gz
+    tar -xf fades-latest.tar.gz
+    cd fades-*
     sudo ./setup.py install
 
 
@@ -59,15 +77,15 @@ Thanks in advance for your time!
 
 Hola a todas y todos,
 
-Estamos contentos de anunciar la liberación de fades 1.0.
+Estamos contentos de anunciar la liberación de fades 2.0.
 
 fades (en inglés: FAst DEpendencies for Scripts) es un sistema que
 maneja automáticamente los virtualenvs en los casos simples que
 uno normalmente encuentra al escribir scripts o programas pequeños.
 
-Crea automáticamente un nuevo virtualenv (o reusa uno creado previamente
-para ese script), instalando o actualizando las dependencias necesarias,
-y ejecutando el script dentro de ese virtualenv.
+Crea automáticamente un nuevo virtualenv (o reusa uno creado previamente)
+instalando las dependencias necesarias, y ejecutando el script
+dentro de ese virtualenv.
 
 Todo lo que necesitás hacer es ejecutar el script con fades (en lugar de
 Python) y también marcar las dependencias necesarias. Más detalles acá:
@@ -75,11 +93,29 @@ Python) y también marcar las dependencias necesarias. Más detalles acá:
     https://github.com/PyAr/fades/
 
 
+¿Qué hay de nuevo en esta release?
+
+- Tiene un cache para virtualenvs creados en el sistema; mejora
+  la reutilización y velocidad.
+
+- Como resultado del feature anterior, ya no guarda metadata por
+  script (*en* el script).
+
+- Permite indicar el nombre del projecto si es diferente al del
+  módulo (ej: "import bs4  # fades.pypi beautifulsoup4 == 3.5")
+
+- Soporta requerimientos complejos de versión: (ej: "<2.6,>1.3,!=1.9")
+
+- Maneja paquetes a los que pip les cambia el nombre
+
+- Otros cambios y correcciones menores.
+
+
 Para obtenerlo:
 
 - Para debian/ubuntu hay un .deb acá:
 
-    http://taniquetil.com.ar/fades/fades-1.0.deb
+    http://taniquetil.com.ar/fades/fades-latest.deb
 
 - Instalarlo en Arch es muy simple:
 
@@ -92,9 +128,9 @@ Para obtenerlo:
 - Siempre podés usar el tarball multiplataforma e instalarlo de
   la manera clásica:
 
-    wget http://taniquetil.com.ar/fades/fades-1.0.tar.gz
-    tar -xf fades-1.0.tar.gz
-    cd fades-1.0
+    wget http://taniquetil.com.ar/fades/fades-latest.tar.gz
+    tar -xf fades-latest.tar.gz
+    cd fades-*
     sudo ./setup.py install
 
 
