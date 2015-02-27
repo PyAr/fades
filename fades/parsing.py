@@ -57,6 +57,8 @@ def _parse_content(fh):
             logger.warning("Not understood import info: %s", import_tokens)
             continue
         module = module_path.split(".")[0]
+        # To match the "safe" name that pkg_resources creates:
+        module = module.replace('_', '-')
 
         # get the fades info
         if fades_part.startswith("fades.pypi"):
