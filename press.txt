@@ -16,6 +16,24 @@ also mark the required dependencies. More details here:
     https://github.com/PyAr/fades/
 
 
+What's new in this release?
+
+- Have a system-wide cache for created virtualenvs: improves reusing
+  and speed
+
+- As a result of previous feature, don't store metadata per-script
+  (*in* the script) anymore
+
+- Allow to indicate the project name if the module is different
+  (e.g. "import bs4  # fades.pypi beautifulsoup4 == 3.5")
+
+- Support complex version requirements (e.g. "<2.6,>1.3,!=1.9")
+
+- Handle packages that whose names are changed by pip
+
+- Other minor bugfixes and improvements
+
+
 To get it:
 
 - For debian/ubuntu you have a .deb here:
@@ -73,6 +91,24 @@ Todo lo que necesitás hacer es ejecutar el script con fades (en lugar de
 Python) y también marcar las dependencias necesarias. Más detalles acá:
 
     https://github.com/PyAr/fades/
+
+
+¿Qué hay de nuevo en esta release?
+
+- Tiene un cache para virtualenvs creados en el sistema; mejora
+  la reutilización y velocidad.
+
+- Como resultado del feature anterior, ya no guarda metadata por
+  script (*en* el script).
+
+- Permite indicar el nombre del projecto si es diferente al del
+  módulo (ej: "import bs4  # fades.pypi beautifulsoup4 == 3.5")
+
+- Soporta requerimientos complejos de versión: (ej: "<2.6,>1.3,!=1.9")
+
+- Maneja paquetes a los que pip les cambia el nombre
+
+- Otros cambios y correcciones menores.
 
 
 Para obtenerlo:
