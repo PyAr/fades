@@ -10,10 +10,10 @@ What does it do?
 ----------------
 
 *fades* will automagically create a new virtualenv (or reuse a previous
-created one for your script), installing or updating the necessary
-dependencies, and execute your script inside that virtualenv, with the
-only requirement of executing the script with *fades* and also marking
-the required dependencies.
+created one), installing the necessary dependencies, and execute 
+your script inside that virtualenv, with the only requirement 
+of executing the script with *fades* and also marking the required 
+dependencies.
 
 
 How to use it?
@@ -25,9 +25,9 @@ When you write an script, you have to take two special measures:
 
 - need to mark those dependencies
 
-At the moment you execute the script, fades will create (if needed) a
-virtualenv, install/update/remove dependencies (if needed), and execute
-the script in that environment.
+At the moment you execute the script, fades will search a 
+virtualenv with the marked dependencies, if it doesn't exists
+fades will create it, and execute the script in that environment.
 
 
 How to execute the script with fades?

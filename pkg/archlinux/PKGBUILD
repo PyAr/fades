@@ -1,7 +1,7 @@
 # Maintainer: Nicolás Demarchi <mail@gilgamezh.me>
 
 pkgname=fades
-pkgver=1.0
+pkgver=2.0
 pkgrel=1
 pkgdesc="FAst DEpendencies for Scripts."
 url="https://github.com/PyAr/fades/"
