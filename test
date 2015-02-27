@@ -13,3 +13,12 @@ fi
 
 nosetests3 -v -s $TARGET
 flake8 $TARGET --max-line-length=99
+
+
+# Check README.rst format.
+OUTPUT=$(python3 setup.py --long-description | rst2html 2>&1 > /dev/null)
+if [ -n "$OUTPUT" ]; then
+    echo -e "README.rst format is incorrect\n"
+    echo -e "Errors: \n$OUTPUT"
+fi
+
