@@ -1,4 +1,4 @@
-# Copyright 2014 Facundo Batista, Nicolás Demarchi
+# Copyright 2014, 2015 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -268,6 +268,14 @@ class PyPIParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('foo')]
         })
 
+    def test_allow_other_comments_reverse(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            from foo import * # fades.pypi # NOQA
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo')]
+        })
+
     def test_strange_import(self):
         with self.assertLogs(level=logging.WARNING) as cm:
             parsed = parsing._parse_content(io.StringIO("""
@@ -311,4 +319,22 @@ class PyPIParsingTestCase(unittest.TestCase):
         """))
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('othername <5')]
+        })
+
+    def test_comma_separated_import(self):
+
+        parsed = parsing._parse_content(io.StringIO("""
+            from foo import bar, baz, qux   # fades.pypi
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo')]
+        })
+
+    def test_other_lines_with_fades_string(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bar # fades.pypi
+            print("screen fades to black")
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('bar')]
         })
