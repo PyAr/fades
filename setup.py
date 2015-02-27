@@ -84,11 +84,6 @@ class CustomInstall(install):
         self._custom_man_dir = man_dir
 
 
-LONG_DESCRIPTION = (
-    'A system that automatically handles the virtualenvs in the simple '
-    'cases normally found when writing scripts or simple programs.'
-)
-
 setup(
     name='fades',
     version=open('version.txt').read().strip(),
@@ -96,7 +91,7 @@ setup(
     author='Facundo Batista, Nicolás Demarchi',
     author_email='facundo@taniquetil.com.ar, mail@gilgamezh.me',
     description='FAst DEpendencies for Scripts.',
-    long_description=LONG_DESCRIPTION,
+    long_description=open('README.rst').read(),
     url='https://github.com/PyAr/fades',
 
     packages=["fades"],
@@ -108,7 +103,8 @@ setup(
     cmdclass={
         'install': CustomInstall,
     },
-    extras_require = {
-            'pyxdg':  ["pyxdg", "Used to correctly get user folders"]
-        }
+    install_requires=['setuptools'],
+    extras_require={
+        'pyxdg': 'pyxdg',
+    }
 )
