@@ -18,12 +18,23 @@
 """Main 'fades' modules."""
 
 import os
+import signal
 import sys
 import logging
 import subprocess
 
 from fades import parsing, logger, cache, helpers, envbuilder
 
+# the signals to redirect to the child process (note: only these are
+# allowed in Windows, see 'signal' doc).
+REDIRECTED_SIGNALS = [
+    signal.SIGABRT,
+    signal.SIGFPE,
+    signal.SIGILL,
+    signal.SIGINT,
+    signal.SIGSEGV,
+    signal.SIGTERM,
+]
 
 USAGE = """
 Usage:  fades [<fades_options>] child_program [<child_program_options>]
@@ -120,6 +131,18 @@ def go(version, argv):
     # run forest run!!
     l.debug("Calling the child Python program %r with options %s", child_program, child_options)
     python_exe = os.path.join(venv_data['env_bin_path'], "python3")
-    rc = subprocess.call([python_exe, child_program] + child_options)
+    p = subprocess.Popen([python_exe, child_program] + child_options)
+
+    def _signal_handler(signum, _):
+        """Handle signals received by parent process, send them to child."""
+        l.debug("Redirecting signal %s to child", signum)
+        os.kill(p.pid, signum)
+
+    # redirect these signals
+    for s in REDIRECTED_SIGNALS:
+        signal.signal(s, _signal_handler)
+
+    # wait child to finish, end
+    rc = p.wait()
     if rc:
         l.debug("Child process not finished correctly: returncode=%d", rc)
