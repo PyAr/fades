@@ -58,9 +58,9 @@ class VEnvsCache:
                     # nothing installed satisfied that requirement
                     return False
 
-        # assure *all* that is installed is useful for the requirements
-        if useful_inst != inst_deps:
-            return False
+            # assure *all* that is installed is useful for the requirements
+            if useful_inst != inst_deps:
+                return False
 
         # it did it through!
         return True
