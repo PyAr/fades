@@ -321,6 +321,38 @@ class PyPIParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('othername <5')]
         })
 
+    def test_projectname_pkgnamedb(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bs4   # fades.pypi
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('beautifulsoup4')]
+        })
+
+    def test_projectname_pkgnamedb_version(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bs4   # fades.pypi >=5
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('beautifulsoup4 >=5')]
+        })
+
+    def test_projectname_pkgnamedb_othername(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bs4   # fades.pypi othername
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('othername')]
+        })
+
+    def test_projectname_pkgnamedb_version_othername(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bs4   # fades.pypi othername >=5
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('othername >=5')]
+        })
+
     def test_comma_separated_import(self):
 
         parsed = parsing._parse_content(io.StringIO("""
