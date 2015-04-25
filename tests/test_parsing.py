@@ -338,3 +338,27 @@ class PyPIParsingTestCase(unittest.TestCase):
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('bar')]
         })
+
+    def test_commented_line(self):  # FIXME: Have to test if is logging a warn message
+        parsed = parsing._parse_content(io.StringIO("""
+            #import foo   # fades.pypi
+        """))
+        self.assertDictEqual(parsed, {})
+
+    def test_with_fades_commented_line(self):  # FIXME: Have to test if is logging a warn message
+        parsed = parsing._parse_content(io.StringIO("""
+            #import foo   # fades.pypi
+            import bar   # fades.pypi
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('bar')]
+        })
+
+    def test_with_commented_line(self):  # FIXME: Have to test if is logging a warn message
+        parsed = parsing._parse_content(io.StringIO("""
+            import bar   # fades.pypi
+            # a commented line
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('bar')]
+        })

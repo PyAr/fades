@@ -56,6 +56,9 @@ def _parse_content(fh):
             # which means that the import info is in the next one
             import_part = next(content).strip()
 
+        if import_part.startswith('#'):
+            continue
+
         # get module
         import_tokens = import_part.split()
         if import_tokens[0] == 'import':
