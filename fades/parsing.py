@@ -93,6 +93,16 @@ def _parse_content(fh):
     return deps
 
 
+def parse_string(text):
+    """Parse a string and return specified dependencies."""
+    repo = 'pypi' # FIXME: fijo?
+    deps = {}
+    for requirement in text.split():
+        dependency = list(parse_requirements(requirement))[0]
+        deps.setdefault(repo, []).append(dependency)
+    return deps
+
+
 def parse_file(filepath):
     """Parse a file and return its marked dependencies."""
     with open(filepath, 'rt', encoding='utf8') as fh:

@@ -37,7 +37,10 @@ REDIRECTED_SIGNALS = [
 ]
 
 USAGE = """
-Usage:  fades [<fades_options>] child_program [<child_program_options>]
+Usage:
+
+        fades [<fades_options>] child_program [<child_program_options>]
+        fades -i|--interactive [<fades_options>] requirements
 
     All fades options are optional:
         -h|--help:    show this help and quit
@@ -53,6 +56,12 @@ Usage:  fades [<fades_options>] child_program [<child_program_options>]
 
     The child program options (everything after the child program) are
     parameters passed as is to the child program.
+
+    If called with -i/--interactive, there is no child program, fades
+    will open
+    FIXME: terminar aca, hacer man y readme, pero con el nuevo formato
+         - -d|--dependency
+         - hacemos child program opcional
 """
 
 
@@ -95,13 +104,20 @@ def go(version, argv):
     if "-h" in fades_options or "--help" in fades_options:
         print(USAGE)
         sys.exit()
-    if not child_program:
-        print("ERROR: the 'child program' is mandatory.")
-        print(USAGE)
-        sys.exit()
 
     verbose = "-v" in fades_options or "--verbose" in fades_options
     quiet = "-q" in fades_options or "--quiet" in fades_options
+    interactive = "-i" in fades_options or "--interactive" in fades_options
+
+    if not child_program:
+        if interactive:
+            # FIXME: mejorar este error
+            print("ERROR: the 'child program' is mandatory (unless --interactive).")
+        else:
+            print("ERROR: the 'child program' is mandatory (unless --interactive).")
+        print(USAGE)
+        sys.exit()
+
     if verbose:
         log_level = logging.DEBUG
     elif quiet:
@@ -118,7 +134,10 @@ def go(version, argv):
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # parse file and get deps
-    requested_deps = parsing.parse_file(child_program)
+    if interactive:
+        requested_deps = parsing.parse_string(child_program)
+    else:
+        requested_deps = parsing.parse_file(child_program)
 
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
@@ -129,18 +148,24 @@ def go(version, argv):
         venvscache.store(installed, venv_data)
 
     # run forest run!!
-    l.debug("Calling the child Python program %r with options %s", child_program, child_options)
     python_exe = os.path.join(venv_data['env_bin_path'], "python3")
-    p = subprocess.Popen([python_exe, child_program] + child_options)
+    if interactive:
+        l.debug("Calling the interactive Python interpreter")
+        p = subprocess.Popen([python_exe])
 
-    def _signal_handler(signum, _):
-        """Handle signals received by parent process, send them to child."""
-        l.debug("Redirecting signal %s to child", signum)
-        os.kill(p.pid, signum)
+    else:
+        l.debug("Calling the child Python program %r with options %s",
+                child_program, child_options)
+        p = subprocess.Popen([python_exe, child_program] + child_options)
 
-    # redirect these signals
-    for s in REDIRECTED_SIGNALS:
-        signal.signal(s, _signal_handler)
+        def _signal_handler(signum, _):
+            """Handle signals received by parent process, send them to child."""
+            l.debug("Redirecting signal %s to child", signum)
+            os.kill(p.pid, signum)
+
+        # redirect these signals
+        for s in REDIRECTED_SIGNALS:
+            signal.signal(s, _signal_handler)
 
     # wait child to finish, end
     rc = p.wait()
