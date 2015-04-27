@@ -17,6 +17,7 @@
 
 """Main 'fades' modules."""
 
+import argparse
 import os
 import signal
 import sys
@@ -36,91 +37,47 @@ REDIRECTED_SIGNALS = [
     signal.SIGTERM,
 ]
 
-USAGE = """
-Usage:
+help_epilog = """
+The "child program" is the script that fades will execute. It's an
+optional parameter, it will be the first thing received by fades that
+is not a parameter.  If no child program is indicated, a Python
+interactive interpreter will be opened.
 
-        fades [<fades_options>] child_program [<child_program_options>]
-        fades -i|--interactive [<fades_options>] requirements
-
-    All fades options are optional:
-        -h|--help:    show this help and quit
-        -V|--version: show version and info about the system
-        -v|--verbose: send all internal debugging lines to stderr, which
-                      may be very useful if any problem arises.
-        -q|--quiet:   don't show anything (unless it has a real problem),
-                      so the original script stderr is not polluted at all.
-
-    The "child program" is the script that fades will execute. It's a
-    mandatory parameter, the first thing received by fades that is not
-    a parameter.
-
-    The child program options (everything after the child program) are
-    parameters passed as is to the child program.
-
-    If called with -i/--interactive, there is no child program, fades
-    will open
-    FIXME: terminar aca, hacer man y readme, pero con el nuevo formato
-         - -d|--dependency
-         - hacemos child program opcional
+The "child options" (everything after the child program) are
+parameters passed as is to the child program.
 """
-
-
-def _parse_argv(argv):
-    """Ad-hoc argv parsing for the complicated rules.
-
-    As fades is a program that executes programs, at first there is the complexity of
-    deciding which of the parameters are for fades and which ones are for the executed
-    child program. For this, we decided that after fades itself, everything starting with
-    a "-" is a parameter for fade, then the rest is for child program.
-
-    Also, it happens that if you pass several parameters to fades when calling it using
-    the "!#/usr/bin/fades" magic at the beginning of a file, all the parameters you put
-    there come as a single string."""
-
-    # get a copy, as we'll destroy this; in the same move ignore first
-    # parameter that is the name of fades executable itself
-    argv = argv[1:]
-
-    fades_options = []
-    while argv and argv[0][0] == '-':
-        fades_options.extend(argv.pop(0).split())
-    if not argv:
-        return fades_options, "", []
-
-    child_program = argv[0]
-    return fades_options, child_program, argv[1:]
 
 
 def go(version, argv):
     """Make the magic happen."""
-    fades_options, child_program, child_options = _parse_argv(sys.argv)
+    parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('-V', '--version', action='store_true',
+                        help="show version and info about the system, and exit")
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help="send all internal debugging lines to stderr, which may be very "
+                             "useful to debug any problem that may arise.")
+    parser.add_argument('-q', '--quiet', action='store_true',
+                        help="don't show anything (unless it has a real problem), so the "
+                             "original script stderr is not polluted at all.")
+    parser.add_argument('-d', '--dependency', action='append',
+                        help="specify dependencies through command line (this option can be "
+                             "used multiple times)")
+    parser.add_argument('child_program', nargs='?', default=None)
+    parser.add_argument('child_options', nargs=argparse.REMAINDER)
+    args = parser.parse_args()
+    print(args)
 
     # validate input, parameters, and support some special options
-    if "-V" in fades_options or "--version" in fades_options:
+    if args.version:
         print("Running 'fades' version", version)
         print("    Python:", sys.version_info)
         print("    System:", sys.platform)
         sys.exit()
-    if "-h" in fades_options or "--help" in fades_options:
-        print(USAGE)
-        sys.exit()
 
-    verbose = "-v" in fades_options or "--verbose" in fades_options
-    quiet = "-q" in fades_options or "--quiet" in fades_options
-    interactive = "-i" in fades_options or "--interactive" in fades_options
-
-    if not child_program:
-        if interactive:
-            # FIXME: mejorar este error
-            print("ERROR: the 'child program' is mandatory (unless --interactive).")
-        else:
-            print("ERROR: the 'child program' is mandatory (unless --interactive).")
-        print(USAGE)
-        sys.exit()
-
-    if verbose:
+    if args.verbose:
         log_level = logging.DEBUG
-    elif quiet:
+    elif args.quiet:
         log_level = logging.WARNING
     else:
         log_level = logging.INFO
@@ -130,14 +87,17 @@ def go(version, argv):
     l.debug("Running Python %s on %r", sys.version_info, sys.platform)
     l.debug("Starting fades v. %s", version)
 
-    if verbose and quiet:
+    if args.verbose and args.quiet:
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # parse file and get deps
-    if interactive:
-        requested_deps = parsing.parse_string(child_program)
-    else:
-        requested_deps = parsing.parse_file(child_program)
+    requested_deps = parsing.parse_file(args.child_program)
+    l.debug("Dependencies from file: %s", requested_deps)
+    manual_deps = parsing.parse_manual(args.dependency)
+    l.debug("Dependencies from parameters: %s", manual_deps)
+    # update previous dict, so manually specified dependencies are more
+    # important and overwrite the ones in the file
+    requested_deps.update(manual_deps)
 
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
@@ -149,14 +109,14 @@ def go(version, argv):
 
     # run forest run!!
     python_exe = os.path.join(venv_data['env_bin_path'], "python3")
-    if interactive:
+    if args.child_program is None:
         l.debug("Calling the interactive Python interpreter")
         p = subprocess.Popen([python_exe])
 
     else:
         l.debug("Calling the child Python program %r with options %s",
-                child_program, child_options)
-        p = subprocess.Popen([python_exe, child_program] + child_options)
+                args.child_program, args.child_options)
+        p = subprocess.Popen([python_exe, args.child_program] + args.child_options)
 
         def _signal_handler(signum, _):
             """Handle signals received by parent process, send them to child."""
