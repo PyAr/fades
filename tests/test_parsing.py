@@ -17,8 +17,9 @@
 """Tests for the parsing of module imports."""
 
 import io
-import logging
 import unittest
+
+import logassert
 
 from pkg_resources import parse_requirements
 
@@ -32,6 +33,9 @@ def get_req(text):
 
 class PyPIParsingTestCase(unittest.TestCase):
     """Check the imports parsing."""
+
+    def setUp(self):
+        logassert.setup(self, 'fades.parsing')
 
     def test_nocomment(self):
         # note that we're testing the import at the beginning of the line, and
@@ -277,24 +281,18 @@ class PyPIParsingTestCase(unittest.TestCase):
         })
 
     def test_strange_import(self):
-        with self.assertLogs(level=logging.WARNING) as cm:
-            parsed = parsing._parse_content(io.StringIO("""
-                from foo bar import :(   # fades.pypi
-            """))
-        self.assertEqual(cm.output[0], (
-            "WARNING:fades.parsing:Not understood import info: "
-            "['from', 'foo', 'bar', 'import', ':(']"
-        ))
+        parsed = parsing._parse_content(io.StringIO("""
+            from foo bar import :(   # fades.pypi
+        """))
+        self.assertLoggedWarning("Not understood import info",
+                                 "['from', 'foo', 'bar', 'import', ':(']")
         self.assertDictEqual(parsed, {})
 
     def test_strange_fadesinfo(self):
-        with self.assertLogs(level=logging.WARNING) as cm:
-            parsed = parsing._parse_content(io.StringIO("""
-                import foo   # fades.broken
-            """))
-        self.assertEqual(cm.output[0], (
-            "WARNING:fades.parsing:Not understood fades info: 'fades.broken'"
-        ))
+        parsed = parsing._parse_content(io.StringIO("""
+            import foo   # fades.broken
+        """))
+        self.assertLoggedWarning("Not understood fades info", "fades.broken")
         self.assertDictEqual(parsed, {})
 
     def test_projectname_noversion(self):
