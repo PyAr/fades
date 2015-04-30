@@ -31,8 +31,8 @@ def get_req(text):
     return list(parse_requirements(text))[0]
 
 
-class PyPIParsingTestCase(unittest.TestCase):
-    """Check the imports parsing."""
+class PyPIFileParsingTestCase(unittest.TestCase):
+    """Check the imports parsing for PyPI."""
 
     def setUp(self):
         logassert.setup(self, 'fades.parsing')
@@ -394,3 +394,28 @@ class PyPIParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('bar')]
         })
         self.assertNotLoggedWarning("Not understood fades")
+
+
+class PyPIManualParsingTestCase(unittest.TestCase):
+    """Check the manual parsing for PyPI."""
+
+    def test_nothing(self):
+        parsed = parsing.parse_manual([])
+        self.assertDictEqual(parsed, {})
+
+    def test_simple(self):
+        parsed = parsing.parse_manual(["pypi::foo"])
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
+
+    def test_double(self):
+        parsed = parsing.parse_manual(["pypi::foo", "pypi::bar"])
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo'), get_req('bar')]
+        })
+
+    def test_version(self):
+        parsed = parsing.parse_manual(["pypi::foo == 3.5"])
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo == 3.5')]
+
+        })
