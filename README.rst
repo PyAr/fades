@@ -195,3 +195,16 @@ Also, you can open an issue
 find any problem!).
 
 Thanks in advance for your time.
+
+
+Development
+===========
+
+For development, you'll need another dependency:
+`logassert <https://pypi.python.org/pypi/logassert>`_, a helper for testing.
+
+Also, you need to have installed ``nosetests3`` and ``flake8``.
+
+Remember after any change, run ``./test`` to see all is still correct.
+
+Please, if you aim for creating a Pull Request, include tests for your changes.
