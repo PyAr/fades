@@ -371,7 +371,6 @@ class PyPIFileParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('bar')]
         })
 
-<<<<<<< HEAD
 
 class PyPIManualParsingTestCase(unittest.TestCase):
     """Check the manual parsing for PyPI."""
@@ -394,6 +393,8 @@ class PyPIManualParsingTestCase(unittest.TestCase):
         parsed = parsing.parse_manual(["pypi::foo == 3.5"])
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('foo == 3.5')]
+
+        })
 
     def test_commented_line(self):  # FIXME: Have to test if is logging a warn message
         parsed = parsing._parse_content(io.StringIO("""
