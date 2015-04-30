@@ -352,7 +352,6 @@ class PyPIParsingTestCase(unittest.TestCase):
         })
 
     def test_comma_separated_import(self):
-
         parsed = parsing._parse_content(io.StringIO("""
             from foo import bar, baz, qux   # fades.pypi
         """))
@@ -369,13 +368,14 @@ class PyPIParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('bar')]
         })
 
-    def test_commented_line(self):  # FIXME: Have to test if is logging a warn message
+    def test_commented_line(self):
         parsed = parsing._parse_content(io.StringIO("""
             #import foo   # fades.pypi
         """))
         self.assertDictEqual(parsed, {})
+        self.assertNotLoggedWarning("Not understood fades")
 
-    def test_with_fades_commented_line(self):  # FIXME: Have to test if is logging a warn message
+    def test_with_fades_commented_line(self):
         parsed = parsing._parse_content(io.StringIO("""
             #import foo   # fades.pypi
             import bar   # fades.pypi
@@ -383,8 +383,9 @@ class PyPIParsingTestCase(unittest.TestCase):
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('bar')]
         })
+        self.assertNotLoggedWarning("Not understood fades")
 
-    def test_with_commented_line(self):  # FIXME: Have to test if is logging a warn message
+    def test_with_commented_line(self):
         parsed = parsing._parse_content(io.StringIO("""
             import bar   # fades.pypi
             # a commented line
@@ -392,3 +393,4 @@ class PyPIParsingTestCase(unittest.TestCase):
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('bar')]
         })
+        self.assertNotLoggedWarning("Not understood fades")
