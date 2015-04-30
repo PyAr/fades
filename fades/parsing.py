@@ -100,7 +100,31 @@ def _parse_content(fh):
     return deps
 
 
+def parse_manual(dependencies):
+    """Parse a string and return specified dependencies."""
+    deps = {}
+    for raw_dep in dependencies:
+        try:
+            repo, requirement = raw_dep.strip().split("::")
+        except:
+            logger.warning("Not understood dependency: %r", raw_dep)
+            continue
+
+        if repo == 'pypi':
+            repo = REPO_PYPI
+        else:
+            logger.warning("Not understood dependency: %r", raw_dep)
+            continue
+
+        dependency = list(parse_requirements(requirement))[0]
+        deps.setdefault(repo, []).append(dependency)
+
+    return deps
+
+
 def parse_file(filepath):
     """Parse a file and return its marked dependencies."""
+    if filepath is None:
+        return {}
     with open(filepath, 'rt', encoding='utf8') as fh:
         return _parse_content(fh)
