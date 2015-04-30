@@ -61,7 +61,8 @@ class PipManager():
         logger.debug("getting installed version for %s", dependency)
         cmd = [self.pip_exe, "show", dependency]
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        version = p.stdout.readlines()[2].decode('utf-8').strip().split()[1]
+        version = [line for line in p.stdout.readlines() if b'Version:' in line]
+        version = version[0].decode('utf-8').strip().split()[1]
         logger.debug("Installed versión of %s is: %s", dependency, version)
         return version
 
