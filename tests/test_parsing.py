@@ -321,6 +321,38 @@ class PyPIFileParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('othername <5')]
         })
 
+    def test_projectname_pkgnamedb(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bs4   # fades.pypi
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('beautifulsoup4')]
+        })
+
+    def test_projectname_pkgnamedb_version(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bs4   # fades.pypi >=5
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('beautifulsoup4 >=5')]
+        })
+
+    def test_projectname_pkgnamedb_othername(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bs4   # fades.pypi othername
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('othername')]
+        })
+
+    def test_projectname_pkgnamedb_version_othername(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bs4   # fades.pypi othername >=5
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('othername >=5')]
+        })
+
     def test_comma_separated_import(self):
 
         parsed = parsing._parse_content(io.StringIO("""
@@ -339,6 +371,7 @@ class PyPIFileParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('bar')]
         })
 
+<<<<<<< HEAD
 
 class PyPIManualParsingTestCase(unittest.TestCase):
     """Check the manual parsing for PyPI."""
@@ -361,4 +394,27 @@ class PyPIManualParsingTestCase(unittest.TestCase):
         parsed = parsing.parse_manual(["pypi::foo == 3.5"])
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('foo == 3.5')]
+
+    def test_commented_line(self):  # FIXME: Have to test if is logging a warn message
+        parsed = parsing._parse_content(io.StringIO("""
+            #import foo   # fades.pypi
+        """))
+        self.assertDictEqual(parsed, {})
+
+    def test_with_fades_commented_line(self):  # FIXME: Have to test if is logging a warn message
+        parsed = parsing._parse_content(io.StringIO("""
+            #import foo   # fades.pypi
+            import bar   # fades.pypi
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('bar')]
+        })
+
+    def test_with_commented_line(self):  # FIXME: Have to test if is logging a warn message
+        parsed = parsing._parse_content(io.StringIO("""
+            import bar   # fades.pypi
+            # a commented line
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('bar')]
         })

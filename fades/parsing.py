@@ -21,6 +21,7 @@ import logging
 from pkg_resources import parse_requirements
 
 from fades import REPO_PYPI
+from fades.pkgnamesdb import PKG_NAMES_DB
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,9 @@ def _parse_content(fh):
             # which means that the import info is in the next one
             import_part = next(content).strip()
 
+        if import_part.startswith('#'):
+            continue
+
         # get module
         import_tokens = import_part.split()
         if import_tokens[0] == 'import':
@@ -66,13 +70,16 @@ def _parse_content(fh):
             logger.warning("Not understood import info: %s", import_tokens)
             continue
         module = module_path.split(".")[0]
+        # If fades know the real name of the pkg. Replace it!
+        if module in PKG_NAMES_DB:
+            module = PKG_NAMES_DB[module]
         # To match the "safe" name that pkg_resources creates:
         module = module.replace('_', '-')
 
         # get the fades info
         if fades_part.startswith("fades.pypi"):
             repo = REPO_PYPI
-            marked = fades_part[10:].strip()  # Only works with fades.pypi
+            marked = fades_part[10:].strip()  # Only works with fades.pypi #FIXME
             if not marked:
                 # nothing after the pypi token
                 requirement = module
