@@ -103,6 +103,9 @@ def _parse_content(fh):
 def parse_manual(dependencies):
     """Parse a string and return specified dependencies."""
     deps = {}
+    if not dependencies:
+        return deps
+
     for raw_dep in dependencies:
         try:
             repo, requirement = raw_dep.strip().split("::")

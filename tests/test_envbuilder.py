@@ -16,10 +16,11 @@
 
 """Tests for the venv builder module."""
 
-import logging
 import unittest
 
 from unittest.mock import patch
+
+import logassert
 
 from pkg_resources import parse_requirements
 
@@ -45,6 +46,9 @@ class EnvCreationTestCase(unittest.TestCase):
 
         def get_version(self, dependency):
             return self.really_installed[dependency]
+
+    def setUp(self):
+        logassert.setup(self, 'fades.envbuilder')
 
     def test_create_simple(self):
         requested = {
@@ -75,12 +79,11 @@ class EnvCreationTestCase(unittest.TestCase):
         }
         with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
-                with self.assertLogs(level=logging.WARNING) as logcheck:
-                    mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
-                    mock_mgr_c.return_value = self.FakeManager()
-                    envbuilder.create_venv(requested)
+                mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
+                mock_mgr_c.return_value = self.FakeManager()
+                envbuilder.create_venv(requested)
 
-        self.assertEqual(logcheck.records[0].message, "Install from 'unknown' not implemented")
+        self.assertLoggedWarning("Install from 'unknown' not implemented")
 
     def test_different_versions(self):
         requested = {

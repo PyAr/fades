@@ -17,8 +17,6 @@
 """Tests for the helpers."""
 
 import json
-import logging
-import logging.handlers
 import os
 import tempfile
 import unittest
@@ -35,41 +33,12 @@ def get_req(text):
     return list(parse_requirements(text))
 
 
-class SetupLogChecker(logging.handlers.MemoryHandler):
-    """A fake handler to store the records."""
-
-    def __init__(self, test_instance, log_path):
-        # init memory handler to never flush
-        super(SetupLogChecker, self).__init__(capacity=100000, flushLevel=1000)
-        self.test_instance = test_instance
-        test_instance.assertLogged = self._check
-
-        # hook in the logger
-        logger = logging.getLogger(log_path)
-        logger.addHandler(self)
-        logger.setLevel(logging.DEBUG)
-        self.setLevel(logging.DEBUG)
-
-    def _check(self, level, *tokens):
-        """Check if the the different tokens were logged in one record."""
-        for record in self.buffer:
-            if record.levelno == level:
-                msg = record.getMessage()
-                if all(token in msg for token in tokens):
-                    return
-
-        # didn't exit, all tokens are not present in the same record
-        self.test_instance.fail("Tokens %s were not logged: %s" % (
-            tokens, [(r.levelname, r.getMessage()) for r in self.buffer]))
-
-
 class TempfileTestCase(unittest.TestCase):
     """Basic functionality tests."""
 
     def setUp(self):
         _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
         self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
-        SetupLogChecker(self, 'fades.cache')
 
 
 class GetTestCase(TempfileTestCase):
