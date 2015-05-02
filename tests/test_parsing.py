@@ -399,6 +399,10 @@ class PyPIFileParsingTestCase(unittest.TestCase):
 class PyPIManualParsingTestCase(unittest.TestCase):
     """Check the manual parsing for PyPI."""
 
+    def test_none(self):
+        parsed = parsing.parse_manual(None)
+        self.assertDictEqual(parsed, {})
+
     def test_nothing(self):
         parsed = parsing.parse_manual([])
         self.assertDictEqual(parsed, {})
