@@ -41,6 +41,11 @@ class VEnvsCache:
         if *anything* is not satisified, the venv is no good). Only after
         all was checked, and it didn't exit, the venv is ok so return True.
         """
+        if not requirements:
+            # special case for no requirements, where we can't actually
+            # check anything: the venv is useful if nothing installed too
+            return not bool(installed)
+
         useful_inst = set()
         for repo, req_deps in requirements.items():
             if repo not in installed:

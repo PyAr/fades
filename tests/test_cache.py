@@ -212,6 +212,24 @@ class SelectionTestCase(TempfileTestCase):
         resp = self.venvscache._select([venv], reqs)
         self.assertEqual(resp, None)
 
+    def test_no_requirements_some_installed(self):
+        reqs = {}
+        venv = json.dumps({
+            'metadata': 'foobar',
+            'installed': {'pypi': {'dep1': '5', 'dep3': '2'}},
+        })
+        resp = self.venvscache._select([venv], reqs)
+        self.assertEqual(resp, None)
+
+    def test_no_requirements_empty_venv(self):
+        reqs = {}
+        venv = json.dumps({
+            'metadata': 'foobar',
+            'installed': {},
+        })
+        resp = self.venvscache._select([venv], reqs)
+        self.assertEqual(resp, 'foobar')
+
 
 class ComparisonsTestCase(TempfileTestCase):
     """The comparison in the selection."""
