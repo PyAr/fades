@@ -21,7 +21,6 @@
 
 import os
 import logging
-import subprocess
 
 from urllib import request
 
@@ -59,10 +58,11 @@ class PipManager():
     def get_version(self, dependency):
         """Returns the installed version parsing the output of 'pip show'."""
         logger.debug("getting installed version for %s", dependency)
-        cmd = [self.pip_exe, "show", dependency]
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        version = [line for line in p.stdout.readlines() if b'Version:' in line]
-        version = version[0].decode('utf-8').strip().split()[1]
+        stdout = logged_exec([self.pip_exe, "show", dependency])
+        version = [line for line in stdout if 'Version:' in line]
+        if len(version) != 1:
+            logger.error('Fades is having problems parsing `pip show` output')
+        version = version[0].strip().split()[1]
         logger.debug("Installed versión of %s is: %s", dependency, version)
         return version
 

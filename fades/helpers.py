@@ -28,11 +28,15 @@ def logged_exec(cmd):
     logger = logging.getLogger('fades.exec')
     logger.debug("Executing external command: %r", cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout = []
     for line in p.stdout:
-        logger.debug(":: " + line[:-1].decode("utf8"))
+        line = line[:-1].decode("utf8")
+        stdout.append(line)
+        logger.debug(":: " + line)
     retcode = p.wait()
     if retcode:
         raise subprocess.CalledProcessError(retcode, cmd)
+    return stdout
 
 
 def get_basedir():
