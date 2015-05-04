@@ -49,7 +49,7 @@ def _parse_content(fh):
             import_part, fades_part = import_part.rsplit("#", 1)
 
         fades_part = fades_part.strip()
-        if not fades_part.startswith("fades."):
+        if not fades_part.startswith("fades"):
             continue
 
         if not import_part:
@@ -79,19 +79,25 @@ def _parse_content(fh):
         # get the fades info
         if fades_part.startswith("fades.pypi"):
             repo = REPO_PYPI
-            marked = fades_part[10:].strip()  # Only works with fades.pypi #FIXME
-            if not marked:
-                # nothing after the pypi token
-                requirement = module
-            elif marked[0] in "<>=!":
-                # the rest is just the version
-                requirement = module + ' ' + marked
-            else:
-                # the rest involves not only a version, but also the project name
-                requirement = marked
+            marked = fades_part[10:].strip()
+        elif fades_part.startswith("fades") and (len(fades_part) == 5 or fades_part[5] in "<>=! "):
+            # starts with 'fades' only, and continues with a space or a
+            # comparison, not a dot, neither other word stuck together
+            repo = REPO_PYPI
+            marked = fades_part[5:].strip()
         else:
             logger.warning("Not understood fades info: %r", fades_part)
             continue
+
+        if not marked:
+            # nothing after the pypi token
+            requirement = module
+        elif marked[0] in "<>=!":
+            # the rest is just the version
+            requirement = module + ' ' + marked
+        else:
+            # the rest involves not only a version, but also the project name
+            requirement = marked
 
         # record the dependency
         dependency = list(parse_requirements(requirement))[0]
@@ -107,17 +113,17 @@ def parse_manual(dependencies):
         return deps
 
     for raw_dep in dependencies:
-        try:
-            repo, requirement = raw_dep.strip().split("::")
-        except:
-            logger.warning("Not understood dependency: %r", raw_dep)
-            continue
-
-        if repo == 'pypi':
-            repo = REPO_PYPI
+        raw_dep = raw_dep.strip()
+        if "::" in raw_dep:
+            try:
+                repo_raw, requirement = raw_dep.split("::")
+                repo = {'pypi': REPO_PYPI}[repo_raw]
+            except:
+                logger.warning("Not understood dependency: %r", raw_dep)
+                continue
         else:
-            logger.warning("Not understood dependency: %r", raw_dep)
-            continue
+            repo = REPO_PYPI
+            requirement = raw_dep
 
         dependency = list(parse_requirements(requirement))[0]
         deps.setdefault(repo, []).append(dependency)

@@ -53,6 +53,13 @@ class PyPIFileParsingTestCase(unittest.TestCase):
         """))
         self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
 
+    def test_simple_default(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import time
+            import foo    # fades
+        """))
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
+
     def test_double(self):
         parsed = parsing._parse_content(io.StringIO("""
             import time  # fades.pypi
@@ -65,6 +72,14 @@ class PyPIFileParsingTestCase(unittest.TestCase):
     def test_version_same(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi == 3.5
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo == 3.5')]
+        })
+
+    def test_version_same_default(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import foo    # fades == 3.5
         """))
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('foo == 3.5')]
@@ -137,6 +152,14 @@ class PyPIFileParsingTestCase(unittest.TestCase):
     def test_version_greater_no_space(self):
         parsed = parsing._parse_content(io.StringIO("""
             import foo    # fades.pypi>2
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >2')]
+        })
+
+    def test_version_greater_no_space_default(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import foo    # fades>2
         """))
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('foo >2')]
@@ -280,6 +303,14 @@ class PyPIFileParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('foo')]
         })
 
+    def test_allow_other_comments_reverse_default(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            from foo import * # fades # NOQA
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo')]
+        })
+
     def test_strange_import(self):
         parsed = parsing._parse_content(io.StringIO("""
             from foo bar import :(   # fades.pypi
@@ -293,6 +324,13 @@ class PyPIFileParsingTestCase(unittest.TestCase):
             import foo   # fades.broken
         """))
         self.assertLoggedWarning("Not understood fades info", "fades.broken")
+        self.assertDictEqual(parsed, {})
+
+    def test_strange_fadesinfo2(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import foo   # fadesbroken
+        """))
+        self.assertLoggedWarning("Not understood fades info", "fadesbroken")
         self.assertDictEqual(parsed, {})
 
     def test_projectname_noversion(self):
@@ -338,6 +376,14 @@ class PyPIFileParsingTestCase(unittest.TestCase):
     def test_projectname_pkgnamedb_othername(self):
         parsed = parsing._parse_content(io.StringIO("""
             import bs4   # fades.pypi othername
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('othername')]
+        })
+
+    def test_projectname_pkgnamedb_othername_default(self):
+        parsed = parsing._parse_content(io.StringIO("""
+            import bs4   # fades othername
         """))
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('othername')]
@@ -411,6 +457,10 @@ class PyPIManualParsingTestCase(unittest.TestCase):
         parsed = parsing.parse_manual(["pypi::foo"])
         self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
 
+    def test_simple_default(self):
+        parsed = parsing.parse_manual(["foo"])
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
+
     def test_double(self):
         parsed = parsing.parse_manual(["pypi::foo", "pypi::bar"])
         self.assertDictEqual(parsed, {
@@ -419,6 +469,13 @@ class PyPIManualParsingTestCase(unittest.TestCase):
 
     def test_version(self):
         parsed = parsing.parse_manual(["pypi::foo == 3.5"])
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo == 3.5')]
+
+        })
+
+    def test_version_default(self):
+        parsed = parsing.parse_manual(["foo == 3.5"])
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('foo == 3.5')]
 
