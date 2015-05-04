@@ -62,7 +62,7 @@ class PipManager():
         version = [line for line in stdout if 'Version:' in line]
         if len(version) == 1:
             version = version[0].strip().split()[1]
-            logger.debug("Installed versión of %s is: %s", dependency, version)
+            logger.debug("Installed version of %s is: %s", dependency, version)
             return version
         else:
             logger.error('Fades is having problems getting the installed version. '
