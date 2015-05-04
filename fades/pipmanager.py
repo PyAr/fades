@@ -1,4 +1,4 @@
-# Copyright 2014 Facundo Batista, Nicolás Demarchi
+# Copyright 2014, 2015 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -21,11 +21,10 @@
 
 import os
 import logging
-import subprocess
 
 from urllib import request
 
-from fades.helpers import logged_exec, get_basedir
+from fades import helpers
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ class PipManager():
         self.env_bin_path = env_bin_path
         self.pip_installed = pip_installed
         self.pip_exe = os.path.join(self.env_bin_path, "pip")
-        basedir = get_basedir()
+        basedir = helpers.get_basedir()
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
 
     def install(self, dependency):
@@ -51,7 +50,7 @@ class PipManager():
         args = [self.pip_exe, "install", str_dep]
         logger.info("Installing dependency: %s", str_dep)
         try:
-            logged_exec(args)
+            helpers.logged_exec(args)
         except Exception as error:
             logger.exception("Error installing %s: %s", str_dep, error)
             exit()
@@ -59,11 +58,16 @@ class PipManager():
     def get_version(self, dependency):
         """Returns the installed version parsing the output of 'pip show'."""
         logger.debug("getting installed version for %s", dependency)
-        cmd = [self.pip_exe, "show", dependency]
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        version = p.stdout.readlines()[2].decode('utf-8').strip().split()[1]
-        logger.debug("Installed versión of %s is: %s", dependency, version)
-        return version
+        stdout = helpers.logged_exec([self.pip_exe, "show", dependency])
+        version = [line for line in stdout if 'Version:' in line]
+        if len(version) == 1:
+            version = version[0].strip().split()[1]
+            logger.debug("Installed version of %s is: %s", dependency, version)
+            return version
+        else:
+            logger.error('Fades is having problems getting the installed version. '
+                         'Run with -v or check the logs for details')
+            return ''
 
     def _brute_force_install_pip(self):
         """A brute force install of pip itself."""
@@ -78,4 +82,4 @@ class PipManager():
 
         logger.debug("Installing PIP manually in the virtualenv")
         python_exe = os.path.join(self.env_bin_path, "python")
-        logged_exec([python_exe, self.pip_installer_fname])
+        helpers.logged_exec([python_exe, self.pip_installer_fname])
