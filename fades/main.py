@@ -66,7 +66,6 @@ def go(version, argv):
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
     args = parser.parse_args()
-    print(args)
 
     # validate input, parameters, and support some special options
     if args.version:
@@ -86,6 +85,7 @@ def go(version, argv):
     l = logger.set_up(log_level)
     l.debug("Running Python %s on %r", sys.version_info, sys.platform)
     l.debug("Starting fades v. %s", version)
+    l.debug("Arguments: %s", args)
 
     if args.verbose and args.quiet:
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
