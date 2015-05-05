@@ -59,7 +59,7 @@ class PipManager():
         """Returns the installed version parsing the output of 'pip show'."""
         logger.debug("getting installed version for %s", dependency)
         stdout = helpers.logged_exec([self.pip_exe, "show", dependency])
-        version = [line for line in stdout if 'Version:' in line]
+        version = [line for line in stdout if line.startswith('Version:')]
         if len(version) == 1:
             version = version[0].strip().split()[1]
             logger.debug("Installed version of %s is: %s", dependency, version)

@@ -54,3 +54,16 @@ class PipManagerTestCase(unittest.TestCase):
         self.assertEqual(version, '')
         self.assertLoggedError('Fades is having problems getting the installed version. '
                                'Run with -v or check the logs for details')
+
+    def test_real_case_levenshtein(self):
+        mocked_stdout = [
+            'Metadata-Version: 1.1',
+            'Name: python-Levenshtein',
+            'Version: 0.12.0',
+            'License: GPL',
+        ]
+        mgr = PipManager('/usr/bin', pip_installed=True)
+        with patch.object(helpers, 'logged_exec') as mock:
+            mock.return_value = mocked_stdout
+            version = mgr.get_version('foo')
+        self.assertEqual(version, '0.12.0')
