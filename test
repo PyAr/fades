@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2014 Facundo Batista, Nicolás Demarchi
+# Copyright 2014, 2015 Facundo Batista, Nicolás Demarchi
 
 set -eu
 
@@ -14,9 +14,15 @@ fi
 nosetests3 -v -s $TARGET
 flake8 $TARGET --max-line-length=99
 
+# On Archlinux rst2html is rst2html2
+if type rst2html 2>/dev/null; then
+        RST2HTML='rst2html'
+    else
+        RST2HTML='rst2html2'
+    fi
 
 # Check README.rst format.
-OUTPUT=$(python3 setup.py --long-description | rst2html 2>&1 > /dev/null)
+OUTPUT=$(python3 setup.py --long-description | $RST2HTML 2>&1 > /dev/null)
 if [ -n "$OUTPUT" ]; then
     echo -e "README.rst format is incorrect\n"
     echo -e "Errors: \n$OUTPUT"
