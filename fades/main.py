@@ -48,6 +48,15 @@ parameters passed as is to the child program.
 """
 
 
+def _merge_deps(*deps):
+    """Merge all the dependencies; latest dicts overwrite first ones."""
+    final = {}
+    for dep in deps:
+        for repo, info in dep.items():
+            final.setdefault(repo, []).extend(info)
+    return final
+
+
 def go(version, argv):
     """Make the magic happen."""
     parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog,
@@ -97,12 +106,9 @@ def go(version, argv):
     l.debug("Dependencies from source file: %s", indicated_deps)
     reqfile_deps = parsing.parse_reqfile(args.requirement)
     l.debug("Dependencies from requirements file: %s", reqfile_deps)
-    indicated_deps.update(reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
     l.debug("Dependencies from parameters: %s", manual_deps)
-    # update previous dict, so manually specified dependencies are more
-    # important and overwrite the ones in the file
-    indicated_deps.update(manual_deps)
+    indicated_deps = _merge_deps(indicated_deps, reqfile_deps, manual_deps)
 
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
