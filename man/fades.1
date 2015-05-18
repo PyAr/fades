@@ -9,6 +9,8 @@ fades \- FAst DEpendencies for Scripts.
 [\fB-V\fR][\fB--version\fR]
 [\fB-v\fR][\fB--verbose\fR]
 [\fB-q\fR][\fB--quiet\fR]
+[\fB-d\fR][\fB--dependency\fR]
+[\fB-r\fR][\fB--requirement\fR]
 [\fB-p\fR \fIversion\fR][\fB--python\fR=\fIversion\fR]
 
 \fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
@@ -16,12 +18,9 @@ fades \- FAst DEpendencies for Scripts.
 
 .SH DESCRIPTION
 
-\fBfades\fR will automagically create a new virtualenv (or reuse a previous 
-created one), installing the necessary dependencies, and execute 
-your script inside that virtualenv, with the only requirement 
-of executing the script with \fBfades\fR and also marking the required 
-dependencies.
+\fBfades\fR will automagically create a new virtualenv (or reuse a previous created one), installing the necessary dependencies, and execute your script inside that virtualenv, with the only requirement of executing the script with \fBfades\fR and also marking the required dependencies.
 
+\fBfades\fR can also be executed without passing a child script to execute: in this mode it will open a Python interactive interpreter inside the created/reused virtualenv (taking dependencies from \fI--dependency\fR or \fI--requirement\fR options).
 
 .SH OPTIONS
 
@@ -42,8 +41,51 @@ Send all internal debugging lines to stderr, which may be very useful if any pro
 Don't show anything (unless it has a real problem), so the original script stderr is not polluted at all.
 
 .TP
+.BR -d ", " --dependency
+Specify dependencies through command line. This option can be specified multiple times (once per dependency), and each time the format is \fBrepository::dependency\fR. The dependency may have versions specifications, and the repository is optional (defaults to 'pypi'). Examples:
+
+    requests
+    pypi::requests > 2.3
+    requests<=3
+
+See more examples below for real command line usage explanations.
+
+.TP
+.BR -r ", " --requirement
+Read the dependencies from a file. Format in each line is the same than dependencies specified with \fI--dependency\fR.
+
+.TP
 .BR -p " " \fIversion\fR ", " --python=\fIversion\fR
 Select which Python version to be used; the argument can be just the number (2.7), the whole name (python2.7) or the whole path (/usr/bin/python2.7).  Of course, the corresponding version of Python needs to be installed in your system.
+
+The dependencies can be indicated in multiple places (in the Python source file, with a comment besides the import, in a \fIrequirements\fRfile, and/or through command line. In case of multiple definitions of the same dependency, command line overrides everything else, and requirements file overrides what is specified in the source code.
+
+.SH EXAMPLES
+
+.TP
+fades foo.py --bar
+
+Executes foo.py under fades, passing the --bar parameter to the child program, in a virtualenv with the dependencies indicated in the source code.
+
+.TP
+fades -v foo.py
+
+Executes foo.py under fades, showing all the fades messages (verbose mode).
+
+.TP
+fades -d dependency1 -d dependency2>3.2 foo.py --bar
+
+Executes foo.py under fades (passing the --bar parameter to it), in a virtualenv with the dependencies indicated in the source code and also dependency1 and dependency2 (any version > 3.2).
+
+.TP
+fades -d dependency1
+
+Executes the Python interactive interpreter in a virtualenv with dependency1 installed.
+
+.TP
+fades -r requirements.txt
+
+Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the requirements.txt file.
 
 
 .SH SEE ALSO
@@ -56,4 +98,3 @@ Facundo Batista, Nicolás Demarchi (see development page for contact info).
 
 .SH LICENSING
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 3, as published by the Free Software Foundation.
-
