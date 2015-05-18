@@ -480,3 +480,102 @@ class PyPIManualParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('foo == 3.5')]
 
         })
+
+
+class PyPIReqsParsingTestCase(unittest.TestCase):
+    """Check the requirements parsing for PyPI."""
+
+    def setUp(self):
+        logassert.setup(self, 'fades.parsing')
+
+    def test_empty(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+
+        """))
+        self.assertDictEqual(parsed, {})
+
+    def test_simple(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            pypi::foo
+        """))
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
+
+    def test_simple_default(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            foo
+        """))
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
+
+    def test_double(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            pypi::time
+            foo
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('time'), get_req('foo')]
+        })
+
+    def test_version_same(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            pypi::foo == 3.5
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo == 3.5')]
+        })
+
+    def test_version_same_default(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            foo == 3.5
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo == 3.5')]
+        })
+
+    def test_version_different(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            foo  !=3.5
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo !=3.5')]
+        })
+
+    def test_version_same_no_spaces(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            foo==3.5
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo ==3.5')]
+        })
+
+    def test_version_greater_two_spaces(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            foo   >  2
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >  2')]
+        })
+
+    def test_version_same_or_greater(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            foo   >=2
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo >= 2')]
+        })
+
+    def test_comments(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            pypi::foo   # some text
+            # other text
+            bar
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo'), get_req('bar')]
+        })
+
+    def test_strange_repo(self):
+        parsed = parsing._parse_requirement(io.StringIO("""
+            unknown::foo
+        """))
+        self.assertLoggedWarning("Not understood dependency", "unknown::foo")
+        self.assertDictEqual(parsed, {})

@@ -106,24 +106,24 @@ def _parse_content(fh):
     return deps
 
 
-def parse_manual(dependencies):
-    """Parse a string and return specified dependencies."""
+def _parse_requirement(iterable):
+    """Actually parse the requirements, from file or manually specified."""
     deps = {}
-    if not dependencies:
-        return deps
+    for line in iterable:
+        line = line.strip()
+        if not line or line[0] == '#':
+            continue
 
-    for raw_dep in dependencies:
-        raw_dep = raw_dep.strip()
-        if "::" in raw_dep:
+        if "::" in line:
             try:
-                repo_raw, requirement = raw_dep.split("::")
+                repo_raw, requirement = line.split("::")
                 repo = {'pypi': REPO_PYPI}[repo_raw]
             except:
-                logger.warning("Not understood dependency: %r", raw_dep)
+                logger.warning("Not understood dependency: %r", line)
                 continue
         else:
             repo = REPO_PYPI
-            requirement = raw_dep
+            requirement = line
 
         dependency = list(parse_requirements(requirement))[0]
         deps.setdefault(repo, []).append(dependency)
@@ -131,8 +131,23 @@ def parse_manual(dependencies):
     return deps
 
 
-def parse_file(filepath):
-    """Parse a file and return its marked dependencies."""
+def parse_manual(dependencies):
+    """Parse a string and return specified dependencies."""
+    if dependencies is None:
+        return {}
+    return _parse_requirement(dependencies)
+
+
+def parse_reqfile(filepath):
+    """Parse a requirement file and return the indicated dependencies."""
+    if filepath is None:
+        return {}
+    with open(filepath, 'rt', encoding='utf8') as fh:
+        return _parse_requirement(fh)
+
+
+def parse_srcfile(filepath):
+    """Parse a source file and return its marked dependencies."""
     if filepath is None:
         return {}
     with open(filepath, 'rt', encoding='utf8') as fh:

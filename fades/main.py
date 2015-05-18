@@ -48,6 +48,15 @@ parameters passed as is to the child program.
 """
 
 
+def _merge_deps(*deps):
+    """Merge all the dependencies; latest dicts overwrite first ones."""
+    final = {}
+    for dep in deps:
+        for repo, info in dep.items():
+            final.setdefault(repo, []).extend(info)
+    return final
+
+
 def go(version, argv):
     """Make the magic happen."""
     parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog,
@@ -63,6 +72,8 @@ def go(version, argv):
     parser.add_argument('-d', '--dependency', action='append',
                         help="specify dependencies through command line (this option can be "
                              "used multiple times)")
+    parser.add_argument('-r', '--requirement',
+                        help="indicate from which file read the dependencies")
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -91,19 +102,19 @@ def go(version, argv):
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # parse file and get deps
-    requested_deps = parsing.parse_file(args.child_program)
-    l.debug("Dependencies from file: %s", requested_deps)
+    indicated_deps = parsing.parse_srcfile(args.child_program)
+    l.debug("Dependencies from source file: %s", indicated_deps)
+    reqfile_deps = parsing.parse_reqfile(args.requirement)
+    l.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
     l.debug("Dependencies from parameters: %s", manual_deps)
-    # update previous dict, so manually specified dependencies are more
-    # important and overwrite the ones in the file
-    requested_deps.update(manual_deps)
+    indicated_deps = _merge_deps(indicated_deps, reqfile_deps, manual_deps)
 
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
-    venv_data = venvscache.get_venv(requested_deps)
+    venv_data = venvscache.get_venv(indicated_deps)
     if venv_data is None:
-        venv_data, installed = envbuilder.create_venv(requested_deps)
+        venv_data, installed = envbuilder.create_venv(indicated_deps)
         # store this new venv in the cache
         venvscache.store(installed, venv_data)
 
