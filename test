@@ -12,7 +12,7 @@ fi
 
 
 nosetests3 -v -s $TARGET
-flake8 $TARGET --max-line-length=99
+flake8 $TARGET --max-line-length=99 --select=E
 
 # On Archlinux rst2html is rst2html2
 if hash rst2html > /dev/null 2>&1; then
