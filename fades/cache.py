@@ -70,17 +70,21 @@ class VEnvsCache:
         # it did it through!
         return True
 
-    def _select(self, current_venvs, requirements):
+    def _select(self, current_venvs, requirements, interpreter):
         """Select which venv satisfy the received requirements."""
-        logger.debug("Searching a venv for reqs: %s", requirements)
-        for venv_str in current_venvs:
+        logger.debug("Searching a venv for reqs: %s and interpreter: %s",
+                     requirements, interpreter)
+        # Only call venv_match for venvs with the same interpreter.
+        curr_filtered_venvs = [
+            venv for venv in current_venvs if current_venvs['interpreter'] == interpreter]
+        for venv_str in curr_filtered_venvs:
             venv = json.loads(venv_str)
             if self._venv_match(venv['installed'], requirements):
                 logger.debug("Found a matching venv! %s", venv)
                 return venv['metadata']
         logger.debug("No matching venv found :(")
 
-    def get_venv(self, requirements):
+    def get_venv(self, requirements, interpreter):
         """Find a venv that serves these requirements, if any."""
         if os.path.exists(self.filepath):
             with open(self.filepath, 'rt', encoding='utf8') as fh:
@@ -88,15 +92,17 @@ class VEnvsCache:
         else:
             logger.debug("Index not found, starting empty")
             lines = []
-        return self._select(lines, requirements)
+        return self._select(lines, requirements, interpreter)
 
-    def store(self, installed_stuff, metadata):
+    def store(self, installed_stuff, metadata, interpreter):
         """Store the virtualenv metadata for the indicated installed_stuff."""
         new_content = {
             'timestamp': int(time.mktime(time.localtime())),
             'installed': installed_stuff,
             'metadata': metadata,
+            'interpreter': interpreter,
         }
-        logger.debug("Storing installed=%s metadata=%s", installed_stuff, metadata)
+        logger.debug("Storing installed=%s metadata=%s interpreter=%s",
+                     installed_stuff, metadata, interpreter)
         with open(self.filepath, 'at', encoding='utf8') as fh:
             fh.write(json.dumps(new_content) + '\n')

@@ -48,3 +48,7 @@ def get_basedir():
         logger.debug("Package xdg not installed; using ~/.fades folder")
         from os.path import expanduser
         return expanduser("~/.fades")
+
+
+def get_interpreter_version(requested_version):
+    pass
