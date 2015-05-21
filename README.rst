@@ -15,6 +15,11 @@ your script inside that virtualenv, with the only requirement
 of executing the script with *fades* and also marking the required
 dependencies.
 
+*fades* can also be executed without passing a child script to execute:
+in this mode it will open a Python interactive interpreter inside the
+created/reused virtualenv (taking dependencies from ``--dependency`` or
+``--requirement`` options).
+
 
 How to use it?
 ==============
@@ -83,6 +88,28 @@ version)::
     import bs4   # fades.pypi beautifulsoup4 == 4.2
 
 
+Other ways to specify dependencies
+----------------------------------
+
+Apart of marking the imports in the source file, there are other ways
+to tell *fades* which dependencies to install in the virtualenv.
+
+One way is through command line, passing the ``--dependency`` parameter.
+This option can be specified multiple times (once per dependency), and
+each time the format is ``repository::dependency``. The dependency may
+have versions specifications, and the repository is optional (defaults
+to 'pypi').
+
+Other way is to specify the dependencies in a text file, one dependency
+per line, with each line having the format previously described for
+the ``--dependency`` parameter. This file is then indicated to fades
+through the ``--requirement`` parameter.
+
+In case of multiple definitions of the same dependency, command line
+overrides everything else, and requirements file overrides what is
+specified in the source code.
+
+
 How to control the virtualenv creation and usage?
 -------------------------------------------------
 
@@ -109,6 +136,31 @@ debugging lines to stderr, which may be very useful if any problem arises.
 On the other hand if you pass the ``-q`` or ``--quiet`` parameter, *fades*
 will not show anything (unless it has a real problem), so the original
 script stderr is not polluted at all.
+
+
+Some command line examples
+--------------------------
+
+``fades foo.py --bar``
+
+Executes ``foo.py`` under *fades*, passing the ``--bar`` parameter to the child program, in a virtualenv with the dependencies indicated in the source code.
+
+``fades -v foo.py``
+
+Executes ``foo.py`` under *fades*, showing all the *fades* messages (verbose mode).
+
+``fades -d dependency1 -d dependency2>3.2 foo.py --bar``
+
+Executes ``foo.py`` under *fades* (passing the ``--bar`` parameter to it), in a virtualenv with the dependencies indicated in the source code and also ``dependency1`` and ``dependency2`` (any version > 3.2).
+
+``fades -d dependency1``
+
+Executes the Python interactive interpreter in a virtualenv with ``dependency1`` installed.
+
+``fades -r requirements.txt``
+
+Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the ``requirements.txt`` file.
+
 
 
 How to install it
