@@ -57,9 +57,13 @@ class FadesEnvBuilder(EnvBuilder):
         else:
             super().__init__(with_pip=False)
 
-    def create_env(self):
+    def create_env(self, is_current):
         """Create the virtualenv and return its info."""
-        self.create(self.env_path)
+        if self.is_current:
+            self.create(self.env_path)
+        else:
+            # FIXME
+            pass
         logger.debug("env_bin_path: %s", self.env_bin_path)
         return self.env_path, self.env_bin_path, self.pip_installed
 
@@ -68,11 +72,11 @@ class FadesEnvBuilder(EnvBuilder):
         self.env_bin_path = context.bin_path
 
 
-def create_venv(requested_deps):
+def create_venv(requested_deps, interpreter, is_current):
     """Create a new virtualvenv with the requirements of this script."""
     # create virtualenv
     env = FadesEnvBuilder()
-    env_path, env_bin_path, pip_installed = env.create_env()
+    env_path, env_bin_path, pip_installed = env.create_env(is_current)
     venv_data = {}
     venv_data['env_path'] = env_path
     venv_data['env_bin_path'] = env_bin_path

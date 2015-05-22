@@ -46,6 +46,16 @@ class GetInterpreterVersionTestCase(unittest.TestCase):
         self.assertEqual(interpreter, self.current_with_major)
         self.assertEqual(is_current, True)
 
+    def test_with_major(self):
+        interpreter, is_current = get_interpreter_version(self.current_with_major)
+        self.assertEqual(interpreter, self.current_with_major)
+        self.assertEqual(is_current, True)
+
+    def test_other_with_major(self):
+        interpreter, is_current = get_interpreter_version('python2')
+        self.assertEqual(interpreter, 'python2')
+        self.assertEqual(is_current, False)
+
     def test_with_minor(self):
         interpreter, is_current = get_interpreter_version(self.current_with_minor)
         self.assertEqual(interpreter, self.current_with_minor)
@@ -53,7 +63,7 @@ class GetInterpreterVersionTestCase(unittest.TestCase):
 
     def test_other_with_minor(self):
         interpreter, is_current = get_interpreter_version('python2.8')
-        self.assertEqual(interpreter, 'python2')
+        self.assertEqual(interpreter, 'python2.8')
         self.assertEqual(is_current, False)
 
     def test_with_micro(self):
@@ -62,7 +72,7 @@ class GetInterpreterVersionTestCase(unittest.TestCase):
         self.assertEqual(is_current, True)
 
     def test_other_with_micro(self):
-        interpreter, is_current = get_interpreter_version('python3.1.1)
+        interpreter, is_current = get_interpreter_version('python3.1.1')
         self.assertEqual(interpreter, 'python3.1.1')
         self.assertEqual(is_current, False)
 
@@ -75,7 +85,18 @@ class GetInterpreterVersionTestCase(unittest.TestCase):
     def test_other_with_path(self):
         interpreter, is_current = get_interpreter_version('/usr/bin/python2')
         self.assertEqual(interpreter, 'python2')
-        self.assertEqual(is_current, false)
+        self.assertEqual(is_current, False)
+
+    def test_with_path_and_major(self):
+        interpreter, is_current = get_interpreter_version(
+            '/usr/bin/{}'.format(self.current_with_major))
+        self.assertEqual(interpreter, self.current_with_major)
+        self.assertEqual(is_current, True)
+
+    def test_other_with_path_and_major(self):
+        interpreter, is_current = get_interpreter_version('/usr/bin/python1')
+        self.assertEqual(interpreter, 'python1')
+        self.assertEqual(is_current, False)
 
     def test_with_path_and_minor(self):
         interpreter, is_current = get_interpreter_version(
@@ -95,6 +116,6 @@ class GetInterpreterVersionTestCase(unittest.TestCase):
         self.assertEqual(is_current, True)
 
     def test_other_with_path_and_micro(self):
-        interpreter, is_current = get_interpreter_version('/usr/bin/python3.1.0'))
+        interpreter, is_current = get_interpreter_version('/usr/bin/python3.1.0')
         self.assertEqual(interpreter, 'python3.1.0')
         self.assertEqual(is_current, False)

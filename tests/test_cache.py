@@ -49,8 +49,8 @@ class GetTestCase(TempfileTestCase):
         venvscache = cache.VEnvsCache(self.tempfile)
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
-            resp = venvscache.get_venv('requirements')
-        mock.assert_called_with([], 'requirements')
+            resp = venvscache.get_venv('requirements', 'python3')
+        mock.assert_called_with([], 'requirements', 'python3')
         self.assertEqual(resp, None)
 
     def test_empty_file(self):
@@ -58,8 +58,8 @@ class GetTestCase(TempfileTestCase):
         venvscache = cache.VEnvsCache(self.tempfile)
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
-            resp = venvscache.get_venv('requirements')
-        mock.assert_called_with([], 'requirements')
+            resp = venvscache.get_venv('requirements', 'python3')
+        mock.assert_called_with([], 'requirements', 'python3')
         self.assertEqual(resp, None)
 
     def test_some_file_content(self):
@@ -68,8 +68,8 @@ class GetTestCase(TempfileTestCase):
         venvscache = cache.VEnvsCache(self.tempfile)
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = 'resp'
-            resp = venvscache.get_venv('requirements')
-        mock.assert_called_with(['foo', 'bar'], 'requirements')
+            resp = venvscache.get_venv('requirements', 'python3')
+        mock.assert_called_with(['foo', 'bar'], 'requirements', 'python3')
         self.assertEqual(resp, 'resp')
 
 
@@ -78,13 +78,14 @@ class StoreTestCase(TempfileTestCase):
 
     def test_missing_file(self):
         venvscache = cache.VEnvsCache(self.tempfile)
-        venvscache.store('installed', 'metadata')
+        venvscache.store('installed', 'metadata', 'python3')
 
         with open(self.tempfile, 'rt', encoding='utf8') as fh:
             data = json.loads(fh.readline())
             self.assertTrue('timestamp' in data)
             self.assertEqual(data['installed'], 'installed')
             self.assertEqual(data['metadata'], 'metadata')
+            self.assertEqual(data['interpreter'], 'python3')
 
     def test_with_previous_content(self):
         with open(self.tempfile, 'wt', encoding='utf8') as fh:

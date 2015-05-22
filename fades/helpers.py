@@ -17,6 +17,7 @@
 """A collection of utilities for fades."""
 
 import os
+import sys
 import logging
 import subprocess
 
@@ -50,5 +51,33 @@ def get_basedir():
         return expanduser("~/.fades")
 
 
+def which(file):
+    for path in os.environ["PATH"].split(":"):
+        if os.path.exists("{}/{}".format(path, file)):
+                return "{}/{}".format(path, file)
+
+    return None
+
+
 def get_interpreter_version(requested_version):
-    pass
+    """ Return a sanitized interpreter and compare if
+    this is equal that the current one. """
+    logger.debug('Getting interpreter version for: %s', requested_version)
+
+    if requested_version is None:
+        interpreter = sys.executable.split('/')[-1]
+        logger.debug('interpreter version is: %s and is the same that fades.', interpreter)
+        return (interpreter, True)
+
+    if not any([char.isdigit() for char in requested_version]):
+        if not '/' in requested_version:
+            requested_version = which(requested_version)
+        requested_version = os.readlink(requested_version)
+
+    major, minor, micro = sys.version_info[:3]
+    current_version = 'python{}.{}.{}'.format(major, minor, micro)
+    requested_version = requested_version.split('/')[-1]
+    is_current = requested_version == current_version[:len(requested_version)]
+    return (requested_version, is_current)
+
+
