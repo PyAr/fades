@@ -23,12 +23,13 @@ other python versions Fades needs a virtualenv tool installed.
 
 import logging
 import os
+import sys
 
 from venv import EnvBuilder
 from uuid import uuid4
 
 from fades import REPO_PYPI
-from fades.helpers import get_basedir
+from fades import helpers
 from fades.pipmanager import PipManager
 
 
@@ -38,7 +39,7 @@ logger = logging.getLogger(__name__)
 class FadesEnvBuilder(EnvBuilder):
     """Create always a virtualenv"""
     def __init__(self):
-        basedir = get_basedir()
+        basedir = helpers.get_basedir()
         self.env_path = os.path.join(basedir, str(uuid4()))
         self.env_bin_path = ''
         logger.debug("Env will be created at: %s", self.env_path)
@@ -52,18 +53,34 @@ class FadesEnvBuilder(EnvBuilder):
         except ImportError:
             self.pip_installed = False
 
-        if self.pip_installed:
-            super().__init__(with_pip=True)
-        else:
-            super().__init__(with_pip=False)
+        super().__init__(with_pip=self.pip_installed, symlinks=True)
 
-    def create_env(self, is_current):
+    def create_with_virtualenv(self, interpreter):
+        try:
+            # test if virtualenv is installed
+            import virtualenv  # NOQA
+            virtualenv_exe = sys.executable.replace('python', 'virtualenv')
+            args = [virtualenv_exe, '--python', interpreter, self.env_path]
+            if not self.with_pip:
+                args = args[:3] + ['--no-pip'] + args[3:]
+            helpers.logged_exec(args)
+            self.env_bin_path = os.path.join(self.env_path, 'bin')
+        except ImportError:
+            logger.error('Virtualenv is not installed. It is needed to create a virtualenv with '
+                         'a different python version than fades')
+            exit()
+        except Exception as error:
+            logger.exception("Error creating virtualenv:  %s", error)
+            exit()
+
+    def create_env(self, interpreter, is_current):
         """Create the virtualenv and return its info."""
-        if self.is_current:
+        if is_current:
+            logger.debug("Creating virtualenv with pyvenv")
             self.create(self.env_path)
         else:
-            # FIXME
-            pass
+            logger.debug("Creating virtualenv with virtualenv")
+            self.create_with_virtualenv(interpreter)
         logger.debug("env_bin_path: %s", self.env_bin_path)
         return self.env_path, self.env_bin_path, self.pip_installed
 
@@ -76,7 +93,7 @@ def create_venv(requested_deps, interpreter, is_current):
     """Create a new virtualvenv with the requirements of this script."""
     # create virtualenv
     env = FadesEnvBuilder()
-    env_path, env_bin_path, pip_installed = env.create_env(is_current)
+    env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current)
     venv_data = {}
     venv_data['env_path'] = env_path
     venv_data['env_bin_path'] = env_bin_path

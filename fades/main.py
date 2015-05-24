@@ -125,7 +125,7 @@ def go(version, argv):
         venvscache.store(installed, venv_data, interpreter)
 
     # run forest run!!
-    python_exe = os.path.join(venv_data['env_bin_path'], interpreter)
+    python_exe = os.path.join(venv_data['env_bin_path'], 'python')
     if args.child_program is None:
         l.debug("Calling the interactive Python interpreter")
         p = subprocess.Popen([python_exe])

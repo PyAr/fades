@@ -66,7 +66,7 @@ def get_interpreter_version(requested_version):
 
     if requested_version is None:
         interpreter = sys.executable.split('/')[-1]
-        logger.debug('interpreter version is: %s and is the same that fades.', interpreter)
+        logger.debug('interpreter version is: %s and it is the same as fades.', interpreter)
         return (interpreter, True)
 
     if not any([char.isdigit() for char in requested_version]):
@@ -78,4 +78,5 @@ def get_interpreter_version(requested_version):
     current_version = 'python{}.{}.{}'.format(major, minor, micro)
     requested_version = requested_version.split('/')[-1]
     is_current = requested_version == current_version[:len(requested_version)]
+    logger.debug('Interpreter=%s. It is the same as fades?=%s', requested_version, is_current)
     return (requested_version, is_current)
