@@ -79,5 +79,3 @@ def get_interpreter_version(requested_version):
     requested_version = requested_version.split('/')[-1]
     is_current = requested_version == current_version[:len(requested_version)]
     return (requested_version, is_current)
-
-

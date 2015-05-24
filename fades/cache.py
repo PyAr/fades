@@ -74,14 +74,12 @@ class VEnvsCache:
         """Select which venv satisfy the received requirements."""
         logger.debug("Searching a venv for reqs: %s and interpreter: %s",
                      requirements, interpreter)
-        # Only call venv_match for venvs with the same interpreter.
-        curr_filtered_venvs = [
-            venv for venv in current_venvs if current_venvs['interpreter'] == interpreter]
-        for venv_str in curr_filtered_venvs:
+        for venv_str in current_venvs:
             venv = json.loads(venv_str)
-            if self._venv_match(venv['installed'], requirements):
-                logger.debug("Found a matching venv! %s", venv)
-                return venv['metadata']
+            if venv["interpreter"] == interpreter:
+                if self._venv_match(venv['installed'], requirements):
+                    logger.debug("Found a matching venv! %s", venv)
+                    return venv['metadata']
         logger.debug("No matching venv found :(")
 
     def get_venv(self, requirements, interpreter):
