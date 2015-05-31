@@ -76,7 +76,16 @@ def go(version, argv):
                         help="indicate from which file read the dependencies")
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
-    args = parser.parse_args()
+
+    # support the case when executed from a shell-bang, where all the
+    # parameters come in sys.argv[1] in a single string separated
+    # by spaces (in this case, the third parameter is what is being
+    # executed)
+    if len(sys.argv) > 1 and " " in sys.argv[1]:
+        real_args = sys.argv[1].split() + [sys.argv[2]]
+        args = parser.parse_args(real_args)
+    else:
+        args = parser.parse_args()
 
     # validate input, parameters, and support some special options
     if args.version:
