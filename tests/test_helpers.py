@@ -26,29 +26,30 @@ class GetInterpreterVersionTestCase(unittest.TestCase):
     """Some tests for get_interpreter_version."""
 
     def setUp(self):
-        major, minor, micro = sys.version_info[:3]
-        self.current_with_major = 'python{}'.format(major)
-        self.current_with_minor = 'python{}.{}'.format(major, minor)
-        self.current_with_micro = 'python{}.{}.{}'.format(major, minor, micro)
+        major, minor = sys.version_info[:2]
+        executable = sys.executable
+        if executable[-1].isdigit():
+            executable = executable[:-1]
+        self.current = executable = "{}{}.{}".format(executable, major, minor)
 
     def test_none_requested(self):
         interpreter, is_current = get_interpreter_version(None)
-        self.assertEqual(interpreter, self.current_with_major)
+        self.assertEqual(interpreter, self.current)
         self.assertEqual(is_current, True)
 
     def test_no_number_requested(self):
         interpreter, is_current = get_interpreter_version('python')
-        self.assertEqual(interpreter, self.current_with_major)
+        self.assertEqual(interpreter, self.current)
         self.assertEqual(is_current, True)
 
     def test_no_number_with_path(self):
         interpreter, is_current = get_interpreter_version('/usr/bin/python')
-        self.assertEqual(interpreter, self.current_with_major)
+        self.assertEqual(interpreter, self.current)
         self.assertEqual(is_current, True)
 
     def test_with_major(self):
-        interpreter, is_current = get_interpreter_version(self.current_with_major)
-        self.assertEqual(interpreter, self.current_with_major)
+        interpreter, is_current = get_interpreter_version(self.current)
+        self.assertEqual(interpreter, self.current)
         self.assertEqual(is_current, True)
 
     def test_other_with_major(self):

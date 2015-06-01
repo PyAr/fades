@@ -32,6 +32,11 @@ from fades import REPO_PYPI
 from fades import helpers
 from fades.pipmanager import PipManager
 
+try:
+    # test if virtualenv is installed
+    import virtualenv  # NOQA
+except ImportError:
+    virtualenv = None
 
 logger = logging.getLogger(__name__)
 
@@ -56,19 +61,17 @@ class FadesEnvBuilder(EnvBuilder):
         super().__init__(with_pip=self.pip_installed, symlinks=True)
 
     def create_with_virtualenv(self, interpreter):
-        try:
-            # test if virtualenv is installed
-            import virtualenv  # NOQA
-            virtualenv_exe = sys.executable.replace('python', 'virtualenv')
-            args = [virtualenv_exe, '--python', interpreter, self.env_path]
-            if not self.with_pip:
-                args = args[:3] + ['--no-pip'] + args[3:]
-            helpers.logged_exec(args)
-            self.env_bin_path = os.path.join(self.env_path, 'bin')
-        except ImportError:
+        """Create a virtualenv using the virtualenv lib."""
+        if virtualenv is None:
             logger.error('Virtualenv is not installed. It is needed to create a virtualenv with '
                          'a different python version than fades')
             exit()
+        args = ['virtualenv', '--python', interpreter, self.env_path]
+        if not self.with_pip:
+            args.insert(3, '--nopip')
+        try:
+            helpers.logged_exec(args)
+            self.env_bin_path = os.path.join(self.env_path, 'bin')
         except Exception as error:
             logger.exception("Error creating virtualenv:  %s", error)
             exit()

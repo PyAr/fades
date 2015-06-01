@@ -114,15 +114,15 @@ def go(version, argv):
     indicated_deps = _merge_deps(indicated_deps, reqfile_deps, manual_deps)
 
     # get the interpreter version requested for the child_program
-    interpreter, is_current = helpers.get_interpreter_version(args.python)
+    interpreter, interpreter_version, is_current = helpers.get_interpreter_version(args.python)
 
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
-    venv_data = venvscache.get_venv(indicated_deps, interpreter)
+    venv_data = venvscache.get_venv(indicated_deps, interpreter_version)
     if venv_data is None:
         venv_data, installed = envbuilder.create_venv(indicated_deps, interpreter, is_current)
         # store this new venv in the cache
-        venvscache.store(installed, venv_data, interpreter)
+        venvscache.store(installed, venv_data, interpreter_version)
 
     # run forest run!!
     python_exe = os.path.join(venv_data['env_bin_path'], 'python')
