@@ -80,15 +80,10 @@ def _get_interpreter_info(interpreter=None):
 
 
 def get_interpreter_version(requested_interpreter):
-    """ Return a sanitized interpreter, its version and indicates if it is the current one. """
+    """ Return a 'sanitized' interpreter, its version and indicates if it is the current one. """
     logger.debug('Getting interpreter version for: %s', requested_interpreter)
     current_interpreter, current_version = _get_interpreter_info()
     logger.debug('Current interpreter version is %s', current_version)
-    if requested_interpreter is None:
-        logger.debug('current interpreter version is: %s and it is the same as fades.',
-                     current_version)
-        return (current_interpreter, current_version, True)
-
     requested_interpreter, requested_version = _get_interpreter_info(requested_interpreter)
     is_current = requested_interpreter == current_interpreter
     logger.debug('Interpreter=%s. Interpreter_version=%s. It is the same as fades?=%s',
