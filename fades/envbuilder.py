@@ -23,7 +23,6 @@ other python versions Fades needs a virtualenv tool installed.
 
 import logging
 import os
-import sys
 
 from venv import EnvBuilder
 from uuid import uuid4
