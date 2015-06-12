@@ -106,5 +106,6 @@ setup(
     install_requires=['setuptools'],
     extras_require={
         'pyxdg': 'pyxdg',
+        'virtualenv': 'virtualenv',
     }
 )
