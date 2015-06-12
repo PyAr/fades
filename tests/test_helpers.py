@@ -29,30 +29,38 @@ class GetInterpreterVersionTestCase(unittest.TestCase):
     """Some tests for get_interpreter_version."""
 
     def test_current_version(self):
-        values = {None: ('/path/to/python1', '1.0'),
-                  "/path/to/python": ('/path/to/python1', '1.0')}
+        values = {None: ('/path/to/python1.0'), "/path/to/python": ('/path/to/python1.0')}
 
         def side_effect(arg=None):
             return values[arg]
 
         with patch.object(helpers, '_get_interpreter_info') as mock:
             mock.side_effect = side_effect
-            interpreter, interpreter_version, is_current = helpers.get_interpreter_version(
-                '/path/to/python')
+            interpreter, is_current = helpers.get_interpreter_version('/path/to/python')
         self.assertEqual(is_current, True)
 
     def test_other_version(self):
-        values = {None: ('/path/to/python1', '1.0'),
-                  "/path/to/python": ('/path/to/python9', '9.8')}
+        values = {None: ('/path/to/python1.0'), "/path/to/python": ('/path/to/python9.8')}
 
         def side_effect(arg=None):
             return values[arg]
 
         with patch.object(helpers, '_get_interpreter_info') as mock:
             mock.side_effect = side_effect
-            interpreter, interpreter_version, is_current = helpers.get_interpreter_version(
-                '/path/to/python')
+            interpreter, is_current = helpers.get_interpreter_version('/path/to/python')
         self.assertEqual(is_current, False)
+
+    def test_none_requested(self):
+        values = {None: ('/path/to/python1.0'), "/path/to/python": ('/path/to/python9.8')}
+
+        def side_effect(arg=None):
+            return values[arg]
+
+        with patch.object(helpers, '_get_interpreter_info') as mock:
+            mock.side_effect = side_effect
+            interpreter, is_current = helpers.get_interpreter_version(requested_interpreter=None)
+        self.assertEqual(is_current, True)
+        self.assertTrue(mock.call_count, 1)
 
 
 class GetInterpreterInfoTestCase(unittest.TestCase):
@@ -65,62 +73,55 @@ class GetInterpreterInfoTestCase(unittest.TestCase):
         with patch.object(sys, 'version_info', (9, 8)), patch.object(sys,
                                                                      'executable',
                                                                      '/path/to/python'):
-            interpreter, interpreter_version = helpers._get_interpreter_info(None)
+            interpreter = helpers._get_interpreter_info(None)
         self.assertEqual(interpreter, '/path/to/python9.8')
-        self.assertEqual(interpreter_version, '9.8')
 
     def test_requested_fullpath_nodigit(self):
         response = [('{"serial": 0,"path": "/path/to/python","minor": 8,"major": 9,"micro": 0,'
                     '"releaselevel": "ultimate"}')]
         with patch.object(helpers, 'logged_exec', return_value=response):
-            interpreter, interpreter_version = helpers._get_interpreter_info('/path/to/python')
+            interpreter = helpers._get_interpreter_info('/path/to/python')
         self.assertEqual(interpreter, '/path/to/python9.8')
-        self.assertEqual(interpreter_version, '9.8')
 
     def test_requested_fullpath_with_major(self):
         response = [('{"serial": 0,"path": "/path/to/python9","minor": 8,"major": 9,"micro": 0,'
                     '"releaselevel": "ultimate"}')]
         with patch.object(helpers, 'logged_exec', return_value=response):
-            interpreter, interpreter_version = helpers._get_interpreter_info('/path/to/python9')
+            interpreter = helpers._get_interpreter_info('/path/to/python9')
         self.assertEqual(interpreter, '/path/to/python9.8')
-        self.assertEqual(interpreter_version, '9.8')
 
     def test_requested_fullpath_with_minor(self):
         response = [('{"serial": 0,"path": "/path/to/python9.8","minor": 8,"major": 9,"micro": 0,'
                     '"releaselevel": "ultimate"}')]
         with patch.object(helpers, 'logged_exec', return_value=response):
-            interpreter, interpreter_version = helpers._get_interpreter_info('/path/to/python9.8')
+            interpreter = helpers._get_interpreter_info('/path/to/python9.8')
         self.assertEqual(interpreter, '/path/to/python9.8')
-        self.assertEqual(interpreter_version, '9.8')
 
     def test_requested_nodigit(self):
         response = [('{"serial": 0,"path": "/path/to/python","minor": 8,"major": 9,"micro": 0,'
                     '"releaselevel": "ultimate"}')]
         with patch.object(helpers, 'logged_exec', return_value=response):
-            interpreter, interpreter_version = helpers._get_interpreter_info('python')
+            interpreter = helpers._get_interpreter_info('python')
         self.assertEqual(interpreter, '/path/to/python9.8')
-        self.assertEqual(interpreter_version, '9.8')
 
     def test_requested_with_major(self):
         response = [('{"serial": 0,"path": "/path/to/python9","minor": 8,"major": 9,"micro": 0,'
                     '"releaselevel": "ultimate"}')]
         with patch.object(helpers, 'logged_exec', return_value=response):
-            interpreter, interpreter_version = helpers._get_interpreter_info('python9')
+            interpreter = helpers._get_interpreter_info('python9')
         self.assertEqual(interpreter, '/path/to/python9.8')
-        self.assertEqual(interpreter_version, '9.8')
 
     def test_requested_with_minor(self):
         response = [('{"serial": 0,"path": "/path/to/python9.8","minor": 8,"major": 9,"micro": 0,'
                     '"releaselevel": "ultimate"}')]
         with patch.object(helpers, 'logged_exec', return_value=response):
-            interpreter, interpreter_version = helpers._get_interpreter_info('python9.8')
+            interpreter = helpers._get_interpreter_info('python9.8')
         self.assertEqual(interpreter, '/path/to/python9.8')
-        self.assertEqual(interpreter_version, '9.8')
 
     def test_requested_not_exists(self):
         side_effect = IOError("[Errno 2] No such file or directory: 'pythonME'")
         with patch.object(helpers, 'logged_exec',
                           side_effect=side_effect), self.assertRaises(SystemExit):
-            interpreter, interpreter_version = helpers._get_interpreter_info('pythonME')
+            helpers._get_interpreter_info('pythonME')
         self.assertLoggedError("Error getting requested interpreter version:"
                                " [Errno 2] No such file or directory: 'pythonME'")

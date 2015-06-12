@@ -24,6 +24,13 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+SHOW_VERSION_CMD = """
+import sys, json
+d = dict(path=sys.executable)
+d.update(zip('major minor micro releaselevel serial'.split(), sys.version_info))
+print(json.dumps(d))
+"""
+
 
 def logged_exec(cmd):
     """Execute a command, redirecting the output to the log."""
@@ -53,16 +60,13 @@ def get_basedir():
 
 
 def _get_interpreter_info(interpreter=None):
-    """Returns the interpreter's full path using pythonX.Y format and his version"""
+    """Return the interpreter's full path using pythonX.Y format."""
     if interpreter is None:
         # If interpreter is None by default returns the current interpreter data.
         major, minor = sys.version_info[:2]
         executable = sys.executable
     else:
-        cmd = ("import sys, json; d = dict(path=sys.executable);"
-               "d.update(zip('major minor micro releaselevel serial'.split(), sys.version_info));"
-               "print(json.dumps(d))")
-        args = [interpreter, '-c', cmd]
+        args = [interpreter, '-c', SHOW_VERSION_CMD]
         try:
             requested_interpreter_info = logged_exec(args)
         except Exception as error:
@@ -75,21 +79,19 @@ def _get_interpreter_info(interpreter=None):
     if executable[-1].isdigit():
         executable = executable.split(".")[0][:-1]
     interpreter = "{}{}.{}".format(executable, major, minor)
-    interpreter_version = "{}.{}".format(major, minor)
-    return interpreter, interpreter_version
+    return interpreter
 
 
 def get_interpreter_version(requested_interpreter):
-    """ Return a 'sanitized' interpreter, its version and indicates if it is the current one. """
+    """Return a 'sanitized' interpreter and indicates if it is the current one."""
     logger.debug('Getting interpreter version for: %s', requested_interpreter)
-    current_interpreter, current_version = _get_interpreter_info()
-    logger.debug('Current interpreter version is %s', current_version)
-    requested_interpreter, requested_version = _get_interpreter_info(requested_interpreter)
-    is_current = requested_interpreter == current_interpreter
-    logger.debug('Interpreter=%s. Interpreter_version=%s. It is the same as fades?=%s',
-                 requested_interpreter, requested_version, is_current)
-    # requested_interpreter and current_interpreter could have the same version
-    # but different paths. Because of it fades needs to separate interpreter and
-    # version. In Envbuilder, fades will use 'requested_interpreter' to
-    # create the venv.
-    return (requested_interpreter, requested_version, is_current)
+    current_interpreter = _get_interpreter_info()
+    logger.debug('Current interpreter is %s', current_interpreter)
+    if requested_interpreter is None:
+        return(current_interpreter, True)
+    else:
+        requested_interpreter = _get_interpreter_info(requested_interpreter)
+        is_current = requested_interpreter == current_interpreter
+        logger.debug('Interpreter=%s. It is the same as fades?=%s',
+                     requested_interpreter, is_current)
+        return (requested_interpreter, is_current)
