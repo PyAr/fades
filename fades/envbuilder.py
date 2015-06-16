@@ -67,7 +67,7 @@ class FadesEnvBuilder(EnvBuilder):
             exit()
         args = ['virtualenv', '--python', interpreter, self.env_path]
         if not self.with_pip:
-            args.insert(3, '--nopip')
+            args.insert(3, '--no-pip')
         try:
             helpers.logged_exec(args)
             self.env_bin_path = os.path.join(self.env_path, 'bin')
