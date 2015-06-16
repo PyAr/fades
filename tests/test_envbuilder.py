@@ -54,12 +54,14 @@ class EnvCreationTestCase(unittest.TestCase):
         requested = {
             REPO_PYPI: [get_req('dep1 == v1'), get_req('dep2 == v2')]
         }
+        interpreter = 'python3'
+        is_current = True
         with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
                 fake_manager.really_installed = {'dep1': 'v1', 'dep2': 'v2'}
-                venv_data, installed = envbuilder.create_venv(requested)
+                venv_data, installed = envbuilder.create_venv(requested, interpreter, is_current)
 
         self.assertEqual(venv_data, {
             'env_bin_path': 'env_bin_path',
@@ -77,11 +79,13 @@ class EnvCreationTestCase(unittest.TestCase):
         requested = {
             'unknown': {'dep': ''}
         }
+        interpreter = 'python3'
+        is_current = True
         with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FakeManager()
-                envbuilder.create_venv(requested)
+                envbuilder.create_venv(requested, interpreter, is_current)
 
         self.assertLoggedWarning("Install from 'unknown' not implemented")
 
@@ -89,12 +93,14 @@ class EnvCreationTestCase(unittest.TestCase):
         requested = {
             REPO_PYPI: [get_req('dep1 == v1'), get_req('dep2 == v2')]
         }
+        interpreter = 'python3'
+        is_current = True
         with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
                 fake_manager.really_installed = {'dep1': 'vX', 'dep2': 'v2'}
-                _, installed = envbuilder.create_venv(requested)
+                _, installed = envbuilder.create_venv(requested, interpreter, is_current)
 
         self.assertEqual(installed, {
             REPO_PYPI: {

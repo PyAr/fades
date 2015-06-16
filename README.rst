@@ -115,12 +115,10 @@ How to control the virtualenv creation and usage?
 
 You can influence several details of all the virtualenv related process.
 
-*Note: the functionality in this parragraph is still not ready*.
 The most important detail is which version of Python will be used in
 the virtualenv. Of course, the corresponding version of Python needs to
 be installed in your system, but you can control exactly which one to use.
 
-*Note: the functionality in this parragraph is still not ready*.
 No matter which way you're executing the script (see above), you can
 pass a ``-p`` or ``--python`` argument, indicating the Python version to
 be used just with the number (``2.7``), the whole name (``python2.7``) or
@@ -183,6 +181,9 @@ You can install it in Ubuntu/Debian with::
 And on Archlinux with::
 
     pacman -S python-xdg
+
+Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>` package to
+support different Python versions for child execution. (see `--python` argument.)
 
 It also depends on the ``pkg_resources`` package, that comes in with
 ``setuptools``. Note I didn't find any system where that is not

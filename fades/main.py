@@ -74,6 +74,9 @@ def go(version, argv):
                              "used multiple times)")
     parser.add_argument('-r', '--requirement',
                         help="indicate from which file read the dependencies")
+    parser.add_argument('-p', '--python', action='store',
+                        help=("Specify the Python interpreter to use.\n"
+                              " Default is: %s") % (sys.executable,))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -119,16 +122,19 @@ def go(version, argv):
     l.debug("Dependencies from parameters: %s", manual_deps)
     indicated_deps = _merge_deps(indicated_deps, reqfile_deps, manual_deps)
 
+    # get the interpreter version requested for the child_program
+    interpreter, is_current = helpers.get_interpreter_version(args.python)
+
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
-    venv_data = venvscache.get_venv(indicated_deps)
+    venv_data = venvscache.get_venv(indicated_deps, interpreter)
     if venv_data is None:
-        venv_data, installed = envbuilder.create_venv(indicated_deps)
+        venv_data, installed = envbuilder.create_venv(indicated_deps, interpreter, is_current)
         # store this new venv in the cache
-        venvscache.store(installed, venv_data)
+        venvscache.store(installed, venv_data, interpreter)
 
     # run forest run!!
-    python_exe = os.path.join(venv_data['env_bin_path'], "python3")
+    python_exe = os.path.join(venv_data['env_bin_path'], 'python')
     if args.child_program is None:
         l.debug("Calling the interactive Python interpreter")
         p = subprocess.Popen([python_exe])
