@@ -1,6 +1,6 @@
 Hello all,
 
-We're glad to announce the release of fades 2.0.
+We're glad to announce the release of fades 3.
 
 fades, a FAst DEpendencies for Scripts, is a system that automatically
 handles the virtualenvs in the simple cases normally found when
@@ -18,18 +18,32 @@ also mark the required dependencies. More details here:
 
 What's new in this release?
 
-- Have a system-wide cache for created virtualenvs: improves reusing
-  and speed
+- You can use it with different interpreter versions! Just pass
+  --python=python2 or whatever pleases you.
 
-- As a result of previous feature, don't store metadata per-script
-  (*in* the script) anymore
+- Dependencies can be specified through command line: no need to touch the
+  script for a quick test, just specify the needed dependency with "-d".
 
-- Allow to indicate the project name if the module is different
-  (e.g. "import bs4  # fades.pypi beautifulsoup4 == 3.5")
+- Interactive mode: fastest way to try a new lib! Just do
 
-- Support complex version requirements (e.g. "<2.6,>1.3,!=1.9")
+    fades -d <dependency>
 
-- Handle packages that whose names are changed by pip
+  and it will open an interactive interpreter inside a venv with that dep.
+
+- It supports getting the arguments from a shellbang. So, you can create
+  a script and put on top of it something like:
+
+     #!/usr/bin/env fades -d <dependency> --python=python2.7
+
+- It can parse requirements from a file. No need for further changes if
+  you already have a requirements.txt file: just indicate it with "-r".
+
+- If the repo is not specified, defaults to PyPI, which means cleaner and
+  simpler code.
+
+- There's a built in database for typical package name conversion: this way
+  you can mark with fades an "import bs4" even if that's not really the name
+  of the package in PyPI.
 
 - Other minor bugfixes and improvements
 
@@ -95,18 +109,36 @@ Python) y también marcar las dependencias necesarias. Más detalles acá:
 
 ¿Qué hay de nuevo en esta release?
 
-- Tiene un cache para virtualenvs creados en el sistema; mejora
-  la reutilización y velocidad.
+- Podés usar diferentes versiones del intérprete: simplemente pasá
+  --python=python2 o lo que te convenga.
 
-- Como resultado del feature anterior, ya no guarda metadata por
-  script (*en* el script).
+- Las dependencias pueden especificarse en la linea de comando: no hay
+  necesidad de cambiar el script para una prueba rápida, simplemente
+  especificá la dependencia necesaria con "-d".
 
-- Permite indicar el nombre del projecto si es diferente al del
-  módulo (ej: "import bs4  # fades.pypi beautifulsoup4 == 3.5")
+- Modo interactivo: es la manera más rápida de probar una nueva
+  biblioteca. Sólo hacé
 
-- Soporta requerimientos complejos de versión: (ej: "<2.6,>1.3,!=1.9")
+    fades -d <dependencia>
 
-- Maneja paquetes a los que pip les cambia el nombre
+  y te abrirá un intérprete interactivo dentro de un venv
+  con esa dependencia.
+
+- Soporta tomar argumentos desde el shellbang. De esta manera podés crear
+  un script y poner al principio del mismo algo como:
+
+     #!/usr/bin/env fades -d <dependencia> --python=python2.7
+
+- Puede parsear requerimientos desde un archivo. No hay necesidad de ningún
+  cambio si ya tenés un archivo requirements.txt: simplemente
+  indicalo con "-r".
+
+- Si no se especifica el repo, toma PyPI por defecto, lo que resulta en
+  código más limpio y simple.
+
+- Tiene una base de datos integrada para conversiones típicas de nombres: de
+  esta manera se puede marcar con fades un "import bs4" incluso si ese no es
+  el nombre del paquete en PyPI.
 
 - Otros cambios y correcciones menores.
 
