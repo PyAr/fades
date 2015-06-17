@@ -1,0 +1,13 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: fades
+Upstream-Contact: Facundo Batista <facundo@taniquetil.com.ar>
+Source: https://github.com/PyAr/fades/
+
+Files: *
+Copyright: (C) 2014-2015 
+ Facundo Batista <facundo@taniquetil.com.ar>
+ Nicolás Demarchi <mail@gilgamezh.me>
+
+License: GPL-3
+ The full text of the GPL is distributed in
+ /usr/share/common-licenses/GPL-3 on Debian systems.

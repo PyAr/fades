@@ -1,0 +1,19 @@
+Source: fades
+Section: python
+Priority: extra
+Build-Depends: debhelper (>= 9),
+ python3 (>= 3.4),
+ python-distutils-extra (>= 2.10)
+Maintainer: Facundo Batista <facundo@taniquetil.com.ar>
+Standards-Version: 3.9.6
+XS-Python-Version: >= 3.4
+
+Package: fades
+Architecture: all
+Depends: ${misc:Depends}, dh-python,
+ python3 (>=3.4),
+ python3-pkg-resources (>= 0.6.24),
+ python3-xdg (>= 0.25),
+Description: fades, a FAst DEpendencies for Scripts, is a system that 
+ automatically handles the virtualenvs in the simple cases normally 
+ found when writing scripts or simple programs.

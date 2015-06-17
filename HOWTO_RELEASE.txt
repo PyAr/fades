@@ -1,6 +1,13 @@
 Steps before a release is done
 ------------------------------
 
+Check all is crispy
+
+  ./setup.py clean build
+  ./setup.py clean install --prefix=/tmp/test
+  ./setup.py clean sdist
+
+
 Edit the ``version.txt`` file properly, then tag and commit/push
 
   git tag release-VERSION
@@ -19,37 +26,23 @@ Dead simple:
 How to create a .deb
 --------------------
 
-WARNING: this creation is actually using sudo and messing with your system; it shouldn't (checkinstall should be called with no sudo but fakereoot before it, and with --fstrans parameter), but I wasn't able to make it work.
+Create a list of changes, and edit the changelog:
 
-Before starting checkinstall, do this so it gets the description automatically:
+    - EDITOR=vim dch
 
-    python3 setup.py --long-description > description-pak
+    - put the list of changes
 
+    - put proper version inside parenthesis
 
-The following is the whole command (copy it, trim the comments, put everything in the same line):
+    - put 'unstable' in the OS version
 
-    sudo checkinstall
-        --install=no                               # don't install the .deb created
-        --pkgname=fades                            # package name
-        --pkgversion=`cat version.txt`             # automatically get the real version
-        --requires=python3,python3-setuptools      # dependencies
-        --maintainer=facundo@taniquetil.com.ar     # maintainer contact
-        --deldoc=yes --deldesc=yes --delspec=yes   # some cleanup
-        --backup=no                                # don't save a backup file
-        -D                                         # create the .deb
-        -y                                         # yes, yes to all
-        python3 ./setup.py install --prefix=/usr   # the installation command
+Build a tarball
 
+    python setup.py sdist
 
-This will leave some dirt behind, clean it:
+Build the .deb
 
-    sudo rm -r /usr/share/fades/ /usr/bin/fades build fades.egg-info
-
-
-It also should leave you a .deb in the same directory. Change its permission and rename properly
-
-    sudo chown $USER: *.deb
-    mv *.deb fades-`cat version.txt`.deb
+    debuild -us -uc
 
 
 To test the .deb you just created:
