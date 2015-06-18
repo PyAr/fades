@@ -91,7 +91,7 @@ Thanks in advance for your time!
 
 Hola a todas y todos,
 
-Estamos contentos de anunciar la liberación de fades 2.0.
+Estamos contentos de anunciar la liberación de fades 3.
 
 fades (en inglés: FAst DEpendencies for Scripts) es un sistema que
 maneja automáticamente los virtualenvs en los casos simples que
