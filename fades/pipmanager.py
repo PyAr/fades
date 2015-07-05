@@ -43,7 +43,8 @@ class PipManager():
     def install(self, dependency):
         """Install a new dependency."""
         if not self.pip_installed:
-            logger.info("Need to install a dependency with pip, but no builtin, do it manually")
+            logger.info("Need to install a dependency with pip, but no builtin, "
+                        "doing it manually (just wait a little, all should go well)")
             self._brute_force_install_pip()
 
         str_dep = str(dependency)
