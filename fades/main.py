@@ -47,6 +47,11 @@ The "child options" (everything after the child program) are
 parameters passed as is to the child program.
 """
 
+help_usage = """
+  fades [-h] [-V] [-v] [-q] [-d DEPENDENCY] [-r REQUIREMENT] [-p PYTHON]
+        [child_program [child_options]]
+"""
+
 
 def _merge_deps(*deps):
     """Merge all the dependencies; latest dicts overwrite first ones."""
@@ -59,7 +64,7 @@ def _merge_deps(*deps):
 
 def go(version, argv):
     """Make the magic happen."""
-    parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog,
+    parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog, usage=help_usage,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='store_true',
                         help="show version and info about the system, and exit")

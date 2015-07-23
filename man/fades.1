@@ -12,13 +12,16 @@ fades \- FAst DEpendencies for Scripts.
 [\fB-d\fR][\fB--dependency\fR]
 [\fB-r\fR][\fB--requirement\fR]
 [\fB-p\fR \fIversion\fR][\fB--python\fR=\fIversion\fR]
+[child_program [child_options]]
 
 \fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
 
 
 .SH DESCRIPTION
 
-\fBfades\fR will automagically create a new virtualenv (or reuse a previous created one), installing the necessary dependencies, and execute your script inside that virtualenv, with the only requirement of executing the script with \fBfades\fR and also marking the required dependencies.
+\fBfades\fR will automagically create a new virtualenv (or reuse a previous created one), installing the necessary dependencies, and execute your script inside that virtualenv, with the only requirement of executing the script with \fBfades\fR and also marking the required dependencies. 
+
+The first non-option parameter (if any) would be then the child program to execute, and any other parameters after that are passed as is to that child script.
 
 \fBfades\fR can also be executed without passing a child script to execute: in this mode it will open a Python interactive interpreter inside the created/reused virtualenv (taking dependencies from \fI--dependency\fR or \fI--requirement\fR options).
 

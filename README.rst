@@ -15,6 +15,10 @@ your script inside that virtualenv, with the only requirement
 of executing the script with *fades* and also marking the required
 dependencies.
 
+The first non-option parameter (if any) would be then the child program
+to execute, and any other parameters after that are passed as is to that
+child script.
+
 *fades* can also be executed without passing a child script to execute:
 in this mode it will open a Python interactive interpreter inside the
 created/reused virtualenv (taking dependencies from ``--dependency`` or
