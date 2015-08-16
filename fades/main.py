@@ -82,6 +82,8 @@ def go(version, argv):
     parser.add_argument('-p', '--python', action='store',
                         help=("Specify the Python interpreter to use.\n"
                               " Default is: %s") % (sys.executable,))
+    parser.add_argument('-x', '--executable', action='store_true',
+                        help=("TBD."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -119,8 +121,11 @@ def go(version, argv):
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # parse file and get deps
-    indicated_deps = parsing.parse_srcfile(args.child_program)
-    l.debug("Dependencies from source file: %s", indicated_deps)
+    if args.executable:
+        indicated_deps = {}
+    else:
+        indicated_deps = parsing.parse_srcfile(args.child_program)
+        l.debug("Dependencies from source file: %s", indicated_deps)
     reqfile_deps = parsing.parse_reqfile(args.requirement)
     l.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
@@ -145,9 +150,13 @@ def go(version, argv):
         p = subprocess.Popen([python_exe])
 
     else:
-        l.debug("Calling the child Python program %r with options %s",
+        if args.executable:
+            cmd = [os.path.join(venv_data['env_bin_path'], args.child_program)]
+        else:
+            cmd = [python_exe, args.child_program]
+        l.debug("Calling the child program %r with options %s",
                 args.child_program, args.child_options)
-        p = subprocess.Popen([python_exe, args.child_program] + args.child_options)
+        p = subprocess.Popen(cmd + args.child_options)
 
         def _signal_handler(signum, _):
             """Handle signals received by parent process, send them to child."""
