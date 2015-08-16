@@ -83,7 +83,5 @@ class PipManager():
 
         logger.debug("Installing PIP manually in the virtualenv")
         python_exe = os.path.join(self.env_bin_path, "python")
-        pip_install_options = '--install-option=--prefix=%s' % os.path.dirname(self.env_bin_path)
-        helpers.logged_exec([python_exe, self.pip_installer_fname,
-                             '--ignore-installed', pip_install_options])
+        helpers.logged_exec([python_exe, self.pip_installer_fname])
         self.pip_installed = True
