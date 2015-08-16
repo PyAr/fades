@@ -122,6 +122,7 @@ def go(version, argv):
 
     # parse file and get deps
     if args.ipython:
+        l.debug("Adding ipython dependency because --ipython was detected")
         ipython_dep = parsing.parse_manual(['ipython'])
     else:
         ipython_dep = []
