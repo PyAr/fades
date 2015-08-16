@@ -579,3 +579,56 @@ class PyPIReqsParsingTestCase(unittest.TestCase):
         """))
         self.assertLoggedWarning("Not understood dependency", "unknown::foo")
         self.assertDictEqual(parsed, {})
+
+
+class PyPIDocstringParsingTestCase(unittest.TestCase):
+    """Check the requirements parsing for PyPI."""
+
+    def setUp(self):
+        logassert.setup(self, 'fades.parsing')
+
+    def test_empty(self):
+        parsed = parsing._parse_docstring(io.StringIO("""
+
+        """))
+        self.assertDictEqual(parsed, {})
+
+    def test_only_comment(self):
+        with open("tests/test_files/no_req.py") as f:
+            parsed = parsing._parse_docstring(f)
+        self.assertDictEqual(parsed, {})
+
+    def test_req_in_module_docstring(self):
+        with open("tests/test_files/req_module.py") as f:
+            parsed = parsing._parse_docstring(f)
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo'), get_req('bar')]
+        })
+
+    def test_req_in_class_docstring(self):
+        with open("tests/test_files/req_class.py") as f:
+            parsed = parsing._parse_docstring(f)
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo'), get_req('bar')]
+        })
+
+    def test_req_in_def_docstring(self):
+        with open("tests/test_files/req_def.py") as f:
+            parsed = parsing._parse_docstring(f)
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo'), get_req('bar')]
+        })
+
+    def test_req_in_class_and_def_docstring(self):
+        with open("tests/test_files/req_class_def.py") as f:
+            parsed = parsing._parse_docstring(f)
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo==1.7'), get_req('bar<1.5')]
+        })
+
+    def test_req_in_multi_docstring(self):
+        with open("tests/test_files/req_all.py") as f:
+            parsed = parsing._parse_docstring(f)
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo==1.4'), get_req('bar>1.8.9'), get_req('more>1.6')]
+        })
