@@ -141,6 +141,9 @@ On the other hand if you pass the ``-q`` or ``--quiet`` parameter, *fades*
 will not show anything (unless it has a real problem), so the original
 script stderr is not polluted at all.
 
+Sometimes, you want to run a script provided by one of the dependencies
+installed into the virtualenv. *fades* supports this via the ``-x`` (
+or ``--executable`` argument).
 
 Some command line examples
 --------------------------
@@ -165,6 +168,9 @@ Executes the Python interactive interpreter in a virtualenv with ``dependency1``
 
 Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the ``requirements.txt`` file.
 
+``fades -d django -x django-admin.py startproject foo``
+
+Uses the ``django-admin.py`` script to start a new project named ``foo``, without having to have django previously installed.
 
 
 How to install it
@@ -176,19 +182,7 @@ Several instructions to install fades in different systems.
 Dependencies
 ------------
 
-Fades depends on ``python-xdg`` package. This package should be installed on
-any GNU/Linux OS wiht a freedesktop.org GUI. However it is an
-**optional** dependency.
-
-You can install it in Ubuntu/Debian with::
-
-    apt-get install python-xdg
-
-And on Archlinux with::
-
-    pacman -S python-xdg
-
-Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>` package to
+Fades needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>` package to
 support different Python versions for child execution. (see `--python` argument.)
 
 It also depends on the ``pkg_resources`` package, that comes in with
