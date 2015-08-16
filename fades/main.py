@@ -121,6 +121,8 @@ def go(version, argv):
     # parse file and get deps
     indicated_deps = parsing.parse_srcfile(args.child_program)
     l.debug("Dependencies from source file: %s", indicated_deps)
+    docstring_deps = parsing.parse_docstring(args.child_program)
+    l.debug("Dependencies from docstrings: %s", docstring_deps)
     reqfile_deps = parsing.parse_reqfile(args.requirement)
     l.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
