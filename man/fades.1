@@ -4,11 +4,12 @@ fades \- FAst DEpendencies for Scripts.
 
 
 .SH SYNOPSYS
-.B fades 
+.B fades
 [\fB-h\fR][\fB--help\fR]
 [\fB-V\fR][\fB--version\fR]
 [\fB-v\fR][\fB--verbose\fR]
 [\fB-q\fR][\fB--quiet\fR]
+[\fB-i\fR][\fB--ipython\fR]
 [\fB-d\fR][\fB--dependency\fR]
 [\fB-r\fR][\fB--requirement\fR]
 [\fB-p\fR \fIversion\fR][\fB--python\fR=\fIversion\fR]
@@ -19,7 +20,7 @@ fades \- FAst DEpendencies for Scripts.
 
 .SH DESCRIPTION
 
-\fBfades\fR will automagically create a new virtualenv (or reuse a previous created one), installing the necessary dependencies, and execute your script inside that virtualenv, with the only requirement of executing the script with \fBfades\fR and also marking the required dependencies. 
+\fBfades\fR will automagically create a new virtualenv (or reuse a previous created one), installing the necessary dependencies, and execute your script inside that virtualenv, with the only requirement of executing the script with \fBfades\fR and also marking the required dependencies.
 
 The first non-option parameter (if any) would be then the child program to execute, and any other parameters after that are passed as is to that child script.
 
@@ -42,6 +43,10 @@ Send all internal debugging lines to stderr, which may be very useful if any pro
 .TP
 .BR -q ", " --quiet
 Don't show anything (unless it has a real problem), so the original script stderr is not polluted at all.
+
+.TP
+.BR -i ", " --ipython
+Runs IPython shell instead of python ones.
 
 .TP
 .BR -d ", " --dependency
