@@ -82,8 +82,7 @@ def go(version, argv):
     parser.add_argument('-p', '--python', action='store',
                         help=("Specify the Python interpreter to use.\n"
                               " Default is: %s") % (sys.executable,))
-    parser.add_argument('-i', '--ipython', action='store_true',
-                        help="use IPython shell.")
+    parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -132,9 +131,7 @@ def go(version, argv):
     l.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
     l.debug("Dependencies from parameters: %s", manual_deps)
-    indicated_deps = _merge_deps(
-        ipython_dep, indicated_deps, reqfile_deps, manual_deps
-    )
+    indicated_deps = _merge_deps(ipython_dep, indicated_deps, reqfile_deps, manual_deps)
 
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(args.python)
