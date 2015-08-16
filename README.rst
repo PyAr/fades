@@ -139,6 +139,9 @@ On the other hand if you pass the ``-q`` or ``--quiet`` parameter, *fades*
 will not show anything (unless it has a real problem), so the original
 script stderr is not polluted at all.
 
+If you want to use IPython shell you need to call *fades* with ``-i`` or
+``--ipython`` option. This option will add IPython as a dependency to *fades*
+and it will launch this shell instead of the python one.
 
 Some command line examples
 --------------------------
