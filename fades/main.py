@@ -83,7 +83,8 @@ def go(version, argv):
                         help=("Specify the Python interpreter to use.\n"
                               " Default is: %s") % (sys.executable,))
     parser.add_argument('-x', '--executable', action='store_true',
-                        help=("TBD."))
+                        help=("Indicate that the child_program should be looked up in the "
+                              "virtualenv."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
