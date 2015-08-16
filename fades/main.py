@@ -48,7 +48,7 @@ parameters passed as is to the child program.
 """
 
 help_usage = """
-  fades [-h] [-V] [-v] [-q] [-d DEPENDENCY] [-r REQUIREMENT] [-p PYTHON]
+  fades [-h] [-V] [-v] [-q] [-i] [-d DEPENDENCY] [-r REQUIREMENT] [-p PYTHON]
         [child_program [child_options]]
 """
 
