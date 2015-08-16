@@ -5,6 +5,8 @@ fades, a FAst DEpendencies for Scripts, is a system that automatically
 handles the virtualenvs in the simple cases normally found when
 writing scripts or simple programs.
 
+.. image:: resources/logo256.png
+
 
 What does it do?
 ----------------
