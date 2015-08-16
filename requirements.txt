@@ -6,3 +6,4 @@ pep8==1.5.7
 pyflakes==0.8.1
 pyxdg==0.25
 wheel==0.24.0
+rst2html5==1.7.5
