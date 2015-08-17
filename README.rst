@@ -182,7 +182,19 @@ Several instructions to install fades in different systems.
 Dependencies
 ------------
 
-Fades needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>` package to
+Fades depends on ``python-xdg`` package. This package should be installed on
+any GNU/Linux OS wiht a freedesktop.org GUI. However it is an
+**optional** dependency.
+
+You can install it in Ubuntu/Debian with::
+
+    apt-get install python-xdg
+
+And on Archlinux with::
+
+    pacman -S python-xdg
+
+Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>` package to
 support different Python versions for child execution. (see `--python` argument.)
 
 It also depends on the ``pkg_resources`` package, that comes in with
