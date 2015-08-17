@@ -15,15 +15,8 @@ FADES='./bin/fades -r requirements.txt'
 $FADES -x nosetests -- -v -s $TARGET
 $FADES -x flake8 -- $TARGET --max-line-length=99 --select=E,W,F,C,N
 
-# On Archlinux rst2html is rst2html2
-if hash rst2html > /dev/null 2>&1; then
-        RST2HTML='rst2html'
-    else
-        RST2HTML='rst2html2'
-    fi
-
 # Check README.rst format.
-OUTPUT=$(python3 setup.py --long-description | $FADES -x $RST2HTML > /dev/null 2>&1)
+OUTPUT=$(python3 setup.py --long-description | $FADES -x rst2html > /dev/null 2>&1)
 if [ -n "$OUTPUT" ]; then
     echo -e "README.rst format is incorrect\n"
     echo -e "Errors: \n$OUTPUT"
