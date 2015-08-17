@@ -143,7 +143,11 @@ script stderr is not polluted at all.
 
 Sometimes, you want to run a script provided by one of the dependencies
 installed into the virtualenv. *fades* supports this via the ``-x`` (
-or ``--executable`` argument).
+or ``--exec`` argument).
+
+If you want to use IPython shell you need to call *fades* with ``-i`` or
+``--ipython`` option. This option will add IPython as a dependency to *fades*
+and it will launch this shell instead of the python one.
 
 Some command line examples
 --------------------------
