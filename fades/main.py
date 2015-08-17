@@ -82,7 +82,7 @@ def go(version, argv):
     parser.add_argument('-p', '--python', action='store',
                         help=("Specify the Python interpreter to use.\n"
                               " Default is: %s") % (sys.executable,))
-    parser.add_argument('-x', '--exec', action='store_true',
+    parser.add_argument('-x', '--exec', dest='executable', action='store_true',
                         help=("Indicate that the child_program should be looked up in the "
                               "virtualenv."))
     parser.add_argument('child_program', nargs='?', default=None)
@@ -122,7 +122,7 @@ def go(version, argv):
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # parse file and get deps
-    if args['exec']:
+    if args.executable:
         indicated_deps = {}
     else:
         indicated_deps = parsing.parse_srcfile(args.child_program)
@@ -151,7 +151,7 @@ def go(version, argv):
         p = subprocess.Popen([python_exe])
 
     else:
-        if args['exec']:
+        if args.executable:
             cmd = [os.path.join(venv_data['env_bin_path'], args.child_program)]
         else:
             cmd = [python_exe, args.child_program]
