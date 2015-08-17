@@ -81,7 +81,7 @@ class FadesEnvBuilder(EnvBuilder):
         # Re check if pip was installed.
         pip_exe = os.path.join(self.env_bin_path, "pip")
         if not os.path.exists(pip_exe):
-            logger.debug("pip isn't installed in the venv. Setting pip_installed=False")
+            logger.debug("pip isn't installed in the venv, setting pip_installed=False")
             self.pip_installed = False
         return self.env_path, self.env_bin_path, self.pip_installed
 
