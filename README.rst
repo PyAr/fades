@@ -141,6 +141,10 @@ On the other hand if you pass the ``-q`` or ``--quiet`` parameter, *fades*
 will not show anything (unless it has a real problem), so the original
 script stderr is not polluted at all.
 
+Sometimes, you want to run a script provided by one of the dependencies
+installed into the virtualenv. *fades* supports this via the ``-x`` (
+or ``--exec`` argument).
+
 If you want to use IPython shell you need to call *fades* with ``-i`` or
 ``--ipython`` option. This option will add IPython as a dependency to *fades*
 and it will launch this shell instead of the python one.
@@ -168,6 +172,9 @@ Executes the Python interactive interpreter in a virtualenv with ``dependency1``
 
 Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the ``requirements.txt`` file.
 
+``fades -d django -x django-admin.py startproject foo``
+
+Uses the ``django-admin.py`` script to start a new project named ``foo``, without having to have django previously installed.
 
 
 How to install it
