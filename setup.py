@@ -25,6 +25,7 @@ Needed packages to run (using Debian/Ubuntu package names):
     python3-pkg-resources
 """
 
+from distutils.sysconfig import get_python_lib
 import os
 import shutil
 
@@ -58,6 +59,9 @@ class CustomInstall(install):
 
         # version file
         shutil.copy("version.txt", self.install_lib)
+        site_pkgs_path = get_python_lib()
+        os.symlink(os.path.join(self.install_lib, 'fades'),
+                   os.path.join(site_pkgs_path, 'fades'))
 
     def finalize_options(self):
         """Alter the installation path."""
