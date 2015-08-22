@@ -184,5 +184,7 @@ def go(version, argv):
 
     if args.remove:
         # remove this venv from the cache
-        venvscache.remove(venv_data)
-        envbuilder.destroy_venv(venv_data)
+        env_path = venv_data.get('env_path')
+        if env_path:
+            venvscache.remove(env_path)
+            envbuilder.destroy_venv(env_path)
