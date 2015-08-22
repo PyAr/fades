@@ -86,6 +86,8 @@ def go(version, argv):
                         help=("Indicate that the child_program should be looked up in the "
                               "virtualenv."))
     parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
+    parser.add_argument('--rm', action='store_true', dest='remove',
+                        help=("Remove the virtualenv after running the child program."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -179,3 +181,8 @@ def go(version, argv):
     rc = p.wait()
     if rc:
         l.debug("Child process not finished correctly: returncode=%d", rc)
+
+    if args.remove:
+        # remove this venv from the cache
+        venvscache.remove(venv_data)
+        envbuilder.destroy_venv(venv_data)
