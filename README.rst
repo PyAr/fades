@@ -149,6 +149,19 @@ If you want to use IPython shell you need to call *fades* with ``-i`` or
 ``--ipython`` option. This option will add IPython as a dependency to *fades*
 and it will launch this shell instead of the python one.
 
+
+How to clean up old virtualenvs?
+--------------------------------
+
+When using *fades* virtual environments are something you should not have to think about.
+*fades* will do the right thing and create a new virtualenv that matches the required
+dependencies. There are cases however when you'll want to do some clean up to remove
+unnecessary virtual environments from disk.
+
+By running *fades* with the ``--rm`` argument, *fades* will remove the virtualenv
+matching the requirements after running the script or command specified.
+
+
 Some command line examples
 --------------------------
 
@@ -175,6 +188,11 @@ Executes the Python interactive interpreter in a virtualenv after installing the
 ``fades -d django -x django-admin.py startproject foo``
 
 Uses the ``django-admin.py`` script to start a new project named ``foo``, without having to have django previously installed.
+
+``fades -d django --rm``
+
+Executes the Python interactive interpreter in a virtualenv with ``django`` installed and removes the virtualenv
+from disk once the interpreter is exited.
 
 
 How to install it
