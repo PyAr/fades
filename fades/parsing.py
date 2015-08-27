@@ -18,6 +18,7 @@
 
 import logging
 import ast
+import re
 
 from pkg_resources import parse_requirements
 
@@ -110,19 +111,17 @@ def _parse_content(fh):
 def _parse_docstring(fh):
     """Parse the docstrings of a script to find marked dependencies."""
     requirements = []
+    find_fades = re.compile(r'\b(fades)\b:').search
     # get docstring into source file
     ds_parsed = ast.parse(fh.read())
     ds_texts = [ds_parsed]
-    ds_texts.extend([node for node in ds_parsed.body if isinstance(node, ast.FunctionDef) or
-                     isinstance(node, ast.ClassDef) or isinstance(node, ast.Module)])
-    for node in [node for node in ds_texts if isinstance(node, ast.ClassDef)]:
-        ds_texts.extend([n for n in node.body if isinstance(n, ast.FunctionDef)])
+    ds_texts.extend([node for node in ds_parsed.body if isinstance(node, ast.Module)])
     for doc in ds_texts:
         docstring = ast.get_docstring(doc)
         if docstring is None:
             continue
         for doc_line in iter(docstring.splitlines()):
-            if "fades" not in doc_line:
+            if not find_fades(doc_line):
                 continue
             req_text = docstring.split(doc_line, 1)[1]
             req_text = req_text.split("!fades", 1)[0]
