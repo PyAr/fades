@@ -188,3 +188,6 @@ def go(version, argv):
         if env_path:
             venvscache.remove(env_path)
             envbuilder.destroy_venv(env_path)
+        else:
+            l.warning("Invalid 'env_path' found in virtualenv metadata: %r. "
+                      "Not removing virtualenv.", env_path)
