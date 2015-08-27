@@ -15,22 +15,7 @@ Clone the project::
 Install dependencies
 --------------------
 
-Fades depends on several packages for development, here are the
-instructions to install them for each OS.
-
-- Ubuntu/Debian::
-
-    apt-get install python-xdg python3-nose python3-flake8
-
-- And on Archlinux with::
-
-    pacman -S python-xdg python-nose flake8
-
-Also, you need to install a package from PyPI, do the following
-with ``sudo`` if you'll install it at system level, or just as it is
-to install it in a virtualenv::
-
-    pip3 install logassert
+*fades* manages it's own dependencies, so there is nothing extra you need to install.
 
 
 How to run the tests

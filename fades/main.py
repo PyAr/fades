@@ -48,7 +48,7 @@ parameters passed as is to the child program.
 """
 
 help_usage = """
-  fades [-h] [-V] [-v] [-q] [-d DEPENDENCY] [-r REQUIREMENT] [-p PYTHON]
+  fades [-h] [-V] [-v] [-q] [-i] [-d DEPENDENCY] [-r REQUIREMENT] [-p PYTHON]
         [child_program [child_options]]
 """
 
@@ -82,6 +82,10 @@ def go(version, argv):
     parser.add_argument('-p', '--python', action='store',
                         help=("Specify the Python interpreter to use.\n"
                               " Default is: %s") % (sys.executable,))
+    parser.add_argument('-x', '--exec', dest='executable', action='store_true',
+                        help=("Indicate that the child_program should be looked up in the "
+                              "virtualenv."))
+    parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -119,15 +123,23 @@ def go(version, argv):
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # parse file and get deps
-    indicated_deps = parsing.parse_srcfile(args.child_program)
-    l.debug("Dependencies from source file: %s", indicated_deps)
+    if args.ipython:
+        l.debug("Adding ipython dependency because --ipython was detected")
+        ipython_dep = parsing.parse_manual(['ipython'])
+    else:
+        ipython_dep = {}
+    if args.executable:
+        indicated_deps = {}
+    else:
+        indicated_deps = parsing.parse_srcfile(args.child_program)
+        l.debug("Dependencies from source file: %s", indicated_deps)
     docstring_deps = parsing.parse_docstring(args.child_program)
     l.debug("Dependencies from docstrings: %s", docstring_deps)
     reqfile_deps = parsing.parse_reqfile(args.requirement)
     l.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
     l.debug("Dependencies from parameters: %s", manual_deps)
-    indicated_deps = _merge_deps(indicated_deps, reqfile_deps, manual_deps)
+    indicated_deps = _merge_deps(ipython_dep, indicated_deps, reqfile_deps, manual_deps)
 
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(args.python)
@@ -141,15 +153,20 @@ def go(version, argv):
         venvscache.store(installed, venv_data, interpreter)
 
     # run forest run!!
-    python_exe = os.path.join(venv_data['env_bin_path'], 'python')
+    python_exe = 'ipython' if args.ipython else 'python'
+    python_exe = os.path.join(venv_data['env_bin_path'], python_exe)
     if args.child_program is None:
         l.debug("Calling the interactive Python interpreter")
         p = subprocess.Popen([python_exe])
 
     else:
-        l.debug("Calling the child Python program %r with options %s",
+        if args.executable:
+            cmd = [os.path.join(venv_data['env_bin_path'], args.child_program)]
+        else:
+            cmd = [python_exe, args.child_program]
+        l.debug("Calling the child program %r with options %s",
                 args.child_program, args.child_options)
-        p = subprocess.Popen([python_exe, args.child_program] + args.child_options)
+        p = subprocess.Popen(cmd + args.child_options)
 
         def _signal_handler(signum, _):
             """Handle signals received by parent process, send them to child."""
