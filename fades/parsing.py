@@ -17,6 +17,8 @@
 """Script parsing to get needed dependencies."""
 
 import logging
+import ast
+import re
 
 from pkg_resources import parse_requirements
 
@@ -106,6 +108,30 @@ def _parse_content(fh):
     return deps
 
 
+def _parse_docstring(fh):
+    """Parse the docstrings of a script to find marked dependencies."""
+    requirements = []
+    find_fades = re.compile(r'\b(fades)\b:').search
+    # get docstring into source file
+    ds_parsed = ast.parse(fh.read())
+    ds_texts = [ds_parsed]
+    ds_texts.extend([node for node in ds_parsed.body if isinstance(node, ast.Module)])
+    for doc in ds_texts:
+        docstring = ast.get_docstring(doc)
+        if docstring is None:
+            continue
+        for doc_line in iter(docstring.splitlines()):
+            if not find_fades(doc_line):
+                continue
+            req_text = docstring.split(doc_line, 1)[1]
+            req_text = req_text.split("!fades", 1)[0]
+            for line in iter(req_text.splitlines()):
+                if not line.startswith("#"):
+                    requirements.append(line)
+            break
+    return _parse_requirement(requirements)
+
+
 def _parse_requirement(iterable):
     """Actually parse the requirements, from file or manually specified."""
     deps = {}
@@ -152,3 +178,11 @@ def parse_srcfile(filepath):
         return {}
     with open(filepath, 'rt', encoding='utf8') as fh:
         return _parse_content(fh)
+
+
+def parse_docstring(filepath):
+    """Parse a source file and return its dependencies specified into docstrings."""
+    if filepath is None:
+        return {}
+    with open(filepath, 'rt', encoding='utf8') as fh:
+        return _parse_docstring(fh)
