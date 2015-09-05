@@ -159,7 +159,7 @@ dependencies. There are cases however when you'll want to do some clean up to re
 unnecessary virtual environments from disk.
 
 By running *fades* with the ``--rm`` argument, *fades* will remove the virtualenv
-matching the requirements after running the script or command specified.
+matching the provided uuid if such a virtualenv exists.
 
 
 Some command line examples
@@ -189,10 +189,9 @@ Executes the Python interactive interpreter in a virtualenv after installing the
 
 Uses the ``django-admin.py`` script to start a new project named ``foo``, without having to have django previously installed.
 
-``fades -d django --rm``
+``fades --rm 89a2bf83-c280-4918-a78d-c35506efd69d``
 
-Executes the Python interactive interpreter in a virtualenv with ``django`` installed and removes the virtualenv
-from disk once the interpreter is exited.
+Removes a virtualenv matching the given uuid from disk and cache index.
 
 
 How to install it

@@ -86,8 +86,8 @@ def go(version, argv):
                         help=("Indicate that the child_program should be looked up in the "
                               "virtualenv."))
     parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
-    parser.add_argument('--rm', action='store_true', dest='remove',
-                        help=("Remove the virtualenv after running the child program."))
+    parser.add_argument('--rm', dest='remove', metavar='UUID',
+                        help=("Remove a virtualenv by UUID."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -124,6 +124,25 @@ def go(version, argv):
     if args.verbose and args.quiet:
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
+    # start the virtualenvs manager
+    venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
+
+    uuid = args.remove
+    if uuid:
+        venv_data = venvscache.get_venv(uuid=uuid)
+        if venv_data:
+            # remove this venv from the cache
+            env_path = venv_data.get('env_path')
+            if env_path:
+                venvscache.remove(env_path)
+                envbuilder.destroy_venv(env_path)
+            else:
+                l.warning("Invalid 'env_path' found in virtualenv metadata: %r. "
+                          "Not removing virtualenv.", env_path)
+        else:
+            l.warning('No virtualenv found with uuid: %s.', uuid)
+        return
+
     # parse file and get deps
     if args.ipython:
         l.debug("Adding ipython dependency because --ipython was detected")
@@ -144,8 +163,6 @@ def go(version, argv):
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(args.python)
 
-    # start the virtualenvs manager
-    venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
     venv_data = venvscache.get_venv(indicated_deps, interpreter)
     if venv_data is None:
         venv_data, installed = envbuilder.create_venv(indicated_deps, interpreter, is_current)
@@ -181,13 +198,3 @@ def go(version, argv):
     rc = p.wait()
     if rc:
         l.debug("Child process not finished correctly: returncode=%d", rc)
-
-    if args.remove:
-        # remove this venv from the cache
-        env_path = venv_data.get('env_path')
-        if env_path:
-            venvscache.remove(env_path)
-            envbuilder.destroy_venv(env_path)
-        else:
-            l.warning("Invalid 'env_path' found in virtualenv metadata: %r. "
-                      "Not removing virtualenv.", env_path)

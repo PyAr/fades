@@ -21,12 +21,13 @@ import os
 import tempfile
 import time
 import unittest
+import uuid
 from threading import Thread
 from unittest.mock import patch
 
 from pkg_resources import parse_requirements
 
-from fades import cache
+from fades import cache, helpers
 
 
 def get_req(text):
@@ -51,7 +52,7 @@ class GetTestCase(TempfileTestCase):
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
             resp = venvscache.get_venv('requirements', 'interpreter')
-        mock.assert_called_with([], 'requirements', 'interpreter')
+        mock.assert_called_with([], 'requirements', 'interpreter', uuid='')
         self.assertEqual(resp, None)
 
     def test_empty_file(self):
@@ -60,7 +61,7 @@ class GetTestCase(TempfileTestCase):
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
             resp = venvscache.get_venv('requirements', 'interpreter')
-        mock.assert_called_with([], 'requirements', 'interpreter')
+        mock.assert_called_with([], 'requirements', 'interpreter', uuid='')
         self.assertEqual(resp, None)
 
     def test_some_file_content(self):
@@ -70,7 +71,17 @@ class GetTestCase(TempfileTestCase):
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = 'resp'
             resp = venvscache.get_venv('requirements', 'interpreter')
-        mock.assert_called_with(['foo', 'bar'], 'requirements', 'interpreter')
+        mock.assert_called_with(['foo', 'bar'], 'requirements', 'interpreter', uuid='')
+        self.assertEqual(resp, 'resp')
+
+    def test_get_by_uuid(self):
+        with open(self.tempfile, 'wt', encoding='utf8') as fh:
+            fh.write('foo\nbar\n')
+        venvscache = cache.VEnvsCache(self.tempfile)
+        with patch.object(venvscache, '_select') as mock:
+            mock.return_value = 'resp'
+            resp = venvscache.get_venv(uuid='uuid')
+        mock.assert_called_with(['foo', 'bar'], None, '', uuid='uuid')
         self.assertEqual(resp, 'resp')
 
 
@@ -335,6 +346,19 @@ class SelectionTestCase(TempfileTestCase):
         })
         resp = self.venvscache._select([venv], reqs, interpreter)
         self.assertEqual(resp, 'foobar')
+
+    def test_match_uuid(self):
+        venv_uuid = str(uuid.uuid4())
+        metadata = {
+            'env_path': os.path.join(helpers.get_basedir(), venv_uuid),
+        }
+        venv = json.dumps({
+            'metadata': metadata,
+            'installed': {},
+            'interpreter': 'pythonX.Y',
+        })
+        resp = self.venvscache._select([venv], uuid=venv_uuid)
+        self.assertEqual(resp, metadata)
 
 
 class ComparisonsTestCase(TempfileTestCase):

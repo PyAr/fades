@@ -26,6 +26,8 @@ from contextlib import contextmanager
 
 from pkg_resources import Distribution
 
+from fades import helpers
+
 logger = logging.getLogger(__name__)
 
 
@@ -72,22 +74,28 @@ class VEnvsCache:
         # it did it through!
         return True
 
-    def _select(self, current_venvs, requirements, interpreter):
+    def _select(self, current_venvs, requirements=None, interpreter='', uuid=''):
         """Select which venv satisfy the received requirements."""
-        logger.debug("Searching a venv for reqs: %s and interpreter: %s",
-                     requirements, interpreter)
+        if uuid:
+            logger.debug("Searching a venv by uuid: %s", uuid)
+            env_path = os.path.join(helpers.get_basedir(), uuid)
+            match = lambda env: env.get('metadata', {}).get('env_path') == env_path
+        else:
+            logger.debug("Searching a venv for reqs: %s and interpreter: %s",
+                         requirements, interpreter)
+            match = lambda env: (env.get('interpreter') == interpreter and
+                                 self._venv_match(venv['installed'], requirements))
         for venv_str in current_venvs:
             venv = json.loads(venv_str)
-            if venv.get("interpreter") == interpreter:
-                if self._venv_match(venv['installed'], requirements):
-                    logger.debug("Found a matching venv! %s", venv)
-                    return venv['metadata']
+            if match(venv):
+                logger.debug("Found a matching venv! %s", venv)
+                return venv['metadata']
         logger.debug("No matching venv found :(")
 
-    def get_venv(self, requirements, interpreter):
+    def get_venv(self, requirements=None, interpreter='', uuid=''):
         """Find a venv that serves these requirements, if any."""
         lines = self._read_cache()
-        return self._select(lines, requirements, interpreter)
+        return self._select(lines, requirements, interpreter, uuid=uuid)
 
     def store(self, installed_stuff, metadata, interpreter):
         """Store the virtualenv metadata for the indicated installed_stuff."""
