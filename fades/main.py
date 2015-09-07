@@ -86,6 +86,15 @@ def go(version, argv):
                         help=("Indicate that the child_program should be looked up in the "
                               "virtualenv."))
     parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
+    parser.add_argument('--system-site-packages', action='store_true', default=False,
+                        help=("Give the virtual environment access to the"
+                              "system site-packages dir."))
+    parser.add_argument('--virtualenv-options', action='append', default=[],
+                        help=("Extra options to be supplied to virtualenv. (this option can be"
+                              "used multiple times)"))
+    parser.add_argument('--pip-options', action='append', default=[],
+                        help=("Extra options to be supplied to pip. (this option can be"
+                              "used multiple times)"))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -144,13 +153,23 @@ def go(version, argv):
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(args.python)
 
+    # build the options dict
+    options = {}
+    options['pyvenv_options'] = []
+    options['virtualenv_options'] = args.virtualenv_options
+    options['pip_options'] = args.pip_options
+    if args.system_site_packages:
+        options['virtualenv_options'].append("--system-site-packages")
+        options['pyvenv_options'] = ["--system-site-packages"]
+
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
-    venv_data = venvscache.get_venv(indicated_deps, interpreter)
+    venv_data = venvscache.get_venv(indicated_deps, interpreter, options)
     if venv_data is None:
-        venv_data, installed = envbuilder.create_venv(indicated_deps, interpreter, is_current)
+        venv_data, installed = envbuilder.create_venv(indicated_deps, interpreter, is_current,
+                                                      options)
         # store this new venv in the cache
-        venvscache.store(installed, venv_data, interpreter)
+        venvscache.store(installed, venv_data, interpreter, options)
 
     # run forest run!!
     python_exe = 'ipython' if args.ipython else 'python'

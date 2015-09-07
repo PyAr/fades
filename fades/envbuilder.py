@@ -53,9 +53,10 @@ class FadesEnvBuilder(EnvBuilder):
 
         super().__init__(with_pip=self.pip_installed, symlinks=True)
 
-    def create_with_virtualenv(self, interpreter):
+    def create_with_virtualenv(self, interpreter, virtualenv_options):
         """Create a virtualenv using the virtualenv lib."""
         args = ['virtualenv', '--python', interpreter, self.env_path]
+        args.extend(virtualenv_options)
         if not self.with_pip:
             args.insert(3, '--no-pip')
         try:
@@ -69,14 +70,19 @@ class FadesEnvBuilder(EnvBuilder):
             logger.exception("Error creating virtualenv:  %s", error)
             exit()
 
-    def create_env(self, interpreter, is_current):
+    def create_env(self, interpreter, is_current, options):
         """Create the virtualenv and return its info."""
         if is_current:
-            logger.debug("Creating virtualenv with pyvenv")
+            # apply pyvenv options
+            pyvenv_options = options['pyvenv_options']
+            if "--system-site-packages" in pyvenv_options:
+                self.system_site_packages = True
+            logger.debug("Creating virtualenv with pyvenv. options=%s", pyvenv_options)
             self.create(self.env_path)
         else:
+            virtualenv_options = options['virtualenv_options']
             logger.debug("Creating virtualenv with virtualenv")
-            self.create_with_virtualenv(interpreter)
+            self.create_with_virtualenv(interpreter, virtualenv_options)
         logger.debug("env_bin_path: %s", self.env_bin_path)
         # Re check if pip was installed.
         pip_exe = os.path.join(self.env_bin_path, "pip")
@@ -90,11 +96,11 @@ class FadesEnvBuilder(EnvBuilder):
         self.env_bin_path = context.bin_path
 
 
-def create_venv(requested_deps, interpreter, is_current):
+def create_venv(requested_deps, interpreter, is_current, options):
     """Create a new virtualvenv with the requirements of this script."""
     # create virtualenv
     env = FadesEnvBuilder()
-    env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current)
+    env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current, options)
     venv_data = {}
     venv_data['env_path'] = env_path
     venv_data['env_bin_path'] = env_bin_path
