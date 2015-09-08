@@ -23,6 +23,7 @@ other python versions Fades needs a virtualenv tool installed.
 
 import logging
 import os
+import shutil
 
 from venv import EnvBuilder
 from uuid import uuid4
@@ -36,9 +37,11 @@ logger = logging.getLogger(__name__)
 
 class FadesEnvBuilder(EnvBuilder):
     """Create always a virtualenv."""
-    def __init__(self):
+    def __init__(self, env_path=None):
         basedir = helpers.get_basedir()
-        self.env_path = os.path.join(basedir, str(uuid4()))
+        if env_path is None:
+            env_path = os.path.join(basedir, str(uuid4()))
+        self.env_path = env_path
         self.env_bin_path = ''
         logger.debug("Env will be created at: %s", self.env_path)
 
@@ -85,6 +88,11 @@ class FadesEnvBuilder(EnvBuilder):
             self.pip_installed = False
         return self.env_path, self.env_bin_path, self.pip_installed
 
+    def destroy_env(self):
+        """Destroy the virtualenv."""
+        logger.debug("Destroying virtualenv at: %s", self.env_path)
+        shutil.rmtree(self.env_path, ignore_errors=True)
+
     def post_setup(self, context):
         """Gets the bin path from context."""
         self.env_bin_path = context.bin_path
@@ -123,3 +131,8 @@ def create_venv(requested_deps, interpreter, is_current):
 
         logger.debug("Installed dependencies: %s", installed)
     return venv_data, installed
+
+
+def destroy_venv(env_path):
+    env = FadesEnvBuilder(env_path)
+    env.destroy_env()

@@ -16,6 +16,7 @@
 
 """Tests for the venv builder module."""
 
+import os
 import unittest
 
 from unittest.mock import patch
@@ -108,3 +109,35 @@ class EnvCreationTestCase(unittest.TestCase):
                 'dep2': 'v2',
             }
         })
+
+    def test_custom_env_path(self):
+        builder = envbuilder.FadesEnvBuilder('some-path')
+        self.assertEqual(builder.env_path, 'some-path')
+
+
+class EnvDestructionTestCase(unittest.TestCase):
+
+    def test_destroy_env(self):
+        builder = envbuilder.FadesEnvBuilder()
+        # make sure the virtualenv exists on disk
+        builder.create_env('python', False)
+        assert os.path.exists(builder.env_path)
+
+        builder.destroy_env()
+        self.assertFalse(os.path.exists(builder.env_path))
+
+    def test_destroy_venv(self):
+        builder = envbuilder.FadesEnvBuilder()
+        # make sure the virtualenv exists on disk
+        builder.create_env('python', False)
+        assert os.path.exists(builder.env_path)
+
+        envbuilder.destroy_venv(builder.env_path)
+        self.assertFalse(os.path.exists(builder.env_path))
+
+    def test_destroy_venv_if_env_path_not_found(self):
+        builder = envbuilder.FadesEnvBuilder()
+        assert not os.path.exists(builder.env_path)
+
+        envbuilder.destroy_venv(builder.env_path)
+        self.assertFalse(os.path.exists(builder.env_path))
