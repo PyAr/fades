@@ -19,13 +19,15 @@
 import json
 import os
 import tempfile
+import time
 import unittest
-
+import uuid
+from threading import Thread
 from unittest.mock import patch
 
 from pkg_resources import parse_requirements
 
-from fades import cache
+from fades import cache, helpers
 
 
 def get_req(text):
@@ -49,8 +51,8 @@ class GetTestCase(TempfileTestCase):
         venvscache = cache.VEnvsCache(self.tempfile)
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
-            resp = venvscache.get_venv('requirements', 'interpreter', 'options')
-        mock.assert_called_with([], 'requirements', 'interpreter', 'options')
+            resp = venvscache.get_venv('requirements', 'interpreter', uuid='', options='options')
+        mock.assert_called_with([], 'requirements', 'interpreter', uuid='', options='options')
         self.assertEqual(resp, None)
 
     def test_empty_file(self):
@@ -58,8 +60,8 @@ class GetTestCase(TempfileTestCase):
         venvscache = cache.VEnvsCache(self.tempfile)
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
-            resp = venvscache.get_venv('requirements', 'interpreter', 'options')
-        mock.assert_called_with([], 'requirements', 'interpreter', 'options')
+            resp = venvscache.get_venv('requirements', 'interpreter')
+        mock.assert_called_with([], 'requirements', 'interpreter', uuid='', options=None)
         self.assertEqual(resp, None)
 
     def test_some_file_content(self):
@@ -68,8 +70,19 @@ class GetTestCase(TempfileTestCase):
         venvscache = cache.VEnvsCache(self.tempfile)
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = 'resp'
-            resp = venvscache.get_venv('requirements', 'interpreter', 'options')
-        mock.assert_called_with(['foo', 'bar'], 'requirements', 'interpreter', 'options')
+            resp = venvscache.get_venv('requirements', 'interpreter', uuid='', options='options')
+        mock.assert_called_with(['foo', 'bar'], 'requirements', 'interpreter', uuid='',
+                                options='options')
+        self.assertEqual(resp, 'resp')
+
+    def test_get_by_uuid(self):
+        with open(self.tempfile, 'wt', encoding='utf8') as fh:
+            fh.write('foo\nbar\n')
+        venvscache = cache.VEnvsCache(self.tempfile)
+        with patch.object(venvscache, '_select') as mock:
+            mock.return_value = 'resp'
+            resp = venvscache.get_venv(uuid='uuid')
+        mock.assert_called_with(['foo', 'bar'], None, '', uuid='uuid', options=None)
         self.assertEqual(resp, 'resp')
 
 
@@ -107,6 +120,86 @@ class StoreTestCase(TempfileTestCase):
             self.assertEqual(data['options'], 'options')
 
 
+class RemoveTestCase(TempfileTestCase):
+    """Remove virtualenv from cache."""
+
+    def test_missing_file(self):
+        venvscache = cache.VEnvsCache(self.tempfile)
+        venvscache.remove('missing/path')
+
+        lines = venvscache._read_cache()
+        self.assertEqual(lines, [])
+
+    def test_missing_env_in_cache(self):
+        venvscache = cache.VEnvsCache(self.tempfile)
+        options = {'foo': 'bar'}
+        venvscache.store('installed', {'env_path': 'some/path'}, 'interpreter', options=options)
+        lines = venvscache._read_cache()
+        assert len(lines) == 1
+
+        venvscache.remove('some/path')
+
+        lines = venvscache._read_cache()
+        self.assertEqual(lines, [])
+
+    def test_preserve_cache_data_ordering(self):
+        venvscache = cache.VEnvsCache(self.tempfile)
+        # store 3 venvs
+        options = {'foo': 'bar'}
+        venvscache.store('installed1', {'env_path': 'path/env1'}, 'interpreter', options=options)
+        venvscache.store('installed2', {'env_path': 'path/env2'}, 'interpreter', options=options)
+        venvscache.store('installed3', {'env_path': 'path/env3'}, 'interpreter', options=options)
+
+        venvscache.remove('path/env2')
+
+        lines = venvscache._read_cache()
+        self.assertEqual(len(lines), 2)
+        self.assertEqual(
+            json.loads(lines[0]).get('metadata').get('env_path'), 'path/env1')
+        self.assertEqual(
+            json.loads(lines[1]).get('metadata').get('env_path'), 'path/env3')
+
+    def test_lock_cache_for_remove(self):
+        venvscache = cache.VEnvsCache(self.tempfile)
+        # store 3 venvs
+        options = {'foo': 'bar'}
+        venvscache.store('installed1', {'env_path': 'path/env1'}, 'interpreter', options=options)
+        venvscache.store('installed2', {'env_path': 'path/env2'}, 'interpreter', options=options)
+        venvscache.store('installed3', {'env_path': 'path/env3'}, 'interpreter', options=options)
+
+        # patch _write_cache so it emulates a slow write during which
+        # another process managed to modify the cache file before the
+        # first process finished writing the modified cache data
+        original_write_cache = venvscache._write_cache
+        p = patch('fades.cache.VEnvsCache._write_cache')
+        mock_write_cache = p.start()
+
+        t1 = Thread(target=venvscache.remove, args=('path/env1',))
+
+        def slow_write_cache(*args, **kwargs):
+            p.stop()
+            t1.start()
+            # wait to ensure t1 thread must wait for lock to be released
+            time.sleep(0.01)
+            original_write_cache(*args, **kwargs)
+
+        mock_write_cache.side_effect = slow_write_cache
+
+        # just a sanity check
+        assert not os.path.exists(venvscache.filepath + '.lock')
+        # remove a virtualenv from the cache
+        venvscache.remove('path/env2')
+        t1.join()
+
+        # when cache file is properly locked both virtualenvs
+        # will have been removed from the cache
+        lines = venvscache._read_cache()
+        self.assertEqual(len(lines), 1)
+        self.assertEqual(
+            json.loads(lines[0]).get('metadata').get('env_path'), 'path/env3')
+        self.assertFalse(os.path.exists(venvscache.filepath + '.lock'))
+
+
 class SelectionTestCase(TempfileTestCase):
     """The venv selection."""
 
@@ -128,7 +221,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_nomatch_dependency(self):
@@ -141,7 +234,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_nomatch_version(self):
@@ -154,7 +247,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_simple_match(self):
@@ -167,7 +260,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'foobar')
 
     def test_match_noversion(self):
@@ -180,7 +273,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'foobar')
 
     def test_middle_match(self):
@@ -205,7 +298,8 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv1, venv2, venv3], reqs, interpreter, options)
+        resp = self.venvscache._select([venv1, venv2, venv3], reqs, interpreter, uuid='',
+                                       options=options)
         self.assertEqual(resp, 'venv2')
 
     def test_multiple_deps_ok(self):
@@ -218,7 +312,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'foobar')
 
     def test_multiple_deps_just_one(self):
@@ -231,7 +325,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_not_too_crowded(self):
@@ -244,7 +338,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_same_quantity_different_deps(self):
@@ -257,7 +351,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_no_requirements_some_installed(self):
@@ -270,7 +364,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_no_requirements_empty_venv(self):
@@ -283,7 +377,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'foobar')
 
     def test_simple_match_empty_options(self):
@@ -296,7 +390,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'foobar')
 
     def test_no_match_due_to_options(self):
@@ -309,7 +403,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_match_due_to_options(self):
@@ -328,7 +422,7 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv1, venv2], reqs, interpreter, options)
+        resp = self.venvscache._select([venv1, venv2], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'venv2')
 
     def test_no_deps_but_options(self):
@@ -347,8 +441,22 @@ class SelectionTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv1, venv2], reqs, interpreter, options)
+        resp = self.venvscache._select([venv1, venv2], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'venv2')
+
+    def test_match_uuid(self):
+        venv_uuid = str(uuid.uuid4())
+        metadata = {
+            'env_path': os.path.join(helpers.get_basedir(), venv_uuid),
+        }
+        venv = json.dumps({
+            'metadata': metadata,
+            'installed': {},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        resp = self.venvscache._select([venv], uuid=venv_uuid)
+        self.assertEqual(resp, metadata)
 
 
 class ComparisonsTestCase(TempfileTestCase):
@@ -369,7 +477,7 @@ class ComparisonsTestCase(TempfileTestCase):
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter, options)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         return resp
 
     def test_comp_eq(self):

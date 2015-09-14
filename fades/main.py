@@ -95,6 +95,8 @@ def go(version, argv):
     parser.add_argument('--pip-options', action='append', default=[],
                         help=("Extra options to be supplied to pip. (this option can be"
                               "used multiple times)"))
+    parser.add_argument('--rm', dest='remove', metavar='UUID',
+                        help=("Remove a virtualenv by UUID."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -131,6 +133,25 @@ def go(version, argv):
     if args.verbose and args.quiet:
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
 
+    # start the virtualenvs manager
+    venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
+
+    uuid = args.remove
+    if uuid:
+        venv_data = venvscache.get_venv(uuid=uuid)
+        if venv_data:
+            # remove this venv from the cache
+            env_path = venv_data.get('env_path')
+            if env_path:
+                venvscache.remove(env_path)
+                envbuilder.destroy_venv(env_path)
+            else:
+                l.warning("Invalid 'env_path' found in virtualenv metadata: %r. "
+                          "Not removing virtualenv.", env_path)
+        else:
+            l.warning('No virtualenv found with uuid: %s.', uuid)
+        return
+
     # parse file and get deps
     if args.ipython:
         l.debug("Adding ipython dependency because --ipython was detected")
@@ -142,8 +163,8 @@ def go(version, argv):
     else:
         indicated_deps = parsing.parse_srcfile(args.child_program)
         l.debug("Dependencies from source file: %s", indicated_deps)
-    docstring_deps = parsing.parse_docstring(args.child_program)
-    l.debug("Dependencies from docstrings: %s", docstring_deps)
+        docstring_deps = parsing.parse_docstring(args.child_program)
+        l.debug("Dependencies from docstrings: %s", docstring_deps)
     reqfile_deps = parsing.parse_reqfile(args.requirement)
     l.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
@@ -153,21 +174,21 @@ def go(version, argv):
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(args.python)
 
-    # build the options dict
+    # options
+    pip_options = args.pip_options  # pip_options mustn't store.
     options = {}
     options['pyvenv_options'] = []
     options['virtualenv_options'] = args.virtualenv_options
-    options['pip_options'] = args.pip_options
     if args.system_site_packages:
         options['virtualenv_options'].append("--system-site-packages")
         options['pyvenv_options'] = ["--system-site-packages"]
 
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
-    venv_data = venvscache.get_venv(indicated_deps, interpreter, options)
+    venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
     if venv_data is None:
         venv_data, installed = envbuilder.create_venv(indicated_deps, interpreter, is_current,
-                                                      options)
+                                                      options, pip_options)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
 

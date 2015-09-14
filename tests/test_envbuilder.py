@@ -16,6 +16,7 @@
 
 """Tests for the venv builder module."""
 
+import os
 import unittest
 from unittest.mock import patch
 
@@ -58,15 +59,15 @@ class EnvCreationTestCase(unittest.TestCase):
         is_current = True
         options = {"virtualenv_options": [],
                    "pyvenv_options": [],
-                   "pip-options": [],
                    }
+        pip_options = []
         with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
                 fake_manager.really_installed = {'dep1': 'v1', 'dep2': 'v2'}
                 venv_data, installed = envbuilder.create_venv(requested, interpreter, is_current,
-                                                              options)
+                                                              options, pip_options)
 
         self.assertEqual(venv_data, {
             'env_bin_path': 'env_bin_path',
@@ -88,13 +89,13 @@ class EnvCreationTestCase(unittest.TestCase):
         is_current = True
         options = {"virtualenv_options": [],
                    "pyvenv_options": [],
-                   "pip-options": [],
                    }
+        pip_options = []
         with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FakeManager()
-                envbuilder.create_venv(requested, interpreter, is_current, options)
+                envbuilder.create_venv(requested, interpreter, is_current, options, pip_options)
 
         self.assertLoggedWarning("Install from 'unknown' not implemented")
 
@@ -106,14 +107,15 @@ class EnvCreationTestCase(unittest.TestCase):
         is_current = True
         options = {"virtualenv_options": [],
                    "pyvenv_options": [],
-                   "pip-options": [],
                    }
+        pip_options = []
         with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
                 fake_manager.really_installed = {'dep1': 'vX', 'dep2': 'v2'}
-                _, installed = envbuilder.create_venv(requested, interpreter, is_current, options)
+                _, installed = envbuilder.create_venv(requested, interpreter, is_current, options,
+                                                      pip_options)
 
         self.assertEqual(installed, {
             REPO_PYPI: {
@@ -128,7 +130,6 @@ class EnvCreationTestCase(unittest.TestCase):
         is_current = True
         options = {"virtualenv_options": [],
                    "pyvenv_options": ['--system-site-packages'],
-                   "pip-options": [],
                    }
         with patch.object(EnvBuilder, 'create') as mock_create:
                 env_builder.create_env(interpreter, is_current, options)
@@ -141,7 +142,6 @@ class EnvCreationTestCase(unittest.TestCase):
         is_current = True
         options = {"virtualenv_options": [],
                    "pyvenv_options": [],
-                   "pip-options": [],
                    }
         with patch.object(EnvBuilder, 'create') as mock_create:
                 env_builder.create_env(interpreter, is_current, options)
@@ -154,7 +154,6 @@ class EnvCreationTestCase(unittest.TestCase):
         is_current = False
         options = {"virtualenv_options": ['--system-site-packages'],
                    "pyvenv_options": [],
-                   "pip-options": [],
                    }
         with patch.object(envbuilder.FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
                 env_builder.create_env(interpreter, is_current, options)
@@ -166,8 +165,47 @@ class EnvCreationTestCase(unittest.TestCase):
         is_current = False
         options = {"virtualenv_options": [],
                    "pyvenv_options": [],
-                   "pip-options": [],
                    }
         with patch.object(envbuilder.FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
                 env_builder.create_env(interpreter, is_current, options)
                 mock_create.assert_called_with(interpreter, options['virtualenv_options'])
+
+    def test_custom_env_path(self):
+        builder = envbuilder.FadesEnvBuilder('some-path')
+        self.assertEqual(builder.env_path, 'some-path')
+
+
+class EnvDestructionTestCase(unittest.TestCase):
+
+    def test_destroy_env(self):
+        builder = envbuilder.FadesEnvBuilder()
+        # make sure the virtualenv exists on disk
+        options = {"virtualenv_options": [],
+                   "pyvenv_options": ['--system-site-packages'],
+                   "pip-options": [],
+                   }
+        builder.create_env('python', False, options=options)
+        assert os.path.exists(builder.env_path)
+
+        builder.destroy_env()
+        self.assertFalse(os.path.exists(builder.env_path))
+
+    def test_destroy_venv(self):
+        builder = envbuilder.FadesEnvBuilder()
+        # make sure the virtualenv exists on disk
+        options = {"virtualenv_options": [],
+                   "pyvenv_options": ['--system-site-packages'],
+                   "pip-options": [],
+                   }
+        builder.create_env('python', False, options=options)
+        assert os.path.exists(builder.env_path)
+
+        envbuilder.destroy_venv(builder.env_path)
+        self.assertFalse(os.path.exists(builder.env_path))
+
+    def test_destroy_venv_if_env_path_not_found(self):
+        builder = envbuilder.FadesEnvBuilder()
+        assert not os.path.exists(builder.env_path)
+
+        envbuilder.destroy_venv(builder.env_path)
+        self.assertFalse(os.path.exists(builder.env_path))

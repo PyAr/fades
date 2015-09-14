@@ -17,12 +17,16 @@
 
 """The cache manager for virtualenvs."""
 
+import fcntl
 import json
 import logging
 import os
 import time
+from contextlib import contextmanager
 
 from pkg_resources import Distribution
+
+from fades import helpers
 
 logger = logging.getLogger(__name__)
 
@@ -70,28 +74,29 @@ class VEnvsCache:
         # it did it through!
         return True
 
-    def _select(self, current_venvs, requirements, interpreter, options):
+    def _select(self, current_venvs, requirements=None, interpreter='', uuid='', options=None):
         """Select which venv satisfy the received requirements."""
-        logger.debug("Searching a venv for reqs: %s interpreter: %s and options: %s",
-                     requirements, interpreter, options)
+        if uuid:
+            logger.debug("Searching a venv by uuid: %s", uuid)
+            env_path = os.path.join(helpers.get_basedir(), uuid)
+            match = lambda env: env.get('metadata', {}).get('env_path') == env_path
+        else:
+            logger.debug("Searching a venv for reqs: %s and interpreter: %s",
+                         requirements, interpreter)
+            match = lambda env: (env.get('options') == options and
+                                 env.get('interpreter') == interpreter and
+                                 self._venv_match(venv['installed'], requirements))
         for venv_str in current_venvs:
             venv = json.loads(venv_str)
-            if venv.get("options") == options:  # FIXME
-                if venv.get("interpreter") == interpreter:
-                    if self._venv_match(venv['installed'], requirements):
-                        logger.debug("Found a matching venv! %s", venv)
-                        return venv['metadata']
+            if match(venv):
+                logger.debug("Found a matching venv! %s", venv)
+                return venv['metadata']
         logger.debug("No matching venv found :(")
 
-    def get_venv(self, requirements, interpreter, options):
+    def get_venv(self, requirements=None, interpreter='', uuid='', options=None):
         """Find a venv that serves these requirements, if any."""
-        if os.path.exists(self.filepath):
-            with open(self.filepath, 'rt', encoding='utf8') as fh:
-                lines = [x.strip() for x in fh]
-        else:
-            logger.debug("Index not found, starting empty")
-            lines = []
-        return self._select(lines, requirements, interpreter, options)
+        lines = self._read_cache()
+        return self._select(lines, requirements, interpreter, uuid=uuid, options=options)
 
     def store(self, installed_stuff, metadata, interpreter, options):
         """Store the virtualenv metadata for the indicated installed_stuff."""
@@ -104,5 +109,42 @@ class VEnvsCache:
         }
         logger.debug("Storing installed=%s metadata=%s interpreter=%s options=%s",
                      installed_stuff, metadata, interpreter, options)
-        with open(self.filepath, 'at', encoding='utf8') as fh:
-            fh.write(json.dumps(new_content) + '\n')
+        with self.lock_cache():
+            self._write_cache([json.dumps(new_content)], append=True)
+
+    def remove(self, env_path):
+        """Remove metadata for a given virtualenv from cache."""
+        with self.lock_cache():
+            cache = self._read_cache()
+            logger.debug("Removing virtualenv from cache: %s" % env_path)
+            lines = [
+                line for line in cache
+                if json.loads(line).get('metadata', {}).get('env_path') != env_path
+            ]
+            self._write_cache(lines)
+
+    @contextmanager
+    def lock_cache(self):
+        lock_file = self.filepath + '.lock'
+        with open(lock_file, 'a') as fh:
+            fcntl.flock(fh, fcntl.LOCK_EX)
+            yield
+            fcntl.flock(fh, fcntl.LOCK_UN)
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
+
+    def _read_cache(self):
+        """Read virtualenv metadata from cache."""
+        if os.path.exists(self.filepath):
+            with open(self.filepath, 'rt', encoding='utf8') as fh:
+                lines = [x.strip() for x in fh]
+        else:
+            logger.debug("Index not found, starting empty")
+            lines = []
+        return lines
+
+    def _write_cache(self, lines, append=False):
+        """Write virtualenv metadata to cache."""
+        mode = 'at' if append else 'wt'
+        with open(self.filepath, mode, encoding='utf8') as fh:
+            fh.writelines(line + '\n' for line in lines)

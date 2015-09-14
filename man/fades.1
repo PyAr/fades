@@ -68,6 +68,16 @@ Select which Python version to be used; the argument can be just the number (2.7
 
 The dependencies can be indicated in multiple places (in the Python source file, with a comment besides the import, in a \fIrequirements\fRfile, and/or through command line. In case of multiple definitions of the same dependency, command line overrides everything else, and requirements file overrides what is specified in the source code.
 
+.TP
+.BR -x ", " --exec
+Execute the \fIchild_program\fR inside the virtualenv.
+
+The \fIchild_program\fR \fBmust\fR be found in the virtualenv's \fIbin\fR directory.
+
+.TP
+.BR --rm " " \fIuuid\fR
+Remove a virtualenv by uuid.
+
 .SH EXAMPLES
 
 .TP
