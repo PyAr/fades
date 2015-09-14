@@ -67,3 +67,37 @@ class PipManagerTestCase(unittest.TestCase):
             mock.return_value = mocked_stdout
             version = mgr.get_version('foo')
         self.assertEqual(version, '0.12.0')
+
+    def test_install(self):
+        mgr = PipManager('/usr/bin', pip_installed=True)
+        with patch.object(helpers, 'logged_exec') as mock:
+            mgr.install('foo')
+            mock.assert_called_with(['/usr/bin/pip', 'install', 'foo'])
+
+    def test_install_with_options(self):
+        mgr = PipManager('/usr/bin', pip_installed=True, options=['--bar baz'])
+        with patch.object(helpers, 'logged_exec') as mock:
+            mgr.install('foo')
+            mock.assert_called_with(['/usr/bin/pip', 'install', 'foo', '--bar', 'baz'])
+
+    def test_install_with_options_using_equal(self):
+        mgr = PipManager('/usr/bin', pip_installed=True, options=['--bar=baz'])
+        with patch.object(helpers, 'logged_exec') as mock:
+            mgr.install('foo')
+            mock.assert_called_with(['/usr/bin/pip', 'install', 'foo', '--bar=baz'])
+
+    def test_install_raise_error(self):
+        mgr = PipManager('/usr/bin', pip_installed=True)
+        with patch.object(helpers, 'logged_exec') as mock:
+            mock.side_effect = Exception("Kapow!")
+            with self.assertRaises(SystemExit):
+                mgr.install('foo')
+        self.assertLoggedError("Error installing foo: Kapow!")
+
+    def test_install_without_pip(self):
+        mgr = PipManager('/usr/bin', pip_installed=False)
+        with patch.object(helpers, 'logged_exec') as mocked_exec:
+            with patch.object(mgr, '_brute_force_install_pip') as mocked_install_pip:
+                mgr.install('foo')
+                mocked_install_pip.assertCalled()
+            mocked_exec.assert_called_with(['/usr/bin/pip', 'install', 'foo'])
