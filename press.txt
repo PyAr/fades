@@ -109,38 +109,23 @@ Python) y también marcar las dependencias necesarias. Más detalles acá:
 
 ¿Qué hay de nuevo en esta release?
 
-- Podés usar diferentes versiones del intérprete: simplemente pasá
-  --python=python2 o lo que te convenga.
+- Tenemos un logo!! 
+- Nueva opción para usar iPython en el interprete interactivo: --ipython (gracias Ariel Rossanigo)
+- Ahora es posible ejecutar un programa dentro del virtualenv con -x. (Gracias Ricardo Kirkner)
+  Por ejemplo es posible crear un proyecto de django sin tener django instalado en tu sistema usando: 
 
-- Las dependencias pueden especificarse en la linea de comando: no hay
-  necesidad de cambiar el script para una prueba rápida, simplemente
-  especificá la dependencia necesaria con "-d".
+    fades -d django -x manage startproject foo 
 
-- Modo interactivo: es la manera más rápida de probar una nueva
-  biblioteca. Sólo hacé
+- Podés ejecutar fades como un módulo de python. Simplemente hay que ejecutar python -m fades (Gracias Javi Mansilla)
+- Los tests de fades se ejecutan con fades!  
+- Se pueden crear virtualevs con --system-site-packages
+- Las dependencias ahora también se pueden especificar en los docstrings.
+- Si sos un usuario especial y no te alanzan las opciones que tenemos tenemos cosas para vos! 
+    - Podes pasarle opciones a virtualenv con --virtualenv-options 
+    - También a pip con --pip-options 
+    - Es posible eliminar un virtualenv con --rm <uuid> 
 
-    fades -d <dependencia>
-
-  y te abrirá un intérprete interactivo dentro de un venv
-  con esa dependencia.
-
-- Soporta tomar argumentos desde el shellbang. De esta manera podés crear
-  un script y poner al principio del mismo algo como:
-
-     #!/usr/bin/env fades -d <dependencia> --python=python2.7
-
-- Puede parsear requerimientos desde un archivo. No hay necesidad de ningún
-  cambio si ya tenés un archivo requirements.txt: simplemente
-  indicalo con "-r".
-
-- Si no se especifica el repo, toma PyPI por defecto, lo que resulta en
-  código más limpio y simple.
-
-- Tiene una base de datos integrada para conversiones típicas de nombres: de
-  esta manera se puede marcar con fades un "import bs4" incluso si ese no es
-  el nombre del paquete en PyPI.
-
-- Otros cambios y correcciones menores.
+- Varios bug fixeados y otros nuevos ;)
 
 
 Para obtenerlo:
