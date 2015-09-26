@@ -149,6 +149,21 @@ If you want to use IPython shell you need to call *fades* with ``-i`` or
 ``--ipython`` option. This option will add IPython as a dependency to *fades*
 and it will launch this shell instead of the python one.
 
+You can also use ``--system-site-packages`` to create a venv with access to the system libs.
+
+Under the hood options:
+-----------------------
+
+For particular use cases you can send specifics arguments to ``virtualenv`` or ``pip``. using the 
+``--virtuaenv-options`` and ``--pip-options``. You have to use that argument for each argument 
+sent. 
+
+Examples:
+
+``fades -d requests --virtualenv-options="--always-copy" --virtualenv-options="--extra-search-dir=/tmp"`` 
+
+``fades -d requests --pip-options="--index-url="http://example.com"`` 
+
 
 How to clean up old virtualenvs?
 --------------------------------

@@ -33,9 +33,10 @@ PIP_INSTALLER = "https://bootstrap.pypa.io/get-pip.py"
 
 class PipManager():
     """A manager for all PIP related actions."""
-    def __init__(self, env_bin_path, pip_installed=False):
+    def __init__(self, env_bin_path, pip_installed=False, options=None):
         self.env_bin_path = env_bin_path
         self.pip_installed = pip_installed
+        self.options = options
         self.pip_exe = os.path.join(self.env_bin_path, "pip")
         basedir = helpers.get_basedir()
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
@@ -49,6 +50,9 @@ class PipManager():
 
         str_dep = str(dependency)
         args = [self.pip_exe, "install", str_dep]
+        if self.options:
+            for option in self.options:
+                args.extend(option.split())
         logger.info("Installing dependency: %s", str_dep)
         try:
             helpers.logged_exec(args)
@@ -83,5 +87,5 @@ class PipManager():
 
         logger.debug("Installing PIP manually in the virtualenv")
         python_exe = os.path.join(self.env_bin_path, "python")
-        helpers.logged_exec([python_exe, self.pip_installer_fname])
+        helpers.logged_exec([python_exe, self.pip_installer_fname, '-I'])
         self.pip_installed = True

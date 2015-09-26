@@ -51,8 +51,8 @@ class GetTestCase(TempfileTestCase):
         venvscache = cache.VEnvsCache(self.tempfile)
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
-            resp = venvscache.get_venv('requirements', 'interpreter')
-        mock.assert_called_with([], 'requirements', 'interpreter', uuid='')
+            resp = venvscache.get_venv('requirements', 'interpreter', uuid='', options='options')
+        mock.assert_called_with([], 'requirements', 'interpreter', uuid='', options='options')
         self.assertEqual(resp, None)
 
     def test_empty_file(self):
@@ -61,7 +61,7 @@ class GetTestCase(TempfileTestCase):
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = None
             resp = venvscache.get_venv('requirements', 'interpreter')
-        mock.assert_called_with([], 'requirements', 'interpreter', uuid='')
+        mock.assert_called_with([], 'requirements', 'interpreter', uuid='', options=None)
         self.assertEqual(resp, None)
 
     def test_some_file_content(self):
@@ -70,8 +70,9 @@ class GetTestCase(TempfileTestCase):
         venvscache = cache.VEnvsCache(self.tempfile)
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = 'resp'
-            resp = venvscache.get_venv('requirements', 'interpreter')
-        mock.assert_called_with(['foo', 'bar'], 'requirements', 'interpreter', uuid='')
+            resp = venvscache.get_venv('requirements', 'interpreter', uuid='', options='options')
+        mock.assert_called_with(['foo', 'bar'], 'requirements', 'interpreter', uuid='',
+                                options='options')
         self.assertEqual(resp, 'resp')
 
     def test_get_by_uuid(self):
@@ -81,7 +82,7 @@ class GetTestCase(TempfileTestCase):
         with patch.object(venvscache, '_select') as mock:
             mock.return_value = 'resp'
             resp = venvscache.get_venv(uuid='uuid')
-        mock.assert_called_with(['foo', 'bar'], None, '', uuid='uuid')
+        mock.assert_called_with(['foo', 'bar'], None, '', uuid='uuid', options=None)
         self.assertEqual(resp, 'resp')
 
 
@@ -90,7 +91,7 @@ class StoreTestCase(TempfileTestCase):
 
     def test_missing_file(self):
         venvscache = cache.VEnvsCache(self.tempfile)
-        venvscache.store('installed', 'metadata', 'interpreter')
+        venvscache.store('installed', 'metadata', 'interpreter', 'options')
 
         with open(self.tempfile, 'rt', encoding='utf8') as fh:
             data = json.loads(fh.readline())
@@ -98,13 +99,14 @@ class StoreTestCase(TempfileTestCase):
             self.assertEqual(data['installed'], 'installed')
             self.assertEqual(data['metadata'], 'metadata')
             self.assertEqual(data['interpreter'], 'interpreter')
+            self.assertEqual(data['options'], 'options')
 
     def test_with_previous_content(self):
         with open(self.tempfile, 'wt', encoding='utf8') as fh:
             fh.write(json.dumps({'foo': 'bar'}) + '\n')
 
         venvscache = cache.VEnvsCache(self.tempfile)
-        venvscache.store('installed', 'metadata', 'interpreter')
+        venvscache.store('installed', 'metadata', 'interpreter', 'options')
 
         with open(self.tempfile, 'rt', encoding='utf8') as fh:
             data = json.loads(fh.readline())
@@ -115,6 +117,7 @@ class StoreTestCase(TempfileTestCase):
             self.assertEqual(data['installed'], 'installed')
             self.assertEqual(data['metadata'], 'metadata')
             self.assertEqual(data['interpreter'], 'interpreter')
+            self.assertEqual(data['options'], 'options')
 
 
 class RemoveTestCase(TempfileTestCase):
@@ -129,7 +132,8 @@ class RemoveTestCase(TempfileTestCase):
 
     def test_missing_env_in_cache(self):
         venvscache = cache.VEnvsCache(self.tempfile)
-        venvscache.store('installed', {'env_path': 'some/path'}, 'interpreter')
+        options = {'foo': 'bar'}
+        venvscache.store('installed', {'env_path': 'some/path'}, 'interpreter', options=options)
         lines = venvscache._read_cache()
         assert len(lines) == 1
 
@@ -141,9 +145,10 @@ class RemoveTestCase(TempfileTestCase):
     def test_preserve_cache_data_ordering(self):
         venvscache = cache.VEnvsCache(self.tempfile)
         # store 3 venvs
-        venvscache.store('installed1', {'env_path': 'path/env1'}, 'interpreter')
-        venvscache.store('installed2', {'env_path': 'path/env2'}, 'interpreter')
-        venvscache.store('installed3', {'env_path': 'path/env3'}, 'interpreter')
+        options = {'foo': 'bar'}
+        venvscache.store('installed1', {'env_path': 'path/env1'}, 'interpreter', options=options)
+        venvscache.store('installed2', {'env_path': 'path/env2'}, 'interpreter', options=options)
+        venvscache.store('installed3', {'env_path': 'path/env3'}, 'interpreter', options=options)
 
         venvscache.remove('path/env2')
 
@@ -157,9 +162,10 @@ class RemoveTestCase(TempfileTestCase):
     def test_lock_cache_for_remove(self):
         venvscache = cache.VEnvsCache(self.tempfile)
         # store 3 venvs
-        venvscache.store('installed1', {'env_path': 'path/env1'}, 'interpreter')
-        venvscache.store('installed2', {'env_path': 'path/env2'}, 'interpreter')
-        venvscache.store('installed3', {'env_path': 'path/env3'}, 'interpreter')
+        options = {'foo': 'bar'}
+        venvscache.store('installed1', {'env_path': 'path/env1'}, 'interpreter', options=options)
+        venvscache.store('installed2', {'env_path': 'path/env2'}, 'interpreter', options=options)
+        venvscache.store('installed3', {'env_path': 'path/env3'}, 'interpreter', options=options)
 
         # patch _write_cache so it emulates a slow write during which
         # another process managed to modify the cache file before the
@@ -202,150 +208,241 @@ class SelectionTestCase(TempfileTestCase):
         self.venvscache = cache.VEnvsCache(self.tempfile)
 
     def test_empty(self):
-        resp = self.venvscache._select([], {}, 'pythonX.Y')
+        resp = self.venvscache._select([], {}, 'pythonX.Y', 'options')
         self.assertEqual(resp, None)
 
     def test_nomatch_repo(self):
         reqs = {'repoloco': get_req('dep == 5')}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_nomatch_dependency(self):
         reqs = {'pypi': get_req('dep1 == 5')}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep2': '5'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_nomatch_version(self):
         reqs = {'pypi': get_req('dep == 5')}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '7'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_simple_match(self):
         reqs = {'pypi': get_req('dep == 5')}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'foobar')
 
     def test_match_noversion(self):
         reqs = {'pypi': get_req('dep')}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'foobar')
 
     def test_middle_match(self):
         reqs = {'pypi': get_req('dep == 5')}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv1 = json.dumps({
             'metadata': 'venv1',
             'installed': {'pypi': {'dep': '3'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
         venv2 = json.dumps({
             'metadata': 'venv2',
             'installed': {'pypi': {'dep': '5'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
         venv3 = json.dumps({
             'metadata': 'venv3',
             'installed': {'pypi': {'dep': '5'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv1, venv2, venv3], reqs, interpreter)
+        resp = self.venvscache._select([venv1, venv2, venv3], reqs, interpreter, uuid='',
+                                       options=options)
         self.assertEqual(resp, 'venv2')
 
     def test_multiple_deps_ok(self):
         reqs = {'pypi': get_req(['dep1 == 5', 'dep2 == 7'])}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep1': '5', 'dep2': '7'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'foobar')
 
     def test_multiple_deps_just_one(self):
         reqs = {'pypi': get_req(['dep1 == 5', 'dep2 == 7'])}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep1': '5', 'dep2': '2'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_not_too_crowded(self):
         reqs = {'pypi': get_req(['dep1'])}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep1': '5', 'dep2': '2'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_same_quantity_different_deps(self):
         reqs = {'pypi': get_req(['dep1', 'dep2'])}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep1': '5', 'dep3': '2'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_no_requirements_some_installed(self):
         reqs = {}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep1': '5', 'dep3': '2'}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
     def test_no_requirements_empty_venv(self):
         reqs = {}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, 'foobar')
+
+    def test_simple_match_empty_options(self):
+        reqs = {'pypi': get_req('dep == 5')}
+        interpreter = 'pythonX.Y'
+        options = {}
+        venv = json.dumps({
+            'metadata': 'foobar',
+            'installed': {'pypi': {'dep': '5'}},
+            'interpreter': 'pythonX.Y',
+            'options': {}
+        })
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
+        self.assertEqual(resp, 'foobar')
+
+    def test_no_match_due_to_options(self):
+        reqs = {'pypi': get_req('dep == 5')}
+        interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
+        venv = json.dumps({
+            'metadata': 'foobar',
+            'installed': {'pypi': {'dep': '5'}},
+            'interpreter': 'pythonX.Y',
+            'options': {}
+        })
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
+        self.assertEqual(resp, None)
+
+    def test_match_due_to_options(self):
+        reqs = {'pypi': get_req('dep == 5')}
+        interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
+        venv1 = json.dumps({
+            'metadata': 'venv1',
+            'installed': {'pypi': {'dep': '5'}},
+            'interpreter': 'pythonX.Y',
+            'options': {}
+        })
+        venv2 = json.dumps({
+            'metadata': 'venv2',
+            'installed': {'pypi': {'dep': '5'}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        resp = self.venvscache._select([venv1, venv2], reqs, interpreter, uuid='', options=options)
+        self.assertEqual(resp, 'venv2')
+
+    def test_no_deps_but_options(self):
+        reqs = {}
+        interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
+        venv1 = json.dumps({
+            'metadata': 'venv1',
+            'installed': {},
+            'interpreter': 'pythonX.Y',
+            'options': {}
+        })
+        venv2 = json.dumps({
+            'metadata': 'venv2',
+            'installed': {},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        resp = self.venvscache._select([venv1, venv2], reqs, interpreter, uuid='', options=options)
+        self.assertEqual(resp, 'venv2')
 
     def test_match_uuid(self):
         venv_uuid = str(uuid.uuid4())
@@ -356,6 +453,7 @@ class SelectionTestCase(TempfileTestCase):
             'metadata': metadata,
             'installed': {},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
         resp = self.venvscache._select([venv], uuid=venv_uuid)
         self.assertEqual(resp, metadata)
@@ -372,12 +470,14 @@ class ComparisonsTestCase(TempfileTestCase):
         """Check if the requirement is satisfied with what is installed."""
         reqs = {'pypi': get_req('dep' + req)}
         interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'ok',
             'installed': {'pypi': {'dep': installed}},
             'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
         })
-        resp = self.venvscache._select([venv], reqs, interpreter)
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         return resp
 
     def test_comp_eq(self):

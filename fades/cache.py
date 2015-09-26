@@ -74,7 +74,7 @@ class VEnvsCache:
         # it did it through!
         return True
 
-    def _select(self, current_venvs, requirements=None, interpreter='', uuid=''):
+    def _select(self, current_venvs, requirements=None, interpreter='', uuid='', options=None):
         """Select which venv satisfy the received requirements."""
         if uuid:
             logger.debug("Searching a venv by uuid: %s", uuid)
@@ -83,7 +83,8 @@ class VEnvsCache:
         else:
             logger.debug("Searching a venv for reqs: %s and interpreter: %s",
                          requirements, interpreter)
-            match = lambda env: (env.get('interpreter') == interpreter and
+            match = lambda env: (env.get('options') == options and
+                                 env.get('interpreter') == interpreter and
                                  self._venv_match(venv['installed'], requirements))
         for venv_str in current_venvs:
             venv = json.loads(venv_str)
@@ -92,21 +93,22 @@ class VEnvsCache:
                 return venv['metadata']
         logger.debug("No matching venv found :(")
 
-    def get_venv(self, requirements=None, interpreter='', uuid=''):
+    def get_venv(self, requirements=None, interpreter='', uuid='', options=None):
         """Find a venv that serves these requirements, if any."""
         lines = self._read_cache()
-        return self._select(lines, requirements, interpreter, uuid=uuid)
+        return self._select(lines, requirements, interpreter, uuid=uuid, options=options)
 
-    def store(self, installed_stuff, metadata, interpreter):
+    def store(self, installed_stuff, metadata, interpreter, options):
         """Store the virtualenv metadata for the indicated installed_stuff."""
         new_content = {
             'timestamp': int(time.mktime(time.localtime())),
             'installed': installed_stuff,
             'metadata': metadata,
             'interpreter': interpreter,
+            'options': options
         }
-        logger.debug("Storing installed=%s metadata=%s interpreter=%s",
-                     installed_stuff, metadata, interpreter)
+        logger.debug("Storing installed=%s metadata=%s interpreter=%s options=%s",
+                     installed_stuff, metadata, interpreter, options)
         with self.lock_cache():
             self._write_cache([json.dumps(new_content)], append=True)
 
