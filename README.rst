@@ -1,9 +1,9 @@
 fades
 =====
 
-fades, a FAst DEpendencies for Scripts, is a system that automatically
-handles the virtualenvs in the simple cases normally found when
-writing scripts or simple programs.
+fades is a system that automatically handles the virtualenvs in the
+cases normally found when writing scripts and simple programs, and
+even helps to administer big projects.
 
 .. image:: resources/logo256.png
 
@@ -154,15 +154,15 @@ You can also use ``--system-site-packages`` to create a venv with access to the 
 Under the hood options:
 -----------------------
 
-For particular use cases you can send specifics arguments to ``virtualenv`` or ``pip``. using the 
-``--virtuaenv-options`` and ``--pip-options``. You have to use that argument for each argument 
-sent. 
+For particular use cases you can send specifics arguments to ``virtualenv`` or ``pip``. using the
+``--virtuaenv-options`` and ``--pip-options``. You have to use that argument for each argument
+sent.
 
 Examples:
 
-``fades -d requests --virtualenv-options="--always-copy" --virtualenv-options="--extra-search-dir=/tmp"`` 
+``fades -d requests --virtualenv-options="--always-copy" --virtualenv-options="--extra-search-dir=/tmp"``
 
-``fades -d requests --pip-options="--index-url="http://example.com"`` 
+``fades -d requests --pip-options="--index-url="http://example.com"``
 
 
 How to clean up old virtualenvs?

@@ -2,9 +2,9 @@ Hello all,
 
 We're glad to announce the release of fades 3.
 
-fades, a FAst DEpendencies for Scripts, is a system that automatically
-handles the virtualenvs in the simple cases normally found when
-writing scripts or simple programs.
+fades is a system that automatically handles the virtualenvs in the
+cases normally found when writing scripts and simple programs, and
+even helps to administer big projects.
 
 It will automagically create a new virtualenv (or reuse a previous
 created one), installing the necessary dependencies, and execute
@@ -93,9 +93,9 @@ Hola a todas y todos,
 
 Estamos contentos de anunciar la liberación de fades 3.
 
-fades (en inglés: FAst DEpendencies for Scripts) es un sistema que
-maneja automáticamente los virtualenvs en los casos simples que
-uno normalmente encuentra al escribir scripts o programas pequeños.
+fades es un sistema que maneja automáticamente los virtualenvs en los
+casos que uno normalmente encuentra al escribir scripts y programas
+pequeños, e incluso ayuda a administrar proyectos grandes.
 
 Crea automáticamente un nuevo virtualenv (o reusa uno creado previamente)
 instalando las dependencias necesarias, y ejecutando el script
@@ -109,21 +109,21 @@ Python) y también marcar las dependencias necesarias. Más detalles acá:
 
 ¿Qué hay de nuevo en esta release?
 
-- Tenemos un logo!! 
+- Tenemos un logo!!
 - Nueva opción para usar iPython en el interprete interactivo: --ipython (gracias Ariel Rossanigo)
 - Ahora es posible ejecutar un programa dentro del virtualenv con -x. (Gracias Ricardo Kirkner)
-  Por ejemplo es posible crear un proyecto de django sin tener django instalado en tu sistema usando: 
+  Por ejemplo es posible crear un proyecto de django sin tener django instalado en tu sistema usando:
 
-    fades -d django -x manage startproject foo 
+    fades -d django -x manage startproject foo
 
 - Podés ejecutar fades como un módulo de python. Simplemente hay que ejecutar python -m fades (Gracias Javi Mansilla)
-- Los tests de fades se ejecutan con fades!  
+- Los tests de fades se ejecutan con fades!
 - Se pueden crear virtualevs con --system-site-packages
 - Las dependencias ahora también se pueden especificar en los docstrings.
-- Si sos un usuario especial y no te alanzan las opciones que tenemos tenemos cosas para vos! 
-    - Podes pasarle opciones a virtualenv con --virtualenv-options 
-    - También a pip con --pip-options 
-    - Es posible eliminar un virtualenv con --rm <uuid> 
+- Si sos un usuario especial y no te alanzan las opciones que tenemos tenemos cosas para vos!
+    - Podes pasarle opciones a virtualenv con --virtualenv-options
+    - También a pip con --pip-options
+    - Es posible eliminar un virtualenv con --rm <uuid>
 
 - Varios bug fixeados y otros nuevos ;)
 
