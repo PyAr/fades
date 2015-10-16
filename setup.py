@@ -94,7 +94,10 @@ setup(
     license='GPL-3',
     author='Facundo Batista, Nicolás Demarchi',
     author_email='facundo@taniquetil.com.ar, mail@gilgamezh.me',
-    description='FAst DEpendencies for Scripts.',
+    description=(
+        'A system that automatically handles the virtualenvs in the cases '
+        'normally found when writing scripts and simple programs, and '
+        'even helps to administer big projects.'),
     long_description=open('README.rst').read(),
     url='https://github.com/PyAr/fades',
 
