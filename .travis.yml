@@ -1,6 +1,13 @@
 language: python
+sudo: false
 python:
+      - "3.3"
       - "3.4"
+      - "3.5"
 # command to run tests
-script: nosetests
-    
+install:
+    - "pip install -r requirements.txt"
+script:
+    - "nosetests -v fades tests"
+after_script:
+    - "flake8 fades --max-line-length=99 --select=E,W,F,C,N"
