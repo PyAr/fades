@@ -14,6 +14,7 @@ Depends: ${misc:Depends}, dh-python,
  python3 (>=3.4),
  python3-pkg-resources (>= 0.6.24),
  python3-xdg (>= 0.25),
+ python3-setuptools (>= 5.5),
 Description: fades is a system that automatically handles the 
  virtualenvs in the cases normally found when writing scripts 
  and simple programs, and even helps to administer big projects.
