@@ -1,6 +1,10 @@
 fades
 =====
 
+.. image:: https://travis-ci.org/PyAr/fades.svg?branch=master
+    :target: https://travis-ci.org/PyAr/fades
+
+
 fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and
 even helps to administer big projects.
