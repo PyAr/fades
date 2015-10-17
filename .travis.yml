@@ -8,8 +8,9 @@ python:
       - "nightly" # 3.6-dev
 install:
     - "pip install -r requirements.txt"
+    - "pip install python-coveralls"
 script:
-    - "nosetests -v fades tests"
+    - "nosetests --with-xcoverage --cover-package=fades -v fades tests"
 after_script:
     - "flake8 fades --max-line-length=99 --select=E,W,F,C,N"
 
