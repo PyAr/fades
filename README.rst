@@ -3,6 +3,15 @@ fades
 
 .. image:: https://travis-ci.org/PyAr/fades.svg?branch=master
     :target: https://travis-ci.org/PyAr/fades
+.. image:: https://readthedocs.org/projects/fades/badge/?version=latest
+    :target: http://fades.readthedocs.org/en/latest/?badge=latest
+         :alt: Documentation Status
+.. image:: https://badge.fury.io/py/fades.svg
+    :target: https://badge.fury.io/py/fades
+.. image:: https://coveralls.io/repos/PyAr/fades/badge.svg?branch=master&service=github
+    :target: https://coveralls.io/github/PyAr/fades?branch=master
+
+
 
 
 fades is a system that automatically handles the virtualenvs in the
