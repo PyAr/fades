@@ -45,6 +45,7 @@ class FadesEnvBuilder(EnvBuilder):
         self.env_path = env_path
         self.env_bin_path = ''
         logger.debug("Env will be created at: %s", self.env_path)
+        self.pip_installed = False
 
         if sys.version_info >= (3, 4):
             # try to install pip using default machinery (which will work in a lot
@@ -52,15 +53,15 @@ class FadesEnvBuilder(EnvBuilder):
             # Trusty; in that cases mark it to install manually later)
             try:
                 import ensurepip  # NOQA
-                self.pip_installed = True
             except ImportError:
-                self.pip_installed = False
+                pass
+            else:
+                self.pip_installed = True
 
             super().__init__(with_pip=self.pip_installed, symlinks=True)
 
         else:
             # old Python doesn't have integrated pip
-            self.pip_installed = False
             super().__init__(symlinks=True)
 
     def create_with_virtualenv(self, interpreter, virtualenv_options):

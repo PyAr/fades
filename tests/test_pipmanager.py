@@ -99,5 +99,5 @@ class PipManagerTestCase(unittest.TestCase):
         with patch.object(helpers, 'logged_exec') as mocked_exec:
             with patch.object(mgr, '_brute_force_install_pip') as mocked_install_pip:
                 mgr.install('foo')
-                mocked_install_pip.assertCalled()
+                self.assertEqual(mocked_install_pip.call_count, 1)
             mocked_exec.assert_called_with(['/usr/bin/pip', 'install', 'foo'])
