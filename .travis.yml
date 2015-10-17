@@ -5,7 +5,6 @@ python:
       - "3.4"
       - "3.5"
       - "3.5-dev"
-      - "nightly" # 3.6-dev
 install:
     - "pip install -r requirements.txt"
     - "pip install python-coveralls"
