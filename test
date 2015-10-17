@@ -12,7 +12,7 @@ fi
 
 FADES='./bin/fades -r requirements.txt'
 
-$FADES -x nosetests -- -v -s $TARGET
+$FADES -x nosetests --with-xcoverage --cover-package=fades -v -s $TARGET
 $FADES -x flake8 -- $TARGET --max-line-length=99 --select=E,W,F,C,N
 
 # Check README.rst format.
