@@ -598,12 +598,24 @@ class PyPIDocstringParsingTestCase(unittest.TestCase):
             parsed = parsing._parse_docstring(f)
         self.assertDictEqual(parsed, {})
 
-    def test_req_in_module_docstring(self):
+    def test_req_in_module_docstring_triple_doublequoute(self):
         with open("tests/test_files/req_module.py") as f:
             parsed = parsing._parse_docstring(f)
         self.assertDictEqual(parsed, {
             REPO_PYPI: [get_req('foo'), get_req('bar')]
         })
+
+    def test_req_in_module_docstring_triple_singlequote(self):
+        with open("tests/test_files/req_module_2.py") as f:
+            parsed = parsing._parse_docstring(f)
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('foo'), get_req('bar')]
+        })
+
+    def test_req_in_module_docstring_one_doublequote(self):
+        with open("tests/test_files/req_module_3.py") as f:
+            parsed = parsing._parse_docstring(f)
+        self.assertDictEqual(parsed, {})
 
     def test_req_in_class_docstring(self):
         with open("tests/test_files/req_class.py") as f:

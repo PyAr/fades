@@ -17,7 +17,6 @@
 """Script parsing to get needed dependencies."""
 
 import logging
-import ast
 import re
 
 from pkg_resources import parse_requirements
@@ -110,26 +109,42 @@ def _parse_content(fh):
 
 def _parse_docstring(fh):
     """Parse the docstrings of a script to find marked dependencies."""
-    requirements = []
     find_fades = re.compile(r'\b(fades)\b:').search
-    # get docstring into source file
-    ds_parsed = ast.parse(fh.read())
-    ds_texts = [ds_parsed]
-    ds_texts.extend([node for node in ds_parsed.body if isinstance(node, ast.Module)])
-    for doc in ds_texts:
-        docstring = ast.get_docstring(doc)
-        if docstring is None:
-            continue
-        for doc_line in iter(docstring.splitlines()):
-            if not find_fades(doc_line):
-                continue
-            req_text = docstring.split(doc_line, 1)[1]
-            req_text = req_text.split("!fades", 1)[0]
-            for line in iter(req_text.splitlines()):
-                if not line.startswith("#"):
-                    requirements.append(line)
+
+    for line in fh:
+        if line.startswith("'"):
+            quote = "'"
             break
-    return _parse_requirement(requirements)
+        if line.startswith('"'):
+            quote = '"'
+            break
+    else:
+        return {}
+
+    if line[1] == quote:
+        # comment start with triple quotes
+        endquote = quote * 3
+    else:
+        endquote = quote
+
+    if endquote in line[len(endquote):]:
+        docstring_lines = [line[:line.index(endquote)]]
+    else:
+        docstring_lines = [line]
+        for line in fh:
+            if endquote in line:
+                docstring_lines.append(line[:line.index(endquote)])
+                break
+            docstring_lines.append(line)
+
+    docstring_lines = iter(docstring_lines)
+    for doc_line in docstring_lines:
+        if find_fades(doc_line):
+            break
+    else:
+        return {}
+
+    return _parse_requirement(list(docstring_lines))
 
 
 def _parse_requirement(iterable):
