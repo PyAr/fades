@@ -1,3 +1,32 @@
+fades (4) unstable; urgency=medium
+
+  * New option to use iPython as the interactive interpreter: --ipython
+    (thanks Ariel Rossanigo).
+
+  * Now it's possible to execute a program inside the virtualenv, with -x
+    (thanks Ricardo Kirkner).
+
+  * Can execute fades as a Python's module (thanks Javi Mansilla)
+
+  * Dependencies can be specified in docstrings
+
+  * Support using Python 3.3 to run fades
+
+  * Better parsing of docstring to detect dependencies
+
+  * If you want to fiddle with lower layers options, can send parameters
+    to virtualend or pip.
+
+  * We have a logo!
+
+  * Now we run the fades tests using fades itself, no need to install
+    anything previously
+
+  * Other minor bugfixes and improvements
+
+
+ -- Facundo Batista <facundo@taniquetil.com.ar>  Sun, 25 Oct 2015 12:30:40 -0300
+
 fades (3) unstable; urgency=medium
 
   * Different interpreter versions

@@ -61,8 +61,9 @@ class CustomInstall(install):
         # version file
         shutil.copy("version.txt", self.install_lib)
         site_pkgs_path = get_python_lib()
-        os.symlink(os.path.join(self.install_lib, 'fades'),
-                   os.path.join(site_pkgs_path, 'fades'))
+        if site_pkgs_path.startswith(self.root or self.prefix):
+            os.symlink(os.path.join(self.install_lib, 'fades'),
+                       os.path.join(site_pkgs_path, 'fades'))
 
     def finalize_options(self):
         """Alter the installation path."""

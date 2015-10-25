@@ -5,5 +5,3 @@ ifneq ($(shell dh -l | grep -xF translations),)
 else
 	dh $@ --with python3 --buildsystem=pybuild
 endif
-
-
