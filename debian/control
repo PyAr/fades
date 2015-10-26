@@ -11,7 +11,7 @@ XS-Python-Version: >= 3.4
 Package: fades
 Architecture: all
 Depends: ${misc:Depends}, 
- ${python:Depends},
+ ${python3:Depends},
  python3 (>=3.4),
  python3-pkg-resources (>= 0.6.24),
  python3-xdg (>= 0.25),

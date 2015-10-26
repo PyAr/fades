@@ -1,4 +1,4 @@
-fades (4) unstable; urgency=medium
+fades (4-1) unstable; urgency=medium
 
   * New option to use iPython as the interactive interpreter: --ipython
     (thanks Ariel Rossanigo).
