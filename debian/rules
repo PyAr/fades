@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+export PYBUILD_NAME=fades
+
 # Debian doesn't have dh-translations.
 %:
 ifneq ($(shell dh -l | grep -xF translations),)
