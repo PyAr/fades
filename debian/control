@@ -5,23 +5,32 @@ Build-Depends: debhelper (>= 9),
                dh-python,
                dh-translations | dh-python,
                python3-setuptools,
-               python3-all (>= 3.4)
+               python3-all (>= 3.4),
+               python3-xdg
 Maintainer: Facundo Batista <facundo@taniquetil.com.ar>
-Uploaders: DPMT
+Uploaders: Debian Python Modules Team 
+           <python-modules-team@lists.alioth.debian.org>
+Homepage: https://github.com/PyAr/fades
 Standards-Version: 3.9.6
 X-Python3-Version: >= 3.4
 
-Package: fades
+Package: python3-fades
 Architecture: all
-Depends: python3-pkg-resources, ${misc:Depends}, ${python3:Depends}
+Depends: ${misc:Depends}, ${python3:Depends}
 Description: system for automatically handling virtual environments
  fades is a system that automatically handles the virtualenvs in the cases
  normally found when writing scripts and simple programs, and even helps to
  administer big projects.
 
-Package: python3-fades
+Package: fades
 Architecture: all
-Depends: python3-pkg-resources, ${misc:Depends}, ${python3:Depends}
+Depends: python3,
+         python3-fades,
+         python3-pkg-resources, 
+         python3-setuptools,
+         python3-xdg,
+         ${misc:Depends}, 
+         ${python3:Depends}
 Description: system for automatically handling virtual environments
  fades is a system that automatically handles the virtualenvs in the cases
  normally found when writing scripts and simple programs, and even helps to
