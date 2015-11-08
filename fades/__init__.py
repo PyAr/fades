@@ -17,4 +17,6 @@
 
 """Main package."""
 
+from ._version import __version__  # NOQA; provides module level version attr
+
 REPO_PYPI = 'pypi'

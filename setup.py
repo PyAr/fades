@@ -27,31 +27,28 @@ Needed packages to run (using Debian/Ubuntu package names):
 """
 
 import os
+import re
 import shutil
 
-from setuptools.command.install import install
 from distutils.core import setup
+from setuptools.command.install import install
 
-# get the version from the file
-version = open('version.txt').read().strip()
+
+def get_version():
+    """Retrieves package version from the file."""
+    with open('fades/_version.py') as fh:
+        m = re.search("'([^']*)'", fh.read())
+    if m is None:
+        raise ValueError("Unrecognized version in 'fades/_version.py'")
+    return m.groups()[0]
 
 
 class CustomInstall(install):
     """Custom installation to fix script info and install man."""
 
     def run(self):
-        """Run parent install, and then save the install dir in the script."""
+        """Run parent install, and then save the man file."""
         install.run(self)
-
-        # fix installation path in the script(s)
-        for script in self.distribution.scripts:
-            script_path = os.path.join(self.install_scripts, os.path.basename(script))
-            with open(script_path, 'rt', encoding='utf8') as fh:
-                content = fh.read()
-            content = content.replace('@ INSTALLED_BASE_DIR @', self.install_lib)
-            content = content.replace('@ VERSION @', version)
-            with open(script_path, 'wt', encoding='utf8') as fh:
-                fh.write(content)
 
         # man directory
         if not os.path.exists(self._custom_man_dir):
@@ -72,7 +69,7 @@ class CustomInstall(install):
 
 setup(
     name='fades',
-    version=version,
+    version=get_version(),
     license='GPL-3',
     author='Facundo Batista, Nicolás Demarchi',
     author_email='facundo@taniquetil.com.ar, mail@gilgamezh.me',
@@ -84,9 +81,6 @@ setup(
     url='https://github.com/PyAr/fades',
 
     packages=["fades"],
-    package_data={
-        "": ["version.txt"],
-    },
     scripts=["bin/fades"],
 
     cmdclass={
