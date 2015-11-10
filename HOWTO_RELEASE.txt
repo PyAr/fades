@@ -4,11 +4,10 @@ Steps before a release is done
 Check all is crispy
 
   ./setup.py clean build
-  ./setup.py clean install --prefix=/tmp/test
   ./setup.py clean sdist
 
 
-Edit the ``version.txt`` file properly, then tag and commit/push
+Edit the ``fades/_version.py`` file properly, then tag and commit/push
 
   git tag release-VERSION
   git commit -am "Release VERSION"
@@ -38,11 +37,11 @@ Create a list of changes, and edit the changelog:
 
 Build a tarball
 
-    python setup.py sdist
+    python3 setup.py sdist
 
 Build the .deb
 
-    debuild -us -uc
+    debuild -us -uc -I -i
 
 
 To test the .deb you just created:

@@ -1,4 +1,4 @@
 import sys
 
 from fades import main
-main.go('?', sys.argv)
+main.go(sys.argv)

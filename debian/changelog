@@ -1,35 +1,5 @@
-fades (3) unstable; urgency=medium
+fades (4-1) unstable; urgency=medium
 
-  * Different interpreter versions
-  * Support the arguments from a shellbang.
-  * Minor changes
-  * Draft of a presentation.
-  * Fixed test flake8 parametere.
-  * Better docs.
-  * Show all errors.
-  * Parse requirements from a file. 
-  * Hidding `type` stderr out
-  * Changes in the test script to support Archlinux and avoid hide errors.
-  * Log (don't print) received arguments.
-  * Better version parsing.
-  * If repo is not specified, defaults to pypi.
-  * Getting dependency version with pip fixed.
-  * Compare correctly when no requirements. 
-  * Log checking
-  * Support an intereactive form, and specify dependencies through command
-    line.
-  * Ignore commented lines
-  * Adding a database for typical package name conversion.
-  * Redirect signals to child.
-  * Do check per-env.
-  * Version bump for pypi to take the changes and better press release.
-  * Texts changes and fixes.
-  * Adjustments to the release steps.
-  * Verification that README is rest'ed correctly.
-  * Archlinux PKBUILD fix.
-  * md5sum updated in Archlinux PKBUILD.
-  * Delete changelog.rst
-  * Minor changes in the changelog.
-  * Release 2 docs
+  * Initial release.  (Closes: #802806)
 
- -- Facundo Batista <facundo@taniquetil.com.ar>  Wed, 17 Jun 2015 00:17:51 -0300
+ -- Facundo Batista <facundo@taniquetil.com.ar>  Sun, 25 Oct 2015 12:30:40 -0300

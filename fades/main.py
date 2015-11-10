@@ -24,6 +24,8 @@ import sys
 import logging
 import subprocess
 
+import fades
+
 from fades import parsing, logger, cache, helpers, envbuilder
 
 # the signals to redirect to the child process (note: only these are
@@ -62,7 +64,7 @@ def _merge_deps(*deps):
     return final
 
 
-def go(version, argv):
+def go(argv):
     """Make the magic happen."""
     parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog, usage=help_usage,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -112,7 +114,7 @@ def go(version, argv):
 
     # validate input, parameters, and support some special options
     if args.version:
-        print("Running 'fades' version", version)
+        print("Running 'fades' version", fades.__version__)
         print("    Python:", sys.version_info)
         print("    System:", sys.platform)
         sys.exit()
@@ -127,7 +129,7 @@ def go(version, argv):
     # set up logger and dump basic version info
     l = logger.set_up(log_level)
     l.debug("Running Python %s on %r", sys.version_info, sys.platform)
-    l.debug("Starting fades v. %s", version)
+    l.debug("Starting fades v. %s", fades.__version__)
     l.debug("Arguments: %s", args)
 
     if args.verbose and args.quiet:
