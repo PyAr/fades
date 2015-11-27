@@ -125,3 +125,36 @@ class GetInterpreterInfoTestCase(unittest.TestCase):
             helpers._get_interpreter_info('pythonME')
         self.assertLoggedError("Error getting requested interpreter version:"
                                " [Errno 2] No such file or directory: 'pythonME'")
+
+
+class GetLatestVersionNumberTestCase(unittest.TestCase):
+    """Some tests for get_latest_version_number."""
+
+    def setUp(self):
+        logassert.setup(self, 'fades.helpers')
+
+    def test_get_version_requests(self):
+        project_name = "requests"
+        latest_version = helpers.get_latest_version_number(project_name)
+        self.assertNotEqual(latest_version, None)
+
+    def test_wrong_name_of_package(self):
+        project_name = "package_name_not_found"
+        latest_version = helpers.get_latest_version_number(project_name)
+        self.assertEqual(latest_version, None)
+
+
+class CheckUpdatesTestCase(unittest.TestCase):
+    """Some tests for check_updates."""
+
+    def setUp(self):
+        from fades import parsing
+        logassert.setup(self, 'fades.helpers')
+        self.dep = parsing.parse_manual(["django==1.7.5"])
+        self.deps = parsing.parse_manual(["django==1.7.5", "requests"])
+
+    def test_check_updates_package_with_specific_version(self):
+        with self.assertLogs("fades.helpers", level='INFO') as al:
+            helpers.check_updates(self.dep)
+        self.assertTrue('INFO:fades.helpers:There is a new version' in
+                        al.output[0])

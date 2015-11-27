@@ -22,6 +22,11 @@ import json
 import logging
 import subprocess
 
+from urllib import request
+from urllib.error import HTTPError
+
+from fades import parsing
+
 logger = logging.getLogger(__name__)
 
 SHOW_VERSION_CMD = """
@@ -95,3 +100,57 @@ def get_interpreter_version(requested_interpreter):
         logger.debug('Interpreter=%s. It is the same as fades?=%s',
                      requested_interpreter, is_current)
         return (requested_interpreter, is_current)
+
+
+def get_latest_version_number(project_name):
+    """Return last version of a package."""
+    BASE = 'http://pypi.python.org/pypi/{name}/json'
+    try:
+        raw = request.urlopen(BASE.format(name=project_name)).read()
+        data = json.loads(raw.decode("utf8"))
+        last_version = data["info"]["version"]
+    except HTTPError:
+        logger.warning("Requested project named %s is not found in pypi",
+                       project_name)
+        return None
+    except Exception as e:
+        logger.warning("%s", e)
+        return None
+    else:
+        return last_version
+
+
+def check_updates(dependencies):
+    """Install a dependency if there are a new version.
+
+       return a list of dependencies to upgrade
+    """
+    dependencies_up_to_date = []
+    dependencies_names_to_update = []
+    for dependency in dependencies.get('pypi'):
+        # get last version from pypi api
+        last_version = get_latest_version_number(
+            dependency.project_name)
+
+        # get required version
+        required_version = None
+        if dependency.specs:
+            lookup, required_version = dependency.specs[0]
+
+        # log in INFO if there is a new version
+        if last_version and required_version:
+            if last_version > required_version:
+                logger.info("There is a new version %s of %s",
+                            last_version, dependency.project_name)
+
+        if not required_version:
+            project_name = "%s==%s" % (dependency.project_name,
+                                       last_version)
+            dependencies_names_to_update.append(project_name)
+        else:
+            dependencies_up_to_date.append(dependency)
+
+    new_deps = parsing.parse_manual(dependencies_names_to_update)
+    # merge new and old dependencies
+    new_deps['pypi'] += dependencies_up_to_date
+    return new_deps
