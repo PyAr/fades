@@ -133,15 +133,23 @@ class GetLatestVersionNumberTestCase(unittest.TestCase):
     def setUp(self):
         logassert.setup(self, 'fades.helpers')
 
-    def test_get_version_requests(self):
-        project_name = "requests"
-        latest_version = helpers.get_latest_version_number(project_name)
-        self.assertNotEqual(latest_version, None)
+    @patch('http.client.HTTPResponse')
+    @patch('urllib.request.urlopen')
+    def test_get_version_correct(self, mock_urlopen, mock_http_response):
+        mock_http_response.read.return_value = b'{"info": {"version": "2.3"}}'
+        mock_urlopen.return_value = mock_http_response
+        helpers.get_latest_version_number("some_package")
+        mock_urlopen.assert_called_once_with(helpers.BASE.format(name="some_package"))
 
-    def test_wrong_name_of_package(self):
-        project_name = "package_name_not_found"
-        latest_version = helpers.get_latest_version_number(project_name)
-        self.assertEqual(latest_version, None)
+    @patch('http.client.HTTPResponse')
+    @patch('urllib.request.urlopen')
+    def test_get_version_wrong(self, mock_urlopen, mock_http_response):
+        mock_http_response.read.side_effect = helpers.HTTPError("url", 500, "mgs", {}, "fp")
+        mock_urlopen.return_value = mock_http_response
+        result = helpers.get_latest_version_number("some_package")
+        self.assertRaises(helpers.HTTPError)
+        self.assertLoggedWarning("Requested project named some_package is not found in pypi")
+        self.assertEqual(result, None)
 
 
 class CheckUpdatesTestCase(unittest.TestCase):
@@ -150,11 +158,17 @@ class CheckUpdatesTestCase(unittest.TestCase):
     def setUp(self):
         from fades import parsing
         logassert.setup(self, 'fades.helpers')
-        self.dep = parsing.parse_manual(["django==1.7.5"])
         self.deps = parsing.parse_manual(["django==1.7.5", "requests"])
 
-    def test_check_updates_package_with_specific_version(self):
-        with self.assertLogs("fades.helpers", level='INFO') as al:
-            helpers.check_updates(self.dep)
-        self.assertTrue('INFO:fades.helpers:There is a new version' in
-                        al.output[0])
+    @patch('http.client.HTTPResponse')
+    @patch('urllib.request.urlopen')
+    def test_check_updates_with_and_without_version(self, mock_urlopen, mock_http_response):
+        mock_http_response.read.side_effect = [b'{"info": {"version": "1.9"}}',
+                                               b'{"info": {"version": "2.1"}}']
+        mock_urlopen.return_value = mock_http_response
+        dependencies = helpers.check_updates(self.deps)
+        dep_request = dependencies['pypi'][0]
+        dep_django = dependencies['pypi'][1]
+        self.assertLoggedInfo('There is a new version 1.9 of django')
+        self.assertEquals(dep_request.specs, [('==', '2.1')])
+        self.assertEquals(dep_django.specs, [('==', '1.7.5')])

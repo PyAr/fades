@@ -173,10 +173,7 @@ def go(argv):
     l.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
     l.debug("Dependencies from parameters: %s", manual_deps)
-    indicated_deps = _merge_deps(ipython_dep,
-                                 indicated_deps,
-                                 reqfile_deps,
-                                 manual_deps)
+    indicated_deps = _merge_deps(ipython_dep, indicated_deps, reqfile_deps, manual_deps)
 
     # Check for packages updates
     if args.check_updates:
