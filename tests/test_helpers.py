@@ -16,6 +16,7 @@
 
 """Tests for functions in helpers."""
 
+import os
 import sys
 import unittest
 from unittest.mock import patch
@@ -23,6 +24,9 @@ from unittest.mock import patch
 import logassert
 
 from fades import helpers
+
+
+PATH_TO_EXAMPLES = "tests/examples/"
 
 
 class GetInterpreterVersionTestCase(unittest.TestCase):
@@ -133,13 +137,13 @@ class GetLatestVersionNumberTestCase(unittest.TestCase):
     def setUp(self):
         logassert.setup(self, 'fades.helpers')
 
-    @patch('http.client.HTTPResponse')
-    @patch('urllib.request.urlopen')
-    def test_get_version_correct(self, mock_urlopen, mock_http_response):
-        mock_http_response.read.return_value = b'{"info": {"version": "2.3"}}'
-        mock_urlopen.return_value = mock_http_response
-        helpers.get_latest_version_number("some_package")
+    def test_get_version_correct(self):
+        with open(os.path.join(PATH_TO_EXAMPLES, 'pypi_get_version_ok.json'), "rb") as fh:
+            with patch('urllib.request.urlopen') as mock_urlopen:
+                mock_urlopen.return_value = fh
+                last_version = helpers.get_latest_version_number("some_package")
         mock_urlopen.assert_called_once_with(helpers.BASE.format(name="some_package"))
+        self.assertEquals(last_version, '2.8.1')
 
     @patch('http.client.HTTPResponse')
     @patch('urllib.request.urlopen')
@@ -147,9 +151,17 @@ class GetLatestVersionNumberTestCase(unittest.TestCase):
         mock_http_response.read.side_effect = helpers.HTTPError("url", 500, "mgs", {}, "fp")
         mock_urlopen.return_value = mock_http_response
         result = helpers.get_latest_version_number("some_package")
-        self.assertRaises(helpers.HTTPError)
         self.assertLoggedWarning("Requested project named some_package is not found in pypi")
         self.assertEqual(result, None)
+
+    def test_get_version_fail(self):
+        with open(os.path.join(PATH_TO_EXAMPLES, 'pypi_get_version_fail.json'), "rb") as fh:
+            with patch('urllib.request.urlopen') as mock_urlopen:
+                mock_urlopen.return_value = fh
+                last_version = helpers.get_latest_version_number("some_package")
+                self.assertLoggedError("Could not get the version of the package")
+        mock_urlopen.assert_called_once_with(helpers.BASE.format(name="some_package"))
+        self.assertEquals(last_version, None)
 
 
 class CheckUpdatesTestCase(unittest.TestCase):

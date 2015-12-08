@@ -113,8 +113,12 @@ def get_latest_version_number(project_name):
                        project_name)
         return None
     else:
-        data = json.loads(raw.decode("utf8"))
-        last_version = data["info"]["version"]
+        try:
+            data = json.loads(raw.decode("utf8"))
+            last_version = data["info"]["version"]
+        except (KeyError, ValueError):  # malformed json or empty string
+            logger.error("Could not get the version of the package")
+            return None
         return last_version
 
 
