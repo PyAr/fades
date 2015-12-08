@@ -225,7 +225,24 @@ Removes a virtualenv matching the given uuid from disk and cache index.
 How to install it
 =================
 
-Several instructions to install fades in different systems.
+Several instructions to install ``fades`` in different platforms.
+
+Simplest way
+------------
+
+In some systems you can install ``fades`` directly, no needing to
+install previously any dependency.
+
+If you are in debian unstable or testing, just do:
+
+    sudo apt-get install fades
+
+For Arch linux:
+
+    yaourt -S fades
+
+Else, keep reading to know how to install the dependencies first, and
+``fades`` in your system next.
 
 
 Dependencies
@@ -257,22 +274,16 @@ Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>` packag
 support different Python versions for child execution. (see `--python` argument.)
 
 
-For debian/ubuntu
------------------
+For others debian and ubuntu
+----------------------------
 
-You have a `.deb <http://taniquetil.com.ar/fades/fades-latest.deb>`_.
+If you are NOT in debian unstable or testing (if you are, see
+above for better instructions), you can use this
+`.deb <http://taniquetil.com.ar/fades/fades-latest.deb>`_.
+
 Download it and install doing::
 
     sudo dpkg -i fades-latest.deb
-
-
-For Archlinux
--------------
-
-We have an `AUR package <https://aur.archlinux.org/packages/fades>`_.
-If you are a yaourt user you can install fades with a simple::
-
-    yaourt -S fades
 
 
 Using pip if you want
