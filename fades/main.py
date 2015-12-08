@@ -107,7 +107,7 @@ def go(argv):
     # by spaces (in this case, the third parameter is what is being
     # executed)
     if len(sys.argv) > 1 and " " in sys.argv[1]:
-        real_args = sys.argv[1].split() + [sys.argv[2]]
+        real_args = sys.argv[1].split() + sys.argv[2:]
         args = parser.parse_args(real_args)
     else:
         args = parser.parse_args()
