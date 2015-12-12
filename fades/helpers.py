@@ -25,7 +25,7 @@ import subprocess
 from urllib import request
 from urllib.error import HTTPError
 
-from fades import parsing
+import pkg_resources
 
 logger = logging.getLogger(__name__)
 
@@ -105,49 +105,44 @@ def get_interpreter_version(requested_interpreter):
 
 
 def get_latest_version_number(project_name):
-    """Return last version of a package."""
+    """Return latest version of a package."""
     try:
         raw = request.urlopen(BASE.format(name=project_name)).read()
-    except HTTPError:
-        logger.warning("Requested project named %s is not found in pypi",
-                       project_name)
-        return None
-    else:
         try:
             data = json.loads(raw.decode("utf8"))
-            last_version = data["info"]["version"]
-        except (KeyError, ValueError):  # malformed json or empty string
-            logger.error("Could not get the version of the package")
+            latest_version = data["info"]["version"]
+        except (KeyError, ValueError) as error:  # malformed json or empty string
+            logger.error("Could not get the version of the package, error: %s", error)
             return None
-        return last_version
+        return latest_version
+    except HTTPError as error:
+        logger.warning("Requested project named %s is not found in PyPI, error: %s",
+                       project_name, error)
+        return None
 
 
-def check_updates(dependencies):
+def check_pypi_updates(dependencies):
     """Return a list of dependencies to upgrade."""
     dependencies_up_to_date = []
-    dependencies_names_to_update = []
-    for dependency in dependencies.get('pypi'):
-        # get last version from pypi api
-        last_version = get_latest_version_number(dependency.project_name)
+    for dependency in dependencies.get('pypi', []):
+        # get latest version from PyPI api
+        latest_version = get_latest_version_number(dependency.project_name)
 
         # get required version
         required_version = None
         if dependency.specs:
-            lookup, required_version = dependency.specs[0]
+            _, required_version = dependency.specs[0]
 
         # log in INFO if there is a new version
-        if last_version is not None and required_version is not None:
-            if last_version > required_version:
+        if latest_version is not None and required_version is not None:
+            if latest_version > required_version:
                 logger.info("There is a new version %s of %s",
-                            last_version, dependency.project_name)
+                            latest_version, dependency.project_name)
 
-        if not required_version:
-            project_name = "%s==%s" % (dependency.project_name, last_version)
-            dependencies_names_to_update.append(project_name)
-        else:
+        if required_version:
             dependencies_up_to_date.append(dependency)
-
-    new_deps = parsing.parse_manual(dependencies_names_to_update) or {"pypi": []}
-    # merge new and old dependencies
-    new_deps['pypi'] += dependencies_up_to_date
-    return new_deps
+        else:
+            project_name = "{}=={}".format(dependency.project_name, latest_version)
+            dependencies_up_to_date.append(pkg_resources.Requirement.parse(project_name))
+    dependencies["pypi"] = dependencies_up_to_date
+    return dependencies

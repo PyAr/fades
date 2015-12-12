@@ -177,7 +177,7 @@ def go(argv):
 
     # Check for packages updates
     if args.check_updates:
-        indicated_deps = helpers.check_updates(indicated_deps)
+        helpers.check_pypi_updates(indicated_deps)
 
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(args.python)

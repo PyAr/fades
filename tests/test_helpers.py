@@ -16,10 +16,12 @@
 
 """Tests for functions in helpers."""
 
+import io
 import os
 import sys
 import unittest
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 import logassert
 
@@ -145,14 +147,19 @@ class GetLatestVersionNumberTestCase(unittest.TestCase):
         mock_urlopen.assert_called_once_with(helpers.BASE.format(name="some_package"))
         self.assertEquals(last_version, '2.8.1')
 
-    @patch('http.client.HTTPResponse')
-    @patch('urllib.request.urlopen')
-    def test_get_version_wrong(self, mock_urlopen, mock_http_response):
-        mock_http_response.read.side_effect = helpers.HTTPError("url", 500, "mgs", {}, "fp")
-        mock_urlopen.return_value = mock_http_response
-        result = helpers.get_latest_version_number("some_package")
-        self.assertLoggedWarning("Requested project named some_package is not found in pypi")
-        self.assertEqual(result, None)
+    def test_get_version_wrong(self):
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.side_effect = HTTPError("url",
+                                                                500,
+                                                                "mgs",
+                                                                {},
+                                                                io.BytesIO())
+                mock_urlopen.return_value = mock_http_response
+                result = helpers.get_latest_version_number("some_package")
+                self.assertLoggedWarning("Requested project named some_package is not found in",
+                                         "PyPI")
+                self.assertEqual(result, None)
 
     def test_get_version_fail(self):
         with open(os.path.join(PATH_TO_EXAMPLES, 'pypi_get_version_fail.json'), "rb") as fh:
@@ -164,23 +171,23 @@ class GetLatestVersionNumberTestCase(unittest.TestCase):
         self.assertEquals(last_version, None)
 
 
-class CheckUpdatesTestCase(unittest.TestCase):
-    """Some tests for check_updates."""
+class CheckPyPIUpdatesTestCase(unittest.TestCase):
+    """Some tests for check_pypi_updates."""
 
     def setUp(self):
         from fades import parsing
         logassert.setup(self, 'fades.helpers')
         self.deps = parsing.parse_manual(["django==1.7.5", "requests"])
 
-    @patch('http.client.HTTPResponse')
-    @patch('urllib.request.urlopen')
-    def test_check_updates_with_and_without_version(self, mock_urlopen, mock_http_response):
-        mock_http_response.read.side_effect = [b'{"info": {"version": "1.9"}}',
-                                               b'{"info": {"version": "2.1"}}']
-        mock_urlopen.return_value = mock_http_response
-        dependencies = helpers.check_updates(self.deps)
-        dep_request = dependencies['pypi'][0]
-        dep_django = dependencies['pypi'][1]
-        self.assertLoggedInfo('There is a new version 1.9 of django')
-        self.assertEquals(dep_request.specs, [('==', '2.1')])
-        self.assertEquals(dep_django.specs, [('==', '1.7.5')])
+    def test_check_pypi_updates_with_and_without_version(self):
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.side_effect = [b'{"info": {"version": "1.9"}}',
+                                                       b'{"info": {"version": "2.1"}}']
+                mock_urlopen.return_value = mock_http_response
+                dependencies = helpers.check_pypi_updates(self.deps)
+                dep_django = dependencies['pypi'][0]
+                dep_request = dependencies['pypi'][1]
+                self.assertLoggedInfo('There is a new version 1.9 of django')
+                self.assertEquals(dep_request.specs, [('==', '2.1')])
+                self.assertEquals(dep_django.specs, [('==', '1.7.5')])
