@@ -192,7 +192,7 @@ def go(argv):
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
     venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
     if venv_data is None:
-        venv_data, installed = envbuilder.create_venv(indicated_deps, interpreter, is_current,
+        venv_data, installed = envbuilder.create_venv(indicated_deps, args.python, is_current,
                                                       options, pip_options)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
