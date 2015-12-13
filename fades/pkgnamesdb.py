@@ -23,4 +23,5 @@ PKG_NAMES_DB = {
     'uritemplate': 'uritemplate.py',
     'postgresql': 'py-postgresql',
     'yaml': 'pyyaml',
+    'PIL': 'Pillow',
 }
