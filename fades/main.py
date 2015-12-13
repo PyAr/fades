@@ -160,8 +160,10 @@ def go(argv):
         ipython_dep = parsing.parse_manual(['ipython'])
     else:
         ipython_dep = {}
+
     if args.executable:
         indicated_deps = {}
+        docstring_deps = {}
     else:
         indicated_deps = parsing.parse_srcfile(args.child_program)
         l.debug("Dependencies from source file: %s", indicated_deps)
@@ -171,7 +173,8 @@ def go(argv):
     l.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
     l.debug("Dependencies from parameters: %s", manual_deps)
-    indicated_deps = _merge_deps(ipython_dep, indicated_deps, reqfile_deps, manual_deps)
+    indicated_deps = _merge_deps(ipython_dep, indicated_deps, docstring_deps,
+                                 reqfile_deps, manual_deps)
 
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(args.python)
