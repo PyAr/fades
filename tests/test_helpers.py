@@ -156,19 +156,16 @@ class GetLatestVersionNumberTestCase(unittest.TestCase):
                                                                 {},
                                                                 io.BytesIO())
                 mock_urlopen.return_value = mock_http_response
-                result = helpers.get_latest_version_number("some_package")
+                self.assertRaises(Exception, helpers.get_latest_version_number, "some_package")
                 self.assertLoggedWarning("Requested project named some_package is not found in",
                                          "PyPI")
-                self.assertEqual(result, None)
 
     def test_get_version_fail(self):
         with open(os.path.join(PATH_TO_EXAMPLES, 'pypi_get_version_fail.json'), "rb") as fh:
             with patch('urllib.request.urlopen') as mock_urlopen:
                 mock_urlopen.return_value = fh
-                last_version = helpers.get_latest_version_number("some_package")
-                self.assertLoggedError("Could not get the version of the package")
-        mock_urlopen.assert_called_once_with(helpers.BASE.format(name="some_package"))
-        self.assertEquals(last_version, None)
+                self.assertRaises(KeyError, helpers.get_latest_version_number, "some_package")
+                self.assertLoggedError("Could not get the version of the package, error:")
 
 
 class CheckPyPIUpdatesTestCase(unittest.TestCase):
@@ -178,6 +175,7 @@ class CheckPyPIUpdatesTestCase(unittest.TestCase):
         from fades import parsing
         logassert.setup(self, 'fades.helpers')
         self.deps = parsing.parse_manual(["django==1.7.5", "requests"])
+        self.deps_higher = parsing.parse_manual(["django==100.1.1"])
 
     def test_check_pypi_updates_with_and_without_version(self):
         with patch('urllib.request.urlopen') as mock_urlopen:
@@ -188,6 +186,15 @@ class CheckPyPIUpdatesTestCase(unittest.TestCase):
                 dependencies = helpers.check_pypi_updates(self.deps)
                 dep_django = dependencies['pypi'][0]
                 dep_request = dependencies['pypi'][1]
-                self.assertLoggedInfo('There is a new version 1.9 of django')
+                self.assertLoggedInfo('There is a new version of django: 1.9')
                 self.assertEquals(dep_request.specs, [('==', '2.1')])
                 self.assertEquals(dep_django.specs, [('==', '1.7.5')])
+
+    def test_check_pypi_updates_with_a_higher_version_of_a_package(self):
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.side_effect = [b'{"info": {"version": "1.9"}}']
+                mock_urlopen.return_value = mock_http_response
+                helpers.check_pypi_updates(self.deps_higher)
+                self.assertLoggedWarning(
+                    "The requested version for django is greater than latest found in PyPI: 1.9")
