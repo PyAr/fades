@@ -76,6 +76,9 @@ class FadesEnvBuilder(EnvBuilder):
             logger.error('Virtualenv is not installed. It is needed to create a virtualenv with '
                          'a different python version than fades (got {})'.format(error))
             exit()
+        except helpers.ExecutionError as error:
+            error.dump_to_log(logger)
+            exit()
         except Exception as error:
             logger.exception("Error creating virtualenv:  %s", error)
             exit()
