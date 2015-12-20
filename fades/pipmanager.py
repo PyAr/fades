@@ -56,6 +56,9 @@ class PipManager():
         logger.info("Installing dependency: %s", str_dep)
         try:
             helpers.logged_exec(args)
+        except helpers.ExecutionError as error:
+            error.dump_to_log(logger)
+            exit()
         except Exception as error:
             logger.exception("Error installing %s: %s", str_dep, error)
             exit()
