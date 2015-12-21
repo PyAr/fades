@@ -226,3 +226,4 @@ def go(argv):
     rc = p.wait()
     if rc:
         l.debug("Child process not finished correctly: returncode=%d", rc)
+    sys.exit(rc)
