@@ -109,7 +109,7 @@ def go(argv):
     # by spaces (in this case, the third parameter is what is being
     # executed)
     if len(sys.argv) > 1 and " " in sys.argv[1]:
-        real_args = sys.argv[1].split() + [sys.argv[2]]
+        real_args = sys.argv[1].split() + sys.argv[2:]
         args = parser.parse_args(real_args)
     else:
         args = parser.parse_args()
@@ -162,8 +162,10 @@ def go(argv):
         ipython_dep = parsing.parse_manual(['ipython'])
     else:
         ipython_dep = {}
+
     if args.executable:
         indicated_deps = {}
+        docstring_deps = {}
     else:
         indicated_deps = parsing.parse_srcfile(args.child_program)
         l.debug("Dependencies from source file: %s", indicated_deps)
@@ -173,7 +175,8 @@ def go(argv):
     l.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
     l.debug("Dependencies from parameters: %s", manual_deps)
-    indicated_deps = _merge_deps(ipython_dep, indicated_deps, reqfile_deps, manual_deps)
+    indicated_deps = _merge_deps(ipython_dep, indicated_deps, docstring_deps,
+                                 reqfile_deps, manual_deps)
 
     # Check for packages updates
     if args.check_updates:
@@ -195,7 +198,7 @@ def go(argv):
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
     venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
     if venv_data is None:
-        venv_data, installed = envbuilder.create_venv(indicated_deps, interpreter, is_current,
+        venv_data, installed = envbuilder.create_venv(indicated_deps, args.python, is_current,
                                                       options, pip_options)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
@@ -229,3 +232,4 @@ def go(argv):
     rc = p.wait()
     if rc:
         l.debug("Child process not finished correctly: returncode=%d", rc)
+    sys.exit(rc)

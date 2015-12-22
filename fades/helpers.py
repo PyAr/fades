@@ -36,7 +36,25 @@ d.update(zip('major minor micro releaselevel serial'.split(), sys.version_info))
 print(json.dumps(d))
 """
 
+
 BASE = 'http://pypi.python.org/pypi/{name}/json'
+
+STDOUT_LOG_PREFIX = ":: "
+
+
+class ExecutionError(Exception):
+    """Execution of subprocess ended not in 0."""
+    def __init__(self, retcode, cmd, collected_stdout):
+        self._retcode = retcode
+        self._cmd = cmd
+        self._collected_stdout = collected_stdout
+        super().__init__()
+
+    def dump_to_log(self, logger):
+        """Send the cmd info and collected stdout to logger."""
+        logger.error("Execution ended in %s for cmd %s", self._retcode, self._cmd)
+        for line in self._collected_stdout:
+            logger.error(STDOUT_LOG_PREFIX + line)
 
 
 def logged_exec(cmd):
@@ -48,10 +66,10 @@ def logged_exec(cmd):
     for line in p.stdout:
         line = line[:-1].decode("utf8")
         stdout.append(line)
-        logger.debug(":: " + line)
+        logger.debug(STDOUT_LOG_PREFIX + line)
     retcode = p.wait()
     if retcode:
-        raise subprocess.CalledProcessError(retcode, cmd)
+        raise ExecutionError(retcode, cmd, stdout)
     return stdout
 
 
