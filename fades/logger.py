@@ -20,17 +20,33 @@ import logging
 import logging.handlers
 
 
-def set_up(level):
+FMT_SIMPLE = "*** fades ***  %(asctime)s  %(levelname)-8s %(message)s"
+FMT_DETAILED = "*** fades ***  %(asctime)s  %(name)-18s %(levelname)-8s %(message)s"
+FMT_SYSLOG = "[%(process)d] %(name)-18s %(levelname)-8s %(message)s"
+
+
+def set_up(verbose, quiet):
     """Set up the logging."""
     logger = logging.getLogger('fades')
     logger.setLevel(logging.DEBUG)
 
+    # select logging level according to user desire; also use a simpler
+    # formatting for non-verbose logging
+    if verbose:
+        log_level = logging.DEBUG
+        log_format = FMT_DETAILED
+    elif quiet:
+        log_level = logging.WARNING
+        log_format = FMT_SIMPLE
+    else:
+        log_level = logging.INFO
+        log_format = FMT_SIMPLE
+
     # all to the stdout
     handler = logging.StreamHandler()
-    handler.setLevel(level)
+    handler.setLevel(log_level)
     logger.addHandler(handler)
-    formatter = logging.Formatter(
-        "*** fades ***  %(asctime)s  %(name)-18s %(levelname)-8s %(message)s")
+    formatter = logging.Formatter(log_format)
     handler.setFormatter(formatter)
 
     # and to the syslog
@@ -42,7 +58,7 @@ def set_up(level):
         pass
     else:
         logger.addHandler(handler)
-        formatter = logging.Formatter("%(name)s[%(process)d]: %(levelname)-8s %(message)s")
+        formatter = logging.Formatter(FMT_SYSLOG)
         handler.setFormatter(formatter)
 
     return logger
