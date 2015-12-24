@@ -164,8 +164,8 @@ and it will launch this shell instead of the python one.
 
 You can also use ``--system-site-packages`` to create a venv with access to the system libs.
 
-Under the hood options:
------------------------
+Under the hood options
+----------------------
 
 For particular use cases you can send specifics arguments to ``virtualenv`` or ``pip``. using the
 ``--virtuaenv-options`` and ``--pip-options``. You have to use that argument for each argument
