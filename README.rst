@@ -18,7 +18,7 @@ fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and
 even helps to administer big projects.
 
-.. image:: resources/logo256.png
+.. image:: https://raw.githubusercontent.com/PyAr/fades/master/resources/logo256.png
 
 
 What does it do?
@@ -331,5 +331,5 @@ Thanks in advance for your time.
 Development
 ===========
 
-See here for detailed instructions about `how to setup everything and
-develop fades <DEVELOPMENT.rst>`_.
+See the documentation for detailed instructions about `how to setup everything and
+develop fades <https://fades.rtfd.org/>`_.
