@@ -37,7 +37,7 @@ print(json.dumps(d))
 """
 
 
-BASE = 'http://pypi.python.org/pypi/{name}/json'
+BASE_PYPI_URL = 'https://pypi.python.org/pypi/{name}/json'
 
 STDOUT_LOG_PREFIX = ":: "
 
@@ -125,17 +125,16 @@ def get_interpreter_version(requested_interpreter):
 def get_latest_version_number(project_name):
     """Return latest version of a package."""
     try:
-        raw = request.urlopen(BASE.format(name=project_name)).read()
-        try:
-            data = json.loads(raw.decode("utf8"))
-            latest_version = data["info"]["version"]
-        except (KeyError, ValueError) as error:  # malformed json or empty string
-            logger.error("Could not get the version of the package, error: %s", error)
-            raise error
-        return latest_version
+        raw = request.urlopen(BASE_PYPI_URL.format(name=project_name)).read()
     except HTTPError as error:
-        logger.warning("Requested project named %s is not found in PyPI, error: %s",
-                       project_name, error)
+        logger.warning("Network error. Error: %s", error)
+        raise error
+    try:
+        data = json.loads(raw.decode("utf8"))
+        latest_version = data["info"]["version"]
+        return latest_version
+    except (KeyError, ValueError) as error:  # malformed json or empty string
+        logger.error("Could not get the version of the package. Error: %s", error)
         raise error
 
 
@@ -146,29 +145,31 @@ def check_pypi_updates(dependencies):
         # get latest version from PyPI api
         try:
             latest_version = get_latest_version_number(dependency.project_name)
-            # get required version
-            required_version = None
-            if dependency.specs:
-                _, required_version = dependency.specs[0]
-
-            # log in INFO if there is a new version
-            if latest_version is not None and required_version is not None:
-                if latest_version > required_version:
-                    logger.info("There is a new version of %s: %s",
-                                dependency.project_name, latest_version)
-                if latest_version < required_version:
-                    logger.warning("The requested version for %s is greater " +
-                                   "than latest found in PyPI: %s",
-                                   dependency.project_name,
-                                   latest_version)
-            if required_version:
-                dependencies_up_to_date.append(dependency)
-            else:
-                project_name = "{}=={}".format(dependency.project_name, latest_version)
-                dependencies_up_to_date.append(pkg_resources.Requirement.parse(project_name))
         except Exception as error:
-            logger.warning("--check-updates command will be aborted. error: %s", error)
+            logger.warning("--check-updates command will be aborted. Error: %s", error)
             return dependencies
+        # get required version
+        required_version = None
+        if dependency.specs:
+            _, required_version = dependency.specs[0]
+
+        if required_version:
+            dependencies_up_to_date.append(dependency)
+            if latest_version > required_version:
+                logger.info("There is a new version of %s: %s",
+                            dependency.project_name, latest_version)
+            elif latest_version < required_version:
+                logger.warning("The requested version for %s is greater "
+                               "than latest found in PyPI: %s",
+                               dependency.project_name, latest_version)
+            else:
+                logger.warning("The requested version for %s is the latest one in PyPI: %s",
+                               dependency.project_name, latest_version)
+        else:
+            project_name_plus = "{}=={}".format(dependency.project_name, latest_version)
+            dependencies_up_to_date.append(pkg_resources.Requirement.parse(project_name_plus))
+            logger.info("There is a new version of %s: %s and will use it.",
+                        dependency.project_name, latest_version)
 
     dependencies["pypi"] = dependencies_up_to_date
     return dependencies
