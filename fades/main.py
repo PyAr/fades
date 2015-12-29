@@ -21,7 +21,6 @@ import argparse
 import os
 import signal
 import sys
-import logging
 import subprocess
 
 import fades
@@ -121,15 +120,8 @@ def go(argv):
         print("    System:", sys.platform)
         sys.exit()
 
-    if args.verbose:
-        log_level = logging.DEBUG
-    elif args.quiet:
-        log_level = logging.WARNING
-    else:
-        log_level = logging.INFO
-
     # set up logger and dump basic version info
-    l = logger.set_up(log_level)
+    l = logger.set_up(args.verbose, args.quiet)
     l.debug("Running Python %s on %r", sys.version_info, sys.platform)
     l.debug("Starting fades v. %s", fades.__version__)
     l.debug("Arguments: %s", args)

@@ -16,8 +16,9 @@ $FADES -x nosetests --with-xcoverage --cover-package=fades -v -s $TARGET
 $FADES -x flake8 -- $TARGET --max-line-length=99 --select=E,W,F,C,N
 
 # Check README.rst format.
-OUTPUT=$(python3 setup.py --long-description | $FADES -x rst2html5 > /dev/null 2>&1)
+OUTPUT=$(python3 setup.py --long-description | $FADES -x rst2html5 2>&1 >/dev/null)
 if [ -n "$OUTPUT" ]; then
     echo -e "README.rst format is incorrect\n"
     echo -e "Errors: \n$OUTPUT"
+    exit 1
 fi
