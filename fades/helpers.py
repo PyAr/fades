@@ -36,7 +36,9 @@ STDOUT_LOG_PREFIX = ":: "
 
 class ExecutionError(Exception):
     """Execution of subprocess ended not in 0."""
+
     def __init__(self, retcode, cmd, collected_stdout):
+        """Init."""
         self._retcode = retcode
         self._cmd = cmd
         self._collected_stdout = collected_stdout

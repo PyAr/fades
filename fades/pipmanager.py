@@ -13,11 +13,13 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/fades
-#
-# NOTE: We are not using pip as a API because fades is not running in the same
-# env that the child program. So we have to call the pip binary that is inside
-# the created virtualenv.
 
+"""Interface to handle pip.
+
+We are not using pip as a API because fades is not running in the same
+env that the child program. So we have to call the pip binary that is inside
+the created virtualenv.
+"""
 
 import os
 import logging
@@ -33,7 +35,9 @@ PIP_INSTALLER = "https://bootstrap.pypa.io/get-pip.py"
 
 class PipManager():
     """A manager for all PIP related actions."""
+
     def __init__(self, env_bin_path, pip_installed=False, options=None):
+        """Init."""
         self.env_bin_path = env_bin_path
         self.pip_installed = pip_installed
         self.options = options
@@ -64,7 +68,7 @@ class PipManager():
             exit()
 
     def get_version(self, dependency):
-        """Returns the installed version parsing the output of 'pip show'."""
+        """Return the installed version parsing the output of 'pip show'."""
         logger.debug("getting installed version for %s", dependency)
         stdout = helpers.logged_exec([self.pip_exe, "show", dependency])
         version = [line for line in stdout if line.startswith('Version:')]

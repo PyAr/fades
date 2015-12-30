@@ -38,7 +38,9 @@ logger = logging.getLogger(__name__)
 
 class FadesEnvBuilder(EnvBuilder):
     """Create always a virtualenv."""
+
     def __init__(self, env_path=None):
+        """Init."""
         basedir = helpers.get_basedir()
         if env_path is None:
             env_path = os.path.join(basedir, str(uuid4()))
@@ -110,7 +112,7 @@ class FadesEnvBuilder(EnvBuilder):
         shutil.rmtree(self.env_path, ignore_errors=True)
 
     def post_setup(self, context):
-        """Gets the bin path from context."""
+        """Get the bin path from context."""
         self.env_bin_path = context.bin_path
 
 
@@ -150,5 +152,6 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
 
 
 def destroy_venv(env_path):
+    """Destroy a venv."""
     env = FadesEnvBuilder(env_path)
     env.destroy_env()
