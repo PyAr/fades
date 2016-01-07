@@ -163,8 +163,8 @@ def check_pypi_updates(dependencies):
                                "than latest found in PyPI: %s",
                                dependency.project_name, latest_version)
             else:
-                logger.warning("The requested version for %s is the latest one in PyPI: %s",
-                               dependency.project_name, latest_version)
+                logger.info("The requested version for %s is the latest one in PyPI: %s",
+                            dependency.project_name, latest_version)
         else:
             project_name_plus = "{}=={}".format(dependency.project_name, latest_version)
             dependencies_up_to_date.append(pkg_resources.Requirement.parse(project_name_plus))

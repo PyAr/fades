@@ -206,5 +206,5 @@ class CheckPyPIUpdatesTestCase(unittest.TestCase):
                 mock_http_response.read.side_effect = [b'{"info": {"version": "1.9"}}']
                 mock_urlopen.return_value = mock_http_response
                 helpers.check_pypi_updates(self.deps_same_than_latest)
-                self.assertLoggedWarning(
+                self.assertLoggedInfo(
                     "The requested version for django is the latest one in PyPI: 1.9")
