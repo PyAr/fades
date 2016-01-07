@@ -14,8 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-""" A list of packages containing names which don't match with the
-    PyPi distrbution's name """
+"""A list of packages containing names which don't match with the PyPi distrbution's name."""
 
 PKG_NAMES_DB = {
     'bs4': 'beautifulsoup4',

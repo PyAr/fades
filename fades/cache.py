@@ -35,6 +35,7 @@ class VEnvsCache:
     """A cache for virtualenvs."""
 
     def __init__(self, filepath):
+        """Init."""
         logger.debug("Using cache index: %r", filepath)
         self.filepath = filepath
 
@@ -125,6 +126,7 @@ class VEnvsCache:
 
     @contextmanager
     def lock_cache(self):
+        """Context manager used to lock over the cache usage."""
         lock_file = self.filepath + '.lock'
         with open(lock_file, 'a') as fh:
             fcntl.flock(fh, fcntl.LOCK_EX)
