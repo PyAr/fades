@@ -93,6 +93,8 @@ def go(argv):
     parser.add_argument('--virtualenv-options', action='append', default=[],
                         help=("Extra options to be supplied to virtualenv. (this option can be"
                               "used multiple times)"))
+    parser.add_argument('--check-updates', action='store_true',
+                        help=("check for packages updates"))
     parser.add_argument('--pip-options', action='append', default=[],
                         help=("Extra options to be supplied to pip. (this option can be"
                               "used multiple times)"))
@@ -167,6 +169,10 @@ def go(argv):
     l.debug("Dependencies from parameters: %s", manual_deps)
     indicated_deps = _merge_deps(ipython_dep, indicated_deps, docstring_deps,
                                  reqfile_deps, manual_deps)
+
+    # Check for packages updates
+    if args.check_updates:
+        helpers.check_pypi_updates(indicated_deps)
 
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(args.python)
