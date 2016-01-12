@@ -1,0 +1,1672 @@
+{
+    "info": {
+        "maintainer": null,
+        "docs_url": null,
+        "requires_python": null,
+        "maintainer_email": null,
+        "cheesecake_code_kwalitee_id": null,
+        "keywords": null,
+        "package_url": "http://pypi.python.org/pypi/requests",
+        "author": "Kenneth Reitz",
+        "author_email": "me@kennethreitz.com",
+        "download_url": "UNKNOWN",
+        "platform": "UNKNOWN",
+        "version": "2.8.1",
+        "cheesecake_documentation_id": null,
+        "_pypi_hidden": false,
+        "description": "Requests: HTTP for Humans\n=========================\n\n.. image:: https://img.shields.io/pypi/v/requests.svg\n    :target: https://pypi.python.org/pypi/requests\n\n.. image:: https://img.shields.io/pypi/dm/requests.svg\n        :target: https://pypi.python.org/pypi/requests\n\n\n\n\nRequests is an Apache2 Licensed HTTP library, written in Python, for human\nbeings.\n\nMost existing Python modules for sending HTTP requests are extremely\nverbose and cumbersome. Python's builtin urllib2 module provides most of\nthe HTTP capabilities you should need, but the api is thoroughly broken.\nIt requires an enormous amount of work (even method overrides) to\nperform the simplest of tasks.\n\nThings shouldn't be this way. Not in Python.\n\n.. code-block:: python\n\n    >>> r = requests.get('https://api.github.com', auth=('user', 'pass'))\n    >>> r.status_code\n    204\n    >>> r.headers['content-type']\n    'application/json'\n    >>> r.text\n    ...\n\nSee `the same code, without Requests <https://gist.github.com/973705>`_.\n\nRequests allow you to send HTTP/1.1 requests. You can add headers, form data,\nmultipart files, and parameters with simple Python dictionaries, and access the\nresponse data in the same way. It's powered by httplib and `urllib3\n<https://github.com/shazow/urllib3>`_, but it does all the hard work and crazy\nhacks for you.\n\n\nFeatures\n--------\n\n- International Domains and URLs\n- Keep-Alive & Connection Pooling\n- Sessions with Cookie Persistence\n- Browser-style SSL Verification\n- Basic/Digest Authentication\n- Elegant Key/Value Cookies\n- Automatic Decompression\n- Unicode Response Bodies\n- Multipart File Uploads\n- Connection Timeouts\n- Thread-safety\n- HTTP(S) proxy support\n\n\nInstallation\n------------\n\nTo install Requests, simply:\n\n.. code-block:: bash\n\n    $ pip install requests\n\n\nDocumentation\n-------------\n\nDocumentation is available at http://docs.python-requests.org/.\n\n\nContribute\n----------\n\n#. Check for open issues or open a fresh issue to start a discussion around a feature idea or a bug. There is a `Contributor Friendly`_ tag for issues that should be ideal for people who are not very familiar with the codebase yet.\n#. Fork `the repository`_ on GitHub to start making your changes to the **master** branch (or branch off of it).\n#. Write a test which shows that the bug was fixed or that the feature works as expected.\n#. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to AUTHORS_.\n\n.. _`the repository`: http://github.com/kennethreitz/requests\n.. _AUTHORS: https://github.com/kennethreitz/requests/blob/master/AUTHORS.rst\n.. _Contributor Friendly: https://github.com/kennethreitz/requests/issues?direction=desc&labels=Contributor+Friendly&page=1&sort=updated&state=open\n\n\n.. :changelog:\n\nRelease History\n---------------\n\n2.8.1 (2015-10-13)\n++++++++++++++++++\n\n**Bugfixes**\n\n- Update certificate bundle to match ``certifi`` 2015.9.6.2's weak certificate\n  bundle.\n- Fix a bug in 2.8.0 where requests would raise ``ConnectTimeout`` instead of\n  ``ConnectionError``\n- When using the PreparedRequest flow, requests will now correctly respect the\n  ``json`` parameter. Broken in 2.8.0.\n- When using the PreparedRequest flow, requests will now correctly handle a\n  Unicode-string method name on Python 2. Broken in 2.8.0.\n\n2.8.0 (2015-10-05)\n++++++++++++++++++\n\n**Minor Improvements** (Backwards Compatible)\n\n- Requests now supports per-host proxies. This allows the ``proxies``\n  dictionary to have entries of the form\n  ``{'<scheme>://<hostname>': '<proxy>'}``. Host-specific proxies will be used\n  in preference to the previously-supported scheme-specific ones, but the\n  previous syntax will continue to work.\n- ``Response.raise_for_status`` now prints the URL that failed as part of the\n  exception message.\n- ``requests.utils.get_netrc_auth`` now takes an ``raise_errors`` kwarg,\n  defaulting to ``False``. When ``True``, errors parsing ``.netrc`` files cause\n  exceptions to be thrown.\n- Change to bundled projects import logic to make it easier to unbundle\n  requests downstream.\n- Changed the default User-Agent string to avoid leaking data on Linux: now\n  contains only the requests version.\n\n**Bugfixes**\n\n- The ``json`` parameter to ``post()`` and friends will now only be used if\n  neither ``data`` nor ``files`` are present, consistent with the\n  documentation.\n- We now ignore empty fields in the ``NO_PROXY`` enviroment variable.\n- Fixed problem where ``httplib.BadStatusLine`` would get raised if combining\n  ``stream=True`` with ``contextlib.closing``.\n- Prevented bugs where we would attempt to return the same connection back to\n  the connection pool twice when sending a Chunked body.\n- Miscellaneous minor internal changes.\n- Digest Auth support is now thread safe.\n\n**Updates**\n\n- Updated urllib3 to 1.12.\n\n2.7.0 (2015-05-03)\n++++++++++++++++++\n\nThis is the first release that follows our new release process. For more, see\n`our documentation\n<http://docs.python-requests.org/en/latest/community/release-process/>`_.\n\n**Bugfixes**\n\n- Updated urllib3 to 1.10.4, resolving several bugs involving chunked transfer\n  encoding and response framing.\n\n2.6.2 (2015-04-23)\n++++++++++++++++++\n\n**Bugfixes**\n\n- Fix regression where compressed data that was sent as chunked data was not\n  properly decompressed. (#2561)\n\n2.6.1 (2015-04-22)\n++++++++++++++++++\n\n**Bugfixes**\n\n- Remove VendorAlias import machinery introduced in v2.5.2.\n\n- Simplify the PreparedRequest.prepare API: We no longer require the user to\n  pass an empty list to the hooks keyword argument. (c.f. #2552)\n\n- Resolve redirects now receives and forwards all of the original arguments to\n  the adapter. (#2503)\n\n- Handle UnicodeDecodeErrors when trying to deal with a unicode URL that\n  cannot be encoded in ASCII. (#2540)\n\n- Populate the parsed path of the URI field when performing Digest\n  Authentication. (#2426)\n\n- Copy a PreparedRequest's CookieJar more reliably when it is not an instance\n  of RequestsCookieJar. (#2527)\n\n2.6.0 (2015-03-14)\n++++++++++++++++++\n\n**Bugfixes**\n\n- CVE-2015-2296: Fix handling of cookies on redirect. Previously a cookie\n  without a host value set would use the hostname for the redirected URL\n  exposing requests users to session fixation attacks and potentially cookie\n  stealing. This was disclosed privately by Matthew Daley of\n  `BugFuzz <https://bugfuzz.com>`_. This affects all versions of requests from\n  v2.1.0 to v2.5.3 (inclusive on both ends).\n\n- Fix error when requests is an ``install_requires`` dependency and ``python\n  setup.py test`` is run. (#2462)\n\n- Fix error when urllib3 is unbundled and requests continues to use the\n  vendored import location.\n\n- Include fixes to ``urllib3``'s header handling.\n\n- Requests' handling of unvendored dependencies is now more restrictive.\n\n**Features and Improvements**\n\n- Support bytearrays when passed as parameters in the ``files`` argument.\n  (#2468)\n\n- Avoid data duplication when creating a request with ``str``, ``bytes``, or\n  ``bytearray`` input to the ``files`` argument.\n\n2.5.3 (2015-02-24)\n++++++++++++++++++\n\n**Bugfixes**\n\n- Revert changes to our vendored certificate bundle. For more context see\n  (#2455, #2456, and http://bugs.python.org/issue23476)\n\n2.5.2 (2015-02-23)\n++++++++++++++++++\n\n**Features and Improvements**\n\n- Add sha256 fingerprint support. (`shazow/urllib3#540`_)\n\n- Improve the performance of headers. (`shazow/urllib3#544`_)\n\n**Bugfixes**\n\n- Copy pip's import machinery. When downstream redistributors remove\n  requests.packages.urllib3 the import machinery will continue to let those\n  same symbols work. Example usage in requests' documentation and 3rd-party\n  libraries relying on the vendored copies of urllib3 will work without having\n  to fallback to the system urllib3.\n\n- Attempt to quote parts of the URL on redirect if unquoting and then quoting\n  fails. (#2356)\n\n- Fix filename type check for multipart form-data uploads. (#2411)\n\n- Properly handle the case where a server issuing digest authentication\n  challenges provides both auth and auth-int qop-values. (#2408)\n\n- Fix a socket leak. (`shazow/urllib3#549`_)\n\n- Fix multiple ``Set-Cookie`` headers properly. (`shazow/urllib3#534`_)\n\n- Disable the built-in hostname verification. (`shazow/urllib3#526`_)\n\n- Fix the behaviour of decoding an exhausted stream. (`shazow/urllib3#535`_)\n\n**Security**\n\n- Pulled in an updated ``cacert.pem``.\n\n- Drop RC4 from the default cipher list. (`shazow/urllib3#551`_)\n\n.. _shazow/urllib3#551: https://github.com/shazow/urllib3/pull/551\n.. _shazow/urllib3#549: https://github.com/shazow/urllib3/pull/549\n.. _shazow/urllib3#544: https://github.com/shazow/urllib3/pull/544\n.. _shazow/urllib3#540: https://github.com/shazow/urllib3/pull/540\n.. _shazow/urllib3#535: https://github.com/shazow/urllib3/pull/535\n.. _shazow/urllib3#534: https://github.com/shazow/urllib3/pull/534\n.. _shazow/urllib3#526: https://github.com/shazow/urllib3/pull/526\n\n2.5.1 (2014-12-23)\n++++++++++++++++++\n\n**Behavioural Changes**\n\n- Only catch HTTPErrors in raise_for_status (#2382)\n\n**Bugfixes**\n\n- Handle LocationParseError from urllib3 (#2344)\n- Handle file-like object filenames that are not strings (#2379)\n- Unbreak HTTPDigestAuth handler. Allow new nonces to be negotiated (#2389)\n\n2.5.0 (2014-12-01)\n++++++++++++++++++\n\n**Improvements**\n\n- Allow usage of urllib3's Retry object with HTTPAdapters (#2216)\n- The ``iter_lines`` method on a response now accepts a delimiter with which\n  to split the content (#2295)\n\n**Behavioural Changes**\n\n- Add deprecation warnings to functions in requests.utils that will be removed\n  in 3.0 (#2309)\n- Sessions used by the functional API are always closed (#2326)\n- Restrict requests to HTTP/1.1 and HTTP/1.0 (stop accepting HTTP/0.9) (#2323)\n\n**Bugfixes**\n\n- Only parse the URL once (#2353)\n- Allow Content-Length header to always be overridden (#2332)\n- Properly handle files in HTTPDigestAuth (#2333)\n- Cap redirect_cache size to prevent memory abuse (#2299)\n- Fix HTTPDigestAuth handling of redirects after authenticating successfully\n  (#2253)\n- Fix crash with custom method parameter to Session.request (#2317)\n- Fix how Link headers are parsed using the regular expression library (#2271)\n\n**Documentation**\n\n- Add more references for interlinking (#2348)\n- Update CSS for theme (#2290)\n- Update width of buttons and sidebar (#2289)\n- Replace references of Gittip with Gratipay (#2282)\n- Add link to changelog in sidebar (#2273)\n\n2.4.3 (2014-10-06)\n++++++++++++++++++\n\n**Bugfixes**\n\n- Unicode URL improvements for Python 2.\n- Re-order JSON param for backwards compat.\n- Automatically defrag authentication schemes from host/pass URIs. (`#2249 <https://github.com/kennethreitz/requests/issues/2249>`_)\n\n\n2.4.2 (2014-10-05)\n++++++++++++++++++\n\n**Improvements**\n\n- FINALLY! Add json parameter for uploads! (`#2258 <https://github.com/kennethreitz/requests/pull/2258>`_)\n- Support for bytestring URLs on Python 3.x (`#2238 <https://github.com/kennethreitz/requests/pull/2238>`_)\n\n**Bugfixes**\n\n- Avoid getting stuck in a loop (`#2244 <https://github.com/kennethreitz/requests/pull/2244>`_)\n- Multiple calls to iter* fail with unhelpful error. (`#2240 <https://github.com/kennethreitz/requests/issues/2240>`_, `#2241 <https://github.com/kennethreitz/requests/issues/2241>`_)\n\n**Documentation**\n\n- Correct redirection introduction (`#2245 <https://github.com/kennethreitz/requests/pull/2245/>`_)\n- Added example of how to send multiple files in one request. (`#2227 <https://github.com/kennethreitz/requests/pull/2227/>`_)\n- Clarify how to pass a custom set of CAs (`#2248 <https://github.com/kennethreitz/requests/pull/2248/>`_)\n\n\n\n2.4.1 (2014-09-09)\n++++++++++++++++++\n\n- Now has a \"security\" package extras set, ``$ pip install requests[security]``\n- Requests will now use Certifi if it is available.\n- Capture and re-raise urllib3 ProtocolError\n- Bugfix for responses that attempt to redirect to themselves forever (wtf?).\n\n\n2.4.0 (2014-08-29)\n++++++++++++++++++\n\n**Behavioral Changes**\n\n- ``Connection: keep-alive`` header is now sent automatically.\n\n**Improvements**\n\n- Support for connect timeouts! Timeout now accepts a tuple (connect, read) which is used to set individual connect and read timeouts.\n- Allow copying of PreparedRequests without headers/cookies.\n- Updated bundled urllib3 version.\n- Refactored settings loading from environment -- new `Session.merge_environment_settings`.\n- Handle socket errors in iter_content.\n\n\n2.3.0 (2014-05-16)\n++++++++++++++++++\n\n**API Changes**\n\n- New ``Response`` property ``is_redirect``, which is true when the\n  library could have processed this response as a redirection (whether\n  or not it actually did).\n- The ``timeout`` parameter now affects requests with both ``stream=True`` and\n  ``stream=False`` equally.\n- The change in v2.0.0 to mandate explicit proxy schemes has been reverted.\n  Proxy schemes now default to ``http://``.\n- The ``CaseInsensitiveDict`` used for HTTP headers now behaves like a normal\n  dictionary when references as string or viewed in the interpreter.\n\n**Bugfixes**\n\n- No longer expose Authorization or Proxy-Authorization headers on redirect.\n  Fix CVE-2014-1829 and CVE-2014-1830 respectively.\n- Authorization is re-evaluated each redirect.\n- On redirect, pass url as native strings.\n- Fall-back to autodetected encoding for JSON when Unicode detection fails.\n- Headers set to ``None`` on the ``Session`` are now correctly not sent.\n- Correctly honor ``decode_unicode`` even if it wasn't used earlier in the same\n  response.\n- Stop advertising ``compress`` as a supported Content-Encoding.\n- The ``Response.history`` parameter is now always a list.\n- Many, many ``urllib3`` bugfixes.\n\n2.2.1 (2014-01-23)\n++++++++++++++++++\n\n**Bugfixes**\n\n- Fixes incorrect parsing of proxy credentials that contain a literal or encoded '#' character.\n- Assorted urllib3 fixes.\n\n2.2.0 (2014-01-09)\n++++++++++++++++++\n\n**API Changes**\n\n- New exception: ``ContentDecodingError``. Raised instead of ``urllib3``\n  ``DecodeError`` exceptions.\n\n**Bugfixes**\n\n- Avoid many many exceptions from the buggy implementation of ``proxy_bypass`` on OS X in Python 2.6.\n- Avoid crashing when attempting to get authentication credentials from ~/.netrc when running as a user without a home directory.\n- Use the correct pool size for pools of connections to proxies.\n- Fix iteration of ``CookieJar`` objects.\n- Ensure that cookies are persisted over redirect.\n- Switch back to using chardet, since it has merged with charade.\n\n2.1.0 (2013-12-05)\n++++++++++++++++++\n\n- Updated CA Bundle, of course.\n- Cookies set on individual Requests through a ``Session`` (e.g. via ``Session.get()``) are no longer persisted to the ``Session``.\n- Clean up connections when we hit problems during chunked upload, rather than leaking them.\n- Return connections to the pool when a chunked upload is successful, rather than leaking it.\n- Match the HTTPbis recommendation for HTTP 301 redirects.\n- Prevent hanging when using streaming uploads and Digest Auth when a 401 is received.\n- Values of headers set by Requests are now always the native string type.\n- Fix previously broken SNI support.\n- Fix accessing HTTP proxies using proxy authentication.\n- Unencode HTTP Basic usernames and passwords extracted from URLs.\n- Support for IP address ranges for no_proxy environment variable\n- Parse headers correctly when users override the default ``Host:`` header.\n- Avoid munging the URL in case of case-sensitive servers.\n- Looser URL handling for non-HTTP/HTTPS urls.\n- Accept unicode methods in Python 2.6 and 2.7.\n- More resilient cookie handling.\n- Make ``Response`` objects pickleable.\n- Actually added MD5-sess to Digest Auth instead of pretending to like last time.\n- Updated internal urllib3.\n- Fixed @Lukasa's lack of taste.\n\n2.0.1 (2013-10-24)\n++++++++++++++++++\n\n- Updated included CA Bundle with new mistrusts and automated process for the future\n- Added MD5-sess to Digest Auth\n- Accept per-file headers in multipart file POST messages.\n- Fixed: Don't send the full URL on CONNECT messages.\n- Fixed: Correctly lowercase a redirect scheme.\n- Fixed: Cookies not persisted when set via functional API.\n- Fixed: Translate urllib3 ProxyError into a requests ProxyError derived from ConnectionError.\n- Updated internal urllib3 and chardet.\n\n2.0.0 (2013-09-24)\n++++++++++++++++++\n\n**API Changes:**\n\n- Keys in the Headers dictionary are now native strings on all Python versions,\n  i.e. bytestrings on Python 2, unicode on Python 3.\n- Proxy URLs now *must* have an explicit scheme. A ``MissingSchema`` exception\n  will be raised if they don't.\n- Timeouts now apply to read time if ``Stream=False``.\n- ``RequestException`` is now a subclass of ``IOError``, not ``RuntimeError``.\n- Added new method to ``PreparedRequest`` objects: ``PreparedRequest.copy()``.\n- Added new method to ``Session`` objects: ``Session.update_request()``. This\n  method updates a ``Request`` object with the data (e.g. cookies) stored on\n  the ``Session``.\n- Added new method to ``Session`` objects: ``Session.prepare_request()``. This\n  method updates and prepares a ``Request`` object, and returns the\n  corresponding ``PreparedRequest`` object.\n- Added new method to ``HTTPAdapter`` objects: ``HTTPAdapter.proxy_headers()``.\n  This should not be called directly, but improves the subclass interface.\n- ``httplib.IncompleteRead`` exceptions caused by incorrect chunked encoding\n  will now raise a Requests ``ChunkedEncodingError`` instead.\n- Invalid percent-escape sequences now cause a Requests ``InvalidURL``\n  exception to be raised.\n- HTTP 208 no longer uses reason phrase ``\"im_used\"``. Correctly uses\n  ``\"already_reported\"``.\n- HTTP 226 reason added (``\"im_used\"``).\n\n**Bugfixes:**\n\n- Vastly improved proxy support, including the CONNECT verb. Special thanks to\n  the many contributors who worked towards this improvement.\n- Cookies are now properly managed when 401 authentication responses are\n  received.\n- Chunked encoding fixes.\n- Support for mixed case schemes.\n- Better handling of streaming downloads.\n- Retrieve environment proxies from more locations.\n- Minor cookies fixes.\n- Improved redirect behaviour.\n- Improved streaming behaviour, particularly for compressed data.\n- Miscellaneous small Python 3 text encoding bugs.\n- ``.netrc`` no longer overrides explicit auth.\n- Cookies set by hooks are now correctly persisted on Sessions.\n- Fix problem with cookies that specify port numbers in their host field.\n- ``BytesIO`` can be used to perform streaming uploads.\n- More generous parsing of the ``no_proxy`` environment variable.\n- Non-string objects can be passed in data values alongside files.\n\n1.2.3 (2013-05-25)\n++++++++++++++++++\n\n- Simple packaging fix\n\n\n1.2.2 (2013-05-23)\n++++++++++++++++++\n\n- Simple packaging fix\n\n\n1.2.1 (2013-05-20)\n++++++++++++++++++\n\n- 301 and 302 redirects now change the verb to GET for all verbs, not just\n  POST, improving browser compatibility.\n- Python 3.3.2 compatibility\n- Always percent-encode location headers\n- Fix connection adapter matching to be most-specific first\n- new argument to the default connection adapter for passing a block argument\n- prevent a KeyError when there's no link headers\n\n1.2.0 (2013-03-31)\n++++++++++++++++++\n\n- Fixed cookies on sessions and on requests\n- Significantly change how hooks are dispatched - hooks now receive all the\n  arguments specified by the user when making a request so hooks can make a\n  secondary request with the same parameters. This is especially necessary for\n  authentication handler authors\n- certifi support was removed\n- Fixed bug where using OAuth 1 with body ``signature_type`` sent no data\n- Major proxy work thanks to @Lukasa including parsing of proxy authentication\n  from the proxy url\n- Fix DigestAuth handling too many 401s\n- Update vendored urllib3 to include SSL bug fixes\n- Allow keyword arguments to be passed to ``json.loads()`` via the\n  ``Response.json()`` method\n- Don't send ``Content-Length`` header by default on ``GET`` or ``HEAD``\n  requests\n- Add ``elapsed`` attribute to ``Response`` objects to time how long a request\n  took.\n- Fix ``RequestsCookieJar``\n- Sessions and Adapters are now picklable, i.e., can be used with the\n  multiprocessing library\n- Update charade to version 1.0.3\n\nThe change in how hooks are dispatched will likely cause a great deal of\nissues.\n\n1.1.0 (2013-01-10)\n++++++++++++++++++\n\n- CHUNKED REQUESTS\n- Support for iterable response bodies\n- Assume servers persist redirect params\n- Allow explicit content types to be specified for file data\n- Make merge_kwargs case-insensitive when looking up keys\n\n1.0.3 (2012-12-18)\n++++++++++++++++++\n\n- Fix file upload encoding bug\n- Fix cookie behavior\n\n1.0.2 (2012-12-17)\n++++++++++++++++++\n\n- Proxy fix for HTTPAdapter.\n\n1.0.1 (2012-12-17)\n++++++++++++++++++\n\n- Cert verification exception bug.\n- Proxy fix for HTTPAdapter.\n\n1.0.0 (2012-12-17)\n++++++++++++++++++\n\n- Massive Refactor and Simplification\n- Switch to Apache 2.0 license\n- Swappable Connection Adapters\n- Mountable Connection Adapters\n- Mutable ProcessedRequest chain\n- /s/prefetch/stream\n- Removal of all configuration\n- Standard library logging\n- Make Response.json() callable, not property.\n- Usage of new charade project, which provides python 2 and 3 simultaneous chardet.\n- Removal of all hooks except 'response'\n- Removal of all authentication helpers (OAuth, Kerberos)\n\nThis is not a backwards compatible change.\n\n0.14.2 (2012-10-27)\n+++++++++++++++++++\n\n- Improved mime-compatible JSON handling\n- Proxy fixes\n- Path hack fixes\n- Case-Insensistive Content-Encoding headers\n- Support for CJK parameters in form posts\n\n\n0.14.1 (2012-10-01)\n+++++++++++++++++++\n\n- Python 3.3 Compatibility\n- Simply default accept-encoding\n- Bugfixes\n\n\n0.14.0 (2012-09-02)\n++++++++++++++++++++\n\n- No more iter_content errors if already downloaded.\n\n0.13.9 (2012-08-25)\n+++++++++++++++++++\n\n- Fix for OAuth + POSTs\n- Remove exception eating from dispatch_hook\n- General bugfixes\n\n0.13.8 (2012-08-21)\n+++++++++++++++++++\n\n- Incredible Link header support :)\n\n0.13.7 (2012-08-19)\n+++++++++++++++++++\n\n- Support for (key, value) lists everywhere.\n- Digest Authentication improvements.\n- Ensure proxy exclusions work properly.\n- Clearer UnicodeError exceptions.\n- Automatic casting of URLs to strings (fURL and such)\n- Bugfixes.\n\n0.13.6 (2012-08-06)\n+++++++++++++++++++\n\n- Long awaited fix for hanging connections!\n\n0.13.5 (2012-07-27)\n+++++++++++++++++++\n\n- Packaging fix\n\n0.13.4 (2012-07-27)\n+++++++++++++++++++\n\n- GSSAPI/Kerberos authentication!\n- App Engine 2.7 Fixes!\n- Fix leaking connections (from urllib3 update)\n- OAuthlib path hack fix\n- OAuthlib URL parameters fix.\n\n0.13.3 (2012-07-12)\n+++++++++++++++++++\n\n- Use simplejson if available.\n- Do not hide SSLErrors behind Timeouts.\n- Fixed param handling with urls containing fragments.\n- Significantly improved information in User Agent.\n- client certificates are ignored when verify=False\n\n0.13.2 (2012-06-28)\n+++++++++++++++++++\n\n- Zero dependencies (once again)!\n- New: Response.reason\n- Sign querystring parameters in OAuth 1.0\n- Client certificates no longer ignored when verify=False\n- Add openSUSE certificate support\n\n0.13.1 (2012-06-07)\n+++++++++++++++++++\n\n- Allow passing a file or file-like object as data.\n- Allow hooks to return responses that indicate errors.\n- Fix Response.text and Response.json for body-less responses.\n\n0.13.0 (2012-05-29)\n+++++++++++++++++++\n\n- Removal of Requests.async in favor of `grequests <https://github.com/kennethreitz/grequests>`_\n- Allow disabling of cookie persistiance.\n- New implementation of safe_mode\n- cookies.get now supports default argument\n- Session cookies not saved when Session.request is called with return_response=False\n- Env: no_proxy support.\n- RequestsCookieJar improvements.\n- Various bug fixes.\n\n0.12.1 (2012-05-08)\n+++++++++++++++++++\n\n- New ``Response.json`` property.\n- Ability to add string file uploads.\n- Fix out-of-range issue with iter_lines.\n- Fix iter_content default size.\n- Fix POST redirects containing files.\n\n0.12.0 (2012-05-02)\n+++++++++++++++++++\n\n- EXPERIMENTAL OAUTH SUPPORT!\n- Proper CookieJar-backed cookies interface with awesome dict-like interface.\n- Speed fix for non-iterated content chunks.\n- Move ``pre_request`` to a more usable place.\n- New ``pre_send`` hook.\n- Lazily encode data, params, files.\n- Load system Certificate Bundle if ``certify`` isn't available.\n- Cleanups, fixes.\n\n0.11.2 (2012-04-22)\n+++++++++++++++++++\n\n- Attempt to use the OS's certificate bundle if ``certifi`` isn't available.\n- Infinite digest auth redirect fix.\n- Multi-part file upload improvements.\n- Fix decoding of invalid %encodings in URLs.\n- If there is no content in a response don't throw an error the second time that content is attempted to be read.\n- Upload data on redirects.\n\n0.11.1 (2012-03-30)\n+++++++++++++++++++\n\n* POST redirects now break RFC to do what browsers do: Follow up with a GET.\n* New ``strict_mode`` configuration to disable new redirect behavior.\n\n\n0.11.0 (2012-03-14)\n+++++++++++++++++++\n\n* Private SSL Certificate support\n* Remove select.poll from Gevent monkeypatching\n* Remove redundant generator for chunked transfer encoding\n* Fix: Response.ok raises Timeout Exception in safe_mode\n\n0.10.8 (2012-03-09)\n+++++++++++++++++++\n\n* Generate chunked ValueError fix\n* Proxy configuration by environment variables\n* Simplification of iter_lines.\n* New `trust_env` configuration for disabling system/environment hints.\n* Suppress cookie errors.\n\n0.10.7 (2012-03-07)\n+++++++++++++++++++\n\n* `encode_uri` = False\n\n0.10.6 (2012-02-25)\n+++++++++++++++++++\n\n* Allow '=' in cookies.\n\n0.10.5 (2012-02-25)\n+++++++++++++++++++\n\n* Response body with 0 content-length fix.\n* New async.imap.\n* Don't fail on netrc.\n\n\n0.10.4 (2012-02-20)\n+++++++++++++++++++\n\n* Honor netrc.\n\n0.10.3 (2012-02-20)\n+++++++++++++++++++\n\n* HEAD requests don't follow redirects anymore.\n* raise_for_status() doesn't raise for 3xx anymore.\n* Make Session objects picklable.\n* ValueError for invalid schema URLs.\n\n0.10.2 (2012-01-15)\n+++++++++++++++++++\n\n* Vastly improved URL quoting.\n* Additional allowed cookie key values.\n* Attempted fix for \"Too many open files\" Error\n* Replace unicode errors on first pass, no need for second pass.\n* Append '/' to bare-domain urls before query insertion.\n* Exceptions now inherit from RuntimeError.\n* Binary uploads + auth fix.\n* Bugfixes.\n\n\n0.10.1 (2012-01-23)\n+++++++++++++++++++\n\n* PYTHON 3 SUPPORT!\n* Dropped 2.5 Support. (*Backwards Incompatible*)\n\n0.10.0 (2012-01-21)\n+++++++++++++++++++\n\n* ``Response.content`` is now bytes-only. (*Backwards Incompatible*)\n* New ``Response.text`` is unicode-only.\n* If no ``Response.encoding`` is specified and ``chardet`` is available, ``Response.text`` will guess an encoding.\n* Default to ISO-8859-1 (Western) encoding for \"text\" subtypes.\n* Removal of `decode_unicode`. (*Backwards Incompatible*)\n* New multiple-hooks system.\n* New ``Response.register_hook`` for registering hooks within the pipeline.\n* ``Response.url`` is now Unicode.\n\n0.9.3 (2012-01-18)\n++++++++++++++++++\n\n* SSL verify=False bugfix (apparent on windows machines).\n\n0.9.2 (2012-01-18)\n++++++++++++++++++\n\n* Asynchronous async.send method.\n* Support for proper chunk streams with boundaries.\n* session argument for Session classes.\n* Print entire hook tracebacks, not just exception instance.\n* Fix response.iter_lines from pending next line.\n* Fix but in HTTP-digest auth w/ URI having query strings.\n* Fix in Event Hooks section.\n* Urllib3 update.\n\n\n0.9.1 (2012-01-06)\n++++++++++++++++++\n\n* danger_mode for automatic Response.raise_for_status()\n* Response.iter_lines refactor\n\n0.9.0 (2011-12-28)\n++++++++++++++++++\n\n* verify ssl is default.\n\n\n0.8.9 (2011-12-28)\n++++++++++++++++++\n\n* Packaging fix.\n\n\n0.8.8 (2011-12-28)\n++++++++++++++++++\n\n* SSL CERT VERIFICATION!\n* Release of Cerifi: Mozilla's cert list.\n* New 'verify' argument for SSL requests.\n* Urllib3 update.\n\n0.8.7 (2011-12-24)\n++++++++++++++++++\n\n* iter_lines last-line truncation fix\n* Force safe_mode for async requests\n* Handle safe_mode exceptions more consistently\n* Fix iteration on null responses in safe_mode\n\n0.8.6 (2011-12-18)\n++++++++++++++++++\n\n* Socket timeout fixes.\n* Proxy Authorization support.\n\n0.8.5 (2011-12-14)\n++++++++++++++++++\n\n* Response.iter_lines!\n\n0.8.4 (2011-12-11)\n++++++++++++++++++\n\n* Prefetch bugfix.\n* Added license to installed version.\n\n0.8.3 (2011-11-27)\n++++++++++++++++++\n\n* Converted auth system to use simpler callable objects.\n* New session parameter to API methods.\n* Display full URL while logging.\n\n0.8.2 (2011-11-19)\n++++++++++++++++++\n\n* New Unicode decoding system, based on over-ridable `Response.encoding`.\n* Proper URL slash-quote handling.\n* Cookies with ``[``, ``]``, and ``_`` allowed.\n\n0.8.1 (2011-11-15)\n++++++++++++++++++\n\n* URL Request path fix\n* Proxy fix.\n* Timeouts fix.\n\n0.8.0 (2011-11-13)\n++++++++++++++++++\n\n* Keep-alive support!\n* Complete removal of Urllib2\n* Complete removal of Poster\n* Complete removal of CookieJars\n* New ConnectionError raising\n* Safe_mode for error catching\n* prefetch parameter for request methods\n* OPTION method\n* Async pool size throttling\n* File uploads send real names\n* Vendored in urllib3\n\n0.7.6 (2011-11-07)\n++++++++++++++++++\n\n* Digest authentication bugfix (attach query data to path)\n\n0.7.5 (2011-11-04)\n++++++++++++++++++\n\n* Response.content = None if there was an invalid response.\n* Redirection auth handling.\n\n0.7.4 (2011-10-26)\n++++++++++++++++++\n\n* Session Hooks fix.\n\n0.7.3 (2011-10-23)\n++++++++++++++++++\n\n* Digest Auth fix.\n\n\n0.7.2 (2011-10-23)\n++++++++++++++++++\n\n* PATCH Fix.\n\n\n0.7.1 (2011-10-23)\n++++++++++++++++++\n\n* Move away from urllib2 authentication handling.\n* Fully Remove AuthManager, AuthObject, &c.\n* New tuple-based auth system with handler callbacks.\n\n\n0.7.0 (2011-10-22)\n++++++++++++++++++\n\n* Sessions are now the primary interface.\n* Deprecated InvalidMethodException.\n* PATCH fix.\n* New config system (no more global settings).\n\n\n0.6.6 (2011-10-19)\n++++++++++++++++++\n\n* Session parameter bugfix (params merging).\n\n\n0.6.5 (2011-10-18)\n++++++++++++++++++\n\n* Offline (fast) test suite.\n* Session dictionary argument merging.\n\n\n0.6.4 (2011-10-13)\n++++++++++++++++++\n\n* Automatic decoding of unicode, based on HTTP Headers.\n* New ``decode_unicode`` setting.\n* Removal of ``r.read/close`` methods.\n* New ``r.faw`` interface for advanced response usage.*\n* Automatic expansion of parameterized headers.\n\n\n0.6.3 (2011-10-13)\n++++++++++++++++++\n\n* Beautiful ``requests.async`` module, for making async requests w/ gevent.\n\n\n0.6.2 (2011-10-09)\n++++++++++++++++++\n\n* GET/HEAD obeys allow_redirects=False.\n\n\n0.6.1 (2011-08-20)\n++++++++++++++++++\n\n* Enhanced status codes experience ``\\o/``\n* Set a maximum number of redirects (``settings.max_redirects``)\n* Full Unicode URL support\n* Support for protocol-less redirects.\n* Allow for arbitrary request types.\n* Bugfixes\n\n\n0.6.0 (2011-08-17)\n++++++++++++++++++\n\n* New callback hook system\n* New persistent sessions object and context manager\n* Transparent Dict-cookie handling\n* Status code reference object\n* Removed Response.cached\n* Added Response.request\n* All args are kwargs\n* Relative redirect support\n* HTTPError handling improvements\n* Improved https testing\n* Bugfixes\n\n\n0.5.1 (2011-07-23)\n++++++++++++++++++\n\n* International Domain Name Support!\n* Access headers without fetching entire body (``read()``)\n* Use lists as dicts for parameters\n* Add Forced Basic Authentication\n* Forced Basic is default authentication type\n* ``python-requests.org`` default User-Agent header\n* CaseInsensitiveDict lower-case caching\n* Response.history bugfix\n\n\n0.5.0 (2011-06-21)\n++++++++++++++++++\n\n* PATCH Support\n* Support for Proxies\n* HTTPBin Test Suite\n* Redirect Fixes\n* settings.verbose stream writing\n* Querystrings for all methods\n* URLErrors (Connection Refused, Timeout, Invalid URLs) are treated as explicitly raised\n  ``r.requests.get('hwe://blah'); r.raise_for_status()``\n\n\n0.4.1 (2011-05-22)\n++++++++++++++++++\n\n* Improved Redirection Handling\n* New 'allow_redirects' param for following non-GET/HEAD Redirects\n* Settings module refactoring\n\n\n0.4.0 (2011-05-15)\n++++++++++++++++++\n\n* Response.history: list of redirected responses\n* Case-Insensitive Header Dictionaries!\n* Unicode URLs\n\n\n0.3.4 (2011-05-14)\n++++++++++++++++++\n\n* Urllib2 HTTPAuthentication Recursion fix (Basic/Digest)\n* Internal Refactor\n* Bytes data upload Bugfix\n\n\n\n0.3.3 (2011-05-12)\n++++++++++++++++++\n\n* Request timeouts\n* Unicode url-encoded data\n* Settings context manager and module\n\n\n0.3.2 (2011-04-15)\n++++++++++++++++++\n\n* Automatic Decompression of GZip Encoded Content\n* AutoAuth Support for Tupled HTTP Auth\n\n\n0.3.1 (2011-04-01)\n++++++++++++++++++\n\n* Cookie Changes\n* Response.read()\n* Poster fix\n\n\n0.3.0 (2011-02-25)\n++++++++++++++++++\n\n* Automatic Authentication API Change\n* Smarter Query URL Parameterization\n* Allow file uploads and POST data together\n* New Authentication Manager System\n    - Simpler Basic HTTP System\n    - Supports all build-in urllib2 Auths\n    - Allows for custom Auth Handlers\n\n\n0.2.4 (2011-02-19)\n++++++++++++++++++\n\n* Python 2.5 Support\n* PyPy-c v1.4 Support\n* Auto-Authentication tests\n* Improved Request object constructor\n\n0.2.3 (2011-02-15)\n++++++++++++++++++\n\n* New HTTPHandling Methods\n    - Response.__nonzero__ (false if bad HTTP Status)\n    - Response.ok (True if expected HTTP Status)\n    - Response.error (Logged HTTPError if bad HTTP Status)\n    - Response.raise_for_status() (Raises stored HTTPError)\n\n\n0.2.2 (2011-02-14)\n++++++++++++++++++\n\n* Still handles request in the event of an HTTPError. (Issue #2)\n* Eventlet and Gevent Monkeypatch support.\n* Cookie Support (Issue #1)\n\n\n0.2.1 (2011-02-14)\n++++++++++++++++++\n\n* Added file attribute to POST and PUT requests for multipart-encode file uploads.\n* Added Request.url attribute for context and redirects\n\n\n0.2.0 (2011-02-14)\n++++++++++++++++++\n\n* Birth!\n\n\n0.0.1 (2011-02-13)\n++++++++++++++++++\n\n* Frustration\n* Conception",
+        "release_url": "http://pypi.python.org/pypi/requests/2.8.1",
+        "downloads": {
+            "last_month": 5397123,
+            "last_week": 1226167,
+            "last_day": 232917
+        },
+        "_pypi_ordering": 98,
+        "classifiers": [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: Apache Software License",
+            "Natural Language :: English",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5"
+        ],
+        "name": "requests",
+        "bugtrack_url": null,
+        "license": "Apache 2.0",
+        "summary": "Python HTTP for Humans.",
+        "home_page": "http://python-requests.org",
+        "cheesecake_installability_id": null
+    },
+    "releases": {
+        "1.0.4": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-12-23T07:45:10",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.0.4.tar.gz",
+                "md5_digest": "0b7448f9e1a077a7218720575003a1b6",
+                "downloads": 112618,
+                "filename": "requests-1.0.4.tar.gz",
+                "packagetype": "sdist",
+                "size": 336280
+            }
+        ],
+        "1.0.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-12-17T15:00:05",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.0.0.tar.gz",
+                "md5_digest": "099c9035c4b30a7ae5484b1beabc7407",
+                "downloads": 16077,
+                "filename": "requests-1.0.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 335548
+            }
+        ],
+        "1.0.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-12-17T18:53:51",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.0.1.tar.gz",
+                "md5_digest": "2e938f26f2bdf2899862c751bfa7eff5",
+                "downloads": 3679,
+                "filename": "requests-1.0.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 335625
+            }
+        ],
+        "1.0.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-12-17T19:04:31",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.0.2.tar.gz",
+                "md5_digest": "e5c1a5a5472cd61f144743dd25a2a29f",
+                "downloads": 6921,
+                "filename": "requests-1.0.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 335653
+            }
+        ],
+        "1.0.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-12-18T09:51:12",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.0.3.tar.gz",
+                "md5_digest": "a3169a33973d4b5b51843ead01c5e999",
+                "downloads": 51762,
+                "filename": "requests-1.0.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 335757
+            }
+        ],
+        "0.3.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-04-15T23:30:50",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.3.2.tar.gz",
+                "md5_digest": "bde777f4c5b7bbb09033901c443962b3",
+                "downloads": 5216,
+                "filename": "requests-0.3.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 15515
+            }
+        ],
+        "0.3.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-05-12T10:03:24",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.3.3.tar.gz",
+                "md5_digest": "84c762c116617ba4dd03c19e2b61eb53",
+                "downloads": 4934,
+                "filename": "requests-0.3.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 18995
+            }
+        ],
+        "0.3.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-02-25T14:58:38",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.3.0.tar.gz",
+                "md5_digest": "aa1306575a78ba8b5e625dd2645d2ef0",
+                "downloads": 5249,
+                "filename": "requests-0.3.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 15021
+            }
+        ],
+        "0.3.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-04-01T20:55:03",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.3.1.tar.gz",
+                "md5_digest": "3f4701e2ab414cd7018804a70328c527",
+                "downloads": 5143,
+                "filename": "requests-0.3.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 15275
+            }
+        ],
+        "0.3.4": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-05-14T20:30:44",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.3.4.tar.gz",
+                "md5_digest": "55152cc2b135bc8989dc4fa279295f8b",
+                "downloads": 4894,
+                "filename": "requests-0.3.4.tar.gz",
+                "packagetype": "sdist",
+                "size": 19773
+            }
+        ],
+        "0.12.01": [],
+        "2.8.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2015-10-13T12:56:41",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.8.1-py2.py3-none-any.whl",
+                "md5_digest": "46f1d621daa3ab38958a42f51478b1ee",
+                "downloads": 3302171,
+                "filename": "requests-2.8.1-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 497953
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2015-10-13T12:56:34",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.8.1.tar.gz",
+                "md5_digest": "a27ea3d72d7822906ddce5e252d6add9",
+                "downloads": 2462803,
+                "filename": "requests-2.8.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 480803
+            }
+        ],
+        "2.8.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2015-10-06T14:47:57",
+                "comment_text": "",
+                "python_version": "py2.py3",
+                "url": "https://pypi.python.org/packages/py2.py3/r/requests/requests-2.8.0-py2.py3-none-any.whl",
+                "md5_digest": "52236eb6f886db4d2afba43775c97050",
+                "downloads": 416112,
+                "filename": "requests-2.8.0-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 476582
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2015-10-06T14:48:08",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.8.0.tar.gz",
+                "md5_digest": "3ec7198fc935d83c3eacff1ed4095ce4",
+                "downloads": 388624,
+                "filename": "requests-2.8.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 457879
+            }
+        ],
+        "0.6.5": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-19T07:30:59",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.6.5.tar.gz",
+                "md5_digest": "52f8bc956e027c8a0eb2684f6928169d",
+                "downloads": 4778,
+                "filename": "requests-0.6.5.tar.gz",
+                "packagetype": "sdist",
+                "size": 30647
+            }
+        ],
+        "2.0.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2013-11-15T19:12:20",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.0.1-py2.py3-none-any.whl",
+                "md5_digest": "d524f9a38a29efe1732fd130e5ebe433",
+                "downloads": 316311,
+                "filename": "requests-2.0.1-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 439330
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2013-10-24T14:33:21",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.0.1.tar.gz",
+                "md5_digest": "38e61c2856d2ba2782286730241975e6",
+                "downloads": 1450321,
+                "filename": "requests-2.0.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 412648
+            }
+        ],
+        "2.0.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2013-11-15T19:09:51",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.0.0-py2.py3-none-any.whl",
+                "md5_digest": "6af9c16dbddd2fc751ae4f1606d041e8",
+                "downloads": 299730,
+                "filename": "requests-2.0.0-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 391141
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2013-09-24T18:39:33",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.0.0.tar.gz",
+                "md5_digest": "856fc825c17483e25fd55db115028e3f",
+                "downloads": 1063100,
+                "filename": "requests-2.0.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 362994
+            }
+        ],
+        "0.6.6": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-19T09:39:56",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.6.6.tar.gz",
+                "md5_digest": "2180dacebc0e30ba730d083739907af6",
+                "downloads": 6671,
+                "filename": "requests-0.6.6.tar.gz",
+                "packagetype": "sdist",
+                "size": 30809
+            }
+        ],
+        "2.2.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2014-01-23T18:26:15",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.2.1-py2.py3-none-any.whl",
+                "md5_digest": "1e38addb978e50bd86f62bda53956b03",
+                "downloads": 2658147,
+                "filename": "requests-2.2.1-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 625382
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2014-01-23T18:26:12",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.2.1.tar.gz",
+                "md5_digest": "ac27081135f58d1a43e4fb38258d6f4e",
+                "downloads": 3407542,
+                "filename": "requests-2.2.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 421978
+            }
+        ],
+        "2.2.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2014-01-09T19:33:37",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.2.0-py2.py3-none-any.whl",
+                "md5_digest": "8f989615bb0d276d5f3158e7efab494c",
+                "downloads": 144823,
+                "filename": "requests-2.2.0-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 623932
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2014-01-09T19:33:32",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.2.0.tar.gz",
+                "md5_digest": "4d2e17221d478ece045e2e81cdb177f5",
+                "downloads": 392673,
+                "filename": "requests-2.2.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 421997
+            }
+        ],
+        "0.6.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-14T03:35:13",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.6.3.tar.gz",
+                "md5_digest": "35a954ae85b358e498fb0e602f1dce9d",
+                "downloads": 4769,
+                "filename": "requests-0.6.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 26606
+            }
+        ],
+        "0.6.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-09T13:12:45",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.6.2.tar.gz",
+                "md5_digest": "0583bb5393b9cfcb022dc2aef7d6ffc8",
+                "downloads": 7850,
+                "filename": "requests-0.6.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 26524
+            }
+        ],
+        "0.6.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-08-21T00:25:37",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.6.1.tar.gz",
+                "md5_digest": "07770334d48bd69ede1cc28cd0dd7680",
+                "downloads": 21399,
+                "filename": "requests-0.6.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 26107
+            }
+        ],
+        "0.6.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-08-17T10:33:05",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.6.0.tar.gz",
+                "md5_digest": "235e9fb6bfd71a48c0f00c0d5aef8896",
+                "downloads": 6029,
+                "filename": "requests-0.6.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 25692
+            }
+        ],
+        "0.11.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-03-31T05:47:56",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.11.1.tar.gz",
+                "md5_digest": "c903c32a0e1f04889e693da8e9c71872",
+                "downloads": 38150,
+                "filename": "requests-0.11.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 63100
+            }
+        ],
+        "0.11.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-04-23T04:29:36",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.11.2.tar.gz",
+                "md5_digest": "5acd23600c897bf1560dca18005b428c",
+                "downloads": 36476,
+                "filename": "requests-0.11.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 71080
+            }
+        ],
+        "0.6.4": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-14T04:23:31",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.6.4.tar.gz",
+                "md5_digest": "e0eec314178ad9a7bb14f2ec32f35ba3",
+                "downloads": 9277,
+                "filename": "requests-0.6.4.tar.gz",
+                "packagetype": "sdist",
+                "size": 30212
+            }
+        ],
+        "0.13.8": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-08-20T15:24:42",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.8.tar.gz",
+                "md5_digest": "d01596bd344db94763b2e4dfaa7bc7b9",
+                "downloads": 26725,
+                "filename": "requests-0.13.8.tar.gz",
+                "packagetype": "sdist",
+                "size": 522140
+            }
+        ],
+        "0.13.9": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-08-25T15:26:50",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.9.tar.gz",
+                "md5_digest": "66d52b8f47be517fc91a6e18d6b9ce82",
+                "downloads": 436286,
+                "filename": "requests-0.13.9.tar.gz",
+                "packagetype": "sdist",
+                "size": 522477
+            }
+        ],
+        "0.13.6": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-08-06T08:46:22",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.6.tar.gz",
+                "md5_digest": "9ea0f38cc4bf444be5a4c90f127211f2",
+                "downloads": 83586,
+                "filename": "requests-0.13.6.tar.gz",
+                "packagetype": "sdist",
+                "size": 520031
+            }
+        ],
+        "0.13.7": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-08-19T00:47:48",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.7.tar.gz",
+                "md5_digest": "9212044f915d44fe3010cb923c0e08e5",
+                "downloads": 20167,
+                "filename": "requests-0.13.7.tar.gz",
+                "packagetype": "sdist",
+                "size": 521660
+            }
+        ],
+        "0.13.4": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-07-27T08:22:09",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.4.tar.gz",
+                "md5_digest": "286cd3352509691e81c520accc5b9e48",
+                "downloads": 4033,
+                "filename": "requests-0.13.4.tar.gz",
+                "packagetype": "sdist",
+                "size": 519515
+            }
+        ],
+        "0.13.5": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-07-27T09:23:41",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.5.tar.gz",
+                "md5_digest": "805fd122b4cfd224e15ff2f5288c5ba0",
+                "downloads": 89067,
+                "filename": "requests-0.13.5.tar.gz",
+                "packagetype": "sdist",
+                "size": 519553
+            }
+        ],
+        "0.13.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-06-29T02:37:41",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.2.tar.gz",
+                "md5_digest": "fac5635391778e2394a411d37e69ae5e",
+                "downloads": 117591,
+                "filename": "requests-0.13.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 514484
+            }
+        ],
+        "0.13.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-07-12T23:20:43",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.3.tar.gz",
+                "md5_digest": "54387d7df6c69580b906dcb5a2bd0724",
+                "downloads": 144912,
+                "filename": "requests-0.13.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 515192
+            }
+        ],
+        "0.13.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-05-30T02:54:18",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.0.tar.gz",
+                "md5_digest": "7d41e51c273806456faab61370d5147e",
+                "downloads": 40543,
+                "filename": "requests-0.13.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 68172
+            }
+        ],
+        "0.13.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-06-08T04:22:28",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.13.1.tar.gz",
+                "md5_digest": "31a08091feeefe60817e45122d933219",
+                "downloads": 121874,
+                "filename": "requests-0.13.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 68474
+            }
+        ],
+        "0.8.9": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-12-28T10:34:17",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.9.tar.gz",
+                "md5_digest": "ff5b3bf5bc3ad19930d3f3afe51f182b",
+                "downloads": 10963,
+                "filename": "requests-0.8.9.tar.gz",
+                "packagetype": "sdist",
+                "size": 55153
+            }
+        ],
+        "0.8.8": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-12-28T09:55:45",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.8.tar.gz",
+                "md5_digest": "bfb182cfd3ed839b97744c553b87f502",
+                "downloads": 5368,
+                "filename": "requests-0.8.8.tar.gz",
+                "packagetype": "sdist",
+                "size": 54212
+            }
+        ],
+        "0.14.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-10-27T15:08:51",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.14.2.tar.gz",
+                "md5_digest": "488508ba3e8270992ad5b3fb54d364ca",
+                "downloads": 918155,
+                "filename": "requests-0.14.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 361488
+            }
+        ],
+        "0.8.5": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-12-14T16:43:21",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.5.tar.gz",
+                "md5_digest": "5f2975ee9e57f4ea000e5a3f50fc85d1",
+                "downloads": 6281,
+                "filename": "requests-0.8.5.tar.gz",
+                "packagetype": "sdist",
+                "size": 52351
+            }
+        ],
+        "0.8.4": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-12-11T17:40:28",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.4.tar.gz",
+                "md5_digest": "642e5c70250989e4feda9c50be57b100",
+                "downloads": 13119,
+                "filename": "requests-0.8.4.tar.gz",
+                "packagetype": "sdist",
+                "size": 52100
+            }
+        ],
+        "0.8.7": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-12-24T09:18:54",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.7.tar.gz",
+                "md5_digest": "e4d4ee3a90396908bd04b50bf2136617",
+                "downloads": 5369,
+                "filename": "requests-0.8.7.tar.gz",
+                "packagetype": "sdist",
+                "size": 53578
+            }
+        ],
+        "0.8.6": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-12-19T01:18:29",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.6.tar.gz",
+                "md5_digest": "21b03926ab38417a704ebce57972571a",
+                "downloads": 7981,
+                "filename": "requests-0.8.6.tar.gz",
+                "packagetype": "sdist",
+                "size": 52670
+            }
+        ],
+        "0.8.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-11-15T16:01:47",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.1.tar.gz",
+                "md5_digest": "6135f837fbd113fc62904c60dcc5c70d",
+                "downloads": 8542,
+                "filename": "requests-0.8.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 39046
+            }
+        ],
+        "0.8.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-11-13T06:52:10",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.0.tar.gz",
+                "md5_digest": "64dc0095cb645aa7f0083957950d524d",
+                "downloads": 5776,
+                "filename": "requests-0.8.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 38785
+            }
+        ],
+        "0.8.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-11-27T16:44:51",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.3.tar.gz",
+                "md5_digest": "93e4cd27ab646fb613a926fede1cc4f5",
+                "downloads": 12461,
+                "filename": "requests-0.8.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 51252
+            }
+        ],
+        "0.8.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-11-19T22:28:31",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.8.2.tar.gz",
+                "md5_digest": "bdbbd7f45688e23e87eec52835959943",
+                "downloads": 30687,
+                "filename": "requests-0.8.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 51162
+            }
+        ],
+        "0.4.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-05-25T18:54:05",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.4.1.tar.gz",
+                "md5_digest": "812ff0ce63d14f7b940bacd880d54ee0",
+                "downloads": 9781,
+                "filename": "requests-0.4.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 18443
+            }
+        ],
+        "0.4.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-05-15T05:58:43",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.4.0.tar.gz",
+                "md5_digest": "77a7a7edd54169c6fa7ace49dcb0b20c",
+                "downloads": 5713,
+                "filename": "requests-0.4.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 17194
+            }
+        ],
+        "2.4.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2014-10-06T09:44:49",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.4.3-py2.py3-none-any.whl",
+                "md5_digest": "0a66a9c4c22272680430fbb9fb4ca34f",
+                "downloads": 2501282,
+                "filename": "requests-2.4.3-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 459464
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2014-10-06T09:44:44",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.4.3.tar.gz",
+                "md5_digest": "02214b3a179e445545de4b7a98d3dd17",
+                "downloads": 2827852,
+                "filename": "requests-2.4.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 438132
+            }
+        ],
+        "2.4.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2014-10-05T17:15:53",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.4.2-py2.py3-none-any.whl",
+                "md5_digest": "f49f34b1fcdef6b557964deea1a80cf3",
+                "downloads": 26784,
+                "filename": "requests-2.4.2-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 459326
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2014-10-05T17:15:45",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.4.2.tar.gz",
+                "md5_digest": "a2476d2dd83a0520847f216ce0b5f9d1",
+                "downloads": 46933,
+                "filename": "requests-2.4.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 437898
+            }
+        ],
+        "2.4.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2014-09-09T16:35:12",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.4.1-py2.py3-none-any.whl",
+                "md5_digest": "19d5413dc71309e4fb1f8103b8eb99ce",
+                "downloads": 921215,
+                "filename": "requests-2.4.1-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 458354
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2014-09-09T16:35:08",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.4.1.tar.gz",
+                "md5_digest": "931461f761c70708c46ea65b7889da58",
+                "downloads": 1352590,
+                "filename": "requests-2.4.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 436872
+            }
+        ],
+        "2.4.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2014-08-29T14:32:48",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.4.0-py2.py3-none-any.whl",
+                "md5_digest": "47948d2fb3f2aa04235e6f637814b226",
+                "downloads": 308274,
+                "filename": "requests-2.4.0-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 457810
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2014-08-29T14:32:45",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.4.0.tar.gz",
+                "md5_digest": "99b830d1afe2e5920adbea0fe3120948",
+                "downloads": 597502,
+                "filename": "requests-2.4.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 436334
+            }
+        ],
+        "2.6.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2015-04-23T02:27:04",
+                "comment_text": "",
+                "python_version": "py2.py3",
+                "url": "https://pypi.python.org/packages/py2.py3/r/requests/requests-2.6.1-py2.py3-none-any.whl",
+                "md5_digest": "adb8e91b3367bc0417ef1e4a6dced9b1",
+                "downloads": 47681,
+                "filename": "requests-2.6.1-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 469962
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2015-04-23T02:27:12",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.6.1.tar.gz",
+                "md5_digest": "da6e487f89e6a531699b7fd97ff182af",
+                "downloads": 43134,
+                "filename": "requests-2.6.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 450975
+            }
+        ],
+        "2.6.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2015-03-14T16:44:37",
+                "comment_text": "",
+                "python_version": "py2.py3",
+                "url": "https://pypi.python.org/packages/py2.py3/r/requests/requests-2.6.0-py2.py3-none-any.whl",
+                "md5_digest": "3ab1972bbaf2802d94516fb86b9b0d0b",
+                "downloads": 2003507,
+                "filename": "requests-2.6.0-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 469802
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2015-03-14T16:44:48",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.6.0.tar.gz",
+                "md5_digest": "25287278fa3ea106207461112bb37050",
+                "downloads": 2402265,
+                "filename": "requests-2.6.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 450389
+            }
+        ],
+        "2.6.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2015-04-23T16:30:52",
+                "comment_text": "",
+                "python_version": "py2.py3",
+                "url": "https://pypi.python.org/packages/py2.py3/r/requests/requests-2.6.2-py2.py3-none-any.whl",
+                "md5_digest": "36746c275589b2154307bbcc6d28320a",
+                "downloads": 839011,
+                "filename": "requests-2.6.2-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 470140
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2015-04-23T16:31:01",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.6.2.tar.gz",
+                "md5_digest": "0d703e5be558566e0f8c37f960d95372",
+                "downloads": 598600,
+                "filename": "requests-2.6.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 451109
+            }
+        ],
+        "1.1.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2013-01-10T07:13:41",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.1.0.tar.gz",
+                "md5_digest": "a0158815af244c32041a3147ee09abf3",
+                "downloads": 1423824,
+                "filename": "requests-1.1.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 337229
+            }
+        ],
+        "0.2.4": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-02-19T07:03:14",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.2.4.tar.gz",
+                "md5_digest": "62dbe8cf12bc1ccd03776e74f59e9ef6",
+                "downloads": 5627,
+                "filename": "requests-0.2.4.tar.gz",
+                "packagetype": "sdist",
+                "size": 13653
+            }
+        ],
+        "0.2.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-02-15T15:47:29",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.2.3.tar.gz",
+                "md5_digest": "102243646fc0cffdc82269f4bb5c6d5d",
+                "downloads": 5009,
+                "filename": "requests-0.2.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 13255
+            }
+        ],
+        "0.2.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-02-14T18:58:40",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.2.2.tar.gz",
+                "md5_digest": "a703489b1a4a650698ddcf84857360c6",
+                "downloads": 4960,
+                "filename": "requests-0.2.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 13049
+            }
+        ],
+        "0.2.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-02-14T16:38:12",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.2.1.tar.gz",
+                "md5_digest": "7e9590f3985ece46fc8306e906b458c7",
+                "downloads": 4947,
+                "filename": "requests-0.2.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 12715
+            }
+        ],
+        "0.2.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-02-14T08:49:42",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.2.0.tar.gz",
+                "md5_digest": "637ae94cb6f2f1d9ea9020293055964a",
+                "downloads": 5066,
+                "filename": "requests-0.2.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 5533
+            }
+        ],
+        "0.14.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-10-01T17:30:05",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.14.1.tar.gz",
+                "md5_digest": "3de30600072cbc7214ae342d1d08aa46",
+                "downloads": 299590,
+                "filename": "requests-0.14.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 523254
+            }
+        ],
+        "2.1.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2013-12-05T22:51:41",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.1.0-py2.py3-none-any.whl",
+                "md5_digest": "0848cbc0cc7edd150cb8d6ddc25ca906",
+                "downloads": 802779,
+                "filename": "requests-2.1.0-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 445280
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2013-12-05T22:51:38",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.1.0.tar.gz",
+                "md5_digest": "28543001831f46b1ff40686ebc027deb",
+                "downloads": 980428,
+                "filename": "requests-2.1.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 420289
+            }
+        ],
+        "0.14.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-09-02T08:50:39",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.14.0.tar.gz",
+                "md5_digest": "a809c747e4f09b92147721ebc3e23dd6",
+                "downloads": 502482,
+                "filename": "requests-0.14.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 523133
+            }
+        ],
+        "0.10.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-01-23T08:22:52",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.10.1.tar.gz",
+                "md5_digest": "699147d2143bff95238befa58980b912",
+                "downloads": 26671,
+                "filename": "requests-0.10.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 63234
+            }
+        ],
+        "0.10.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-01-22T05:08:17",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.10.0.tar.gz",
+                "md5_digest": "c90a48af18eb4170dbe4832c1104440c",
+                "downloads": 10399,
+                "filename": "requests-0.10.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 62046
+            }
+        ],
+        "0.10.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-02-20T20:10:57",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.10.3.tar.gz",
+                "md5_digest": "a055af00593f4828c3becd0ccfab503f",
+                "downloads": 4709,
+                "filename": "requests-0.10.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 60493
+            }
+        ],
+        "0.10.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-02-15T09:48:52",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.10.2.tar.gz",
+                "md5_digest": "47c3cf85a0112d423137b43989663bef",
+                "downloads": 17350,
+                "filename": "requests-0.10.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 60158
+            }
+        ],
+        "0.0.1": [],
+        "0.10.4": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-02-20T22:21:31",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.10.4.tar.gz",
+                "md5_digest": "5e465e9e739bcc9f71935ca4e9706168",
+                "downloads": 13489,
+                "filename": "requests-0.10.4.tar.gz",
+                "packagetype": "sdist",
+                "size": 60889
+            }
+        ],
+        "0.10.7": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-03-08T01:50:58",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.10.7.tar.gz",
+                "md5_digest": "a3ac9d431981dcfd592fd0f35c499e4a",
+                "downloads": 6757,
+                "filename": "requests-0.10.7.tar.gz",
+                "packagetype": "sdist",
+                "size": 61826
+            }
+        ],
+        "0.10.6": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-02-26T05:17:54",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.10.6.tar.gz",
+                "md5_digest": "c889401445de3cbbac98509208a73b83",
+                "downloads": 28073,
+                "filename": "requests-0.10.6.tar.gz",
+                "packagetype": "sdist",
+                "size": 61673
+            }
+        ],
+        "0.7.6": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-11-07T20:19:31",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.7.6.tar.gz",
+                "md5_digest": "728b21bf3914d69a4ff1012c66d9b6ba",
+                "downloads": 8941,
+                "filename": "requests-0.7.6.tar.gz",
+                "packagetype": "sdist",
+                "size": 32748
+            }
+        ],
+        "0.10.8": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-03-09T17:59:54",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.10.8.tar.gz",
+                "md5_digest": "0fc89a30eef76b2393cbc7ebace91750",
+                "downloads": 97221,
+                "filename": "requests-0.10.8.tar.gz",
+                "packagetype": "sdist",
+                "size": 62201
+            }
+        ],
+        "0.7.4": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-27T00:36:25",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.7.4.tar.gz",
+                "md5_digest": "c015765399b8c1e309c84ade0d38f07b",
+                "downloads": 10308,
+                "filename": "requests-0.7.4.tar.gz",
+                "packagetype": "sdist",
+                "size": 31873
+            }
+        ],
+        "0.7.5": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-11-05T04:32:37",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.7.5.tar.gz",
+                "md5_digest": "9a12281a811ca25d347d806c456d96f1",
+                "downloads": 5899,
+                "filename": "requests-0.7.5.tar.gz",
+                "packagetype": "sdist",
+                "size": 32298
+            }
+        ],
+        "0.7.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-23T21:40:37",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.7.2.tar.gz",
+                "md5_digest": "03eb97ed6aacb4102fd434bbfc13ce17",
+                "downloads": 5630,
+                "filename": "requests-0.7.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 31837
+            }
+        ],
+        "0.7.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-23T23:04:13",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.7.3.tar.gz",
+                "md5_digest": "267f6f7d1109775d24a288f798e3ab4a",
+                "downloads": 9194,
+                "filename": "requests-0.7.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 31805
+            }
+        ],
+        "0.7.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-23T03:33:24",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.7.0.tar.gz",
+                "md5_digest": "83a1a7d79218756efd19b254eeb6b1f0",
+                "downloads": 4993,
+                "filename": "requests-0.7.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 31260
+            }
+        ],
+        "0.7.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-10-23T21:19:22",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.7.1.tar.gz",
+                "md5_digest": "4821c6902d8e83c910c69c6492388e5f",
+                "downloads": 4675,
+                "filename": "requests-0.7.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 31804
+            }
+        ],
+        "0.12.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-05-08T07:21:59",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.12.1.tar.gz",
+                "md5_digest": "fe9e0515d09733d0eb9e2031c03401b2",
+                "downloads": 131145,
+                "filename": "requests-0.12.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 78245
+            }
+        ],
+        "0.12.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-05-03T01:18:47",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.12.0.tar.gz",
+                "md5_digest": "c38bacf4d6a065f3c47463e63efdfb5a",
+                "downloads": 12488,
+                "filename": "requests-0.12.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 76859
+            }
+        ],
+        "0.5.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-06-22T04:44:39",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.5.0.tar.gz",
+                "md5_digest": "6dfdc1688217d774d524e056ec6605a6",
+                "downloads": 8450,
+                "filename": "requests-0.5.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 21945
+            }
+        ],
+        "0.5.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-07-24T05:01:45",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.5.1.tar.gz",
+                "md5_digest": "33a6e65d6a4e5b2d91df76256f607b81",
+                "downloads": 7189,
+                "filename": "requests-0.5.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 23080
+            }
+        ],
+        "0.9.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2011-12-28T10:51:35",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.9.0.tar.gz",
+                "md5_digest": "5f6f03ec76f68a7a3f35120ab5a6c589",
+                "downloads": 16697,
+                "filename": "requests-0.9.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 55217
+            }
+        ],
+        "0.9.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-01-06T07:11:02",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.9.1.tar.gz",
+                "md5_digest": "8ed4667edb5d57945b74a9137adbb8bd",
+                "downloads": 14372,
+                "filename": "requests-0.9.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 55547
+            }
+        ],
+        "0.9.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-01-19T03:39:58",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.9.2.tar.gz",
+                "md5_digest": "65b36d99a4d2f78a22f08c95d2475e33",
+                "downloads": 4700,
+                "filename": "requests-0.9.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 60967
+            }
+        ],
+        "0.9.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2012-01-19T16:51:33",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-0.9.3.tar.gz",
+                "md5_digest": "b13b6fbfa8fc3fc3c25bae300748053f",
+                "downloads": 11556,
+                "filename": "requests-0.9.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 61006
+            }
+        ],
+        "2.3.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2014-05-16T17:57:05",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.3.0-py2.py3-none-any.whl",
+                "md5_digest": "f2d850fd48fc10a93aa03d69b87b96b4",
+                "downloads": 4032003,
+                "filename": "requests-2.3.0-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 452902
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2014-05-16T17:57:02",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.3.0.tar.gz",
+                "md5_digest": "7449ffdc8ec9ac37bbcd286003c80f00",
+                "downloads": 4723580,
+                "filename": "requests-2.3.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 429521
+            }
+        ],
+        "1.2.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2013-05-21T21:44:44",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.2.2.tar.gz",
+                "md5_digest": "1f655ab7f2aa7447a1657ed69786f436",
+                "downloads": 219258,
+                "filename": "requests-1.2.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 348851
+            }
+        ],
+        "1.2.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2013-05-25T16:48:36",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.2.3.tar.gz",
+                "md5_digest": "adbd3f18445f7fe5e77f65c502e264fb",
+                "downloads": 3278337,
+                "filename": "requests-1.2.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 348854
+            }
+        ],
+        "1.2.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2013-03-31T05:28:47",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.2.0.tar.gz",
+                "md5_digest": "22af2682233770e5468a986f451c51c0",
+                "downloads": 896245,
+                "filename": "requests-1.2.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 341511
+            }
+        ],
+        "1.2.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2013-05-20T20:11:09",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-1.2.1.tar.gz",
+                "md5_digest": "4d019670b94b17e329007d64e67e045e",
+                "downloads": 8076,
+                "filename": "requests-1.2.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 348710
+            }
+        ],
+        "2.5.2": [
+            {
+                "has_sig": false,
+                "upload_time": "2015-02-23T22:37:39",
+                "comment_text": "",
+                "python_version": "py2.py3",
+                "url": "https://pypi.python.org/packages/py2.py3/r/requests/requests-2.5.2-py2.py3-none-any.whl",
+                "md5_digest": "7e72dfe8ed9d4ce5fd9dd9d799b3add1",
+                "downloads": 162592,
+                "filename": "requests-2.5.2-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 474275
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2015-02-23T22:37:46",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.5.2.tar.gz",
+                "md5_digest": "424e2469202c9bace4e8bf4642d4217a",
+                "downloads": 53980,
+                "filename": "requests-2.5.2.tar.gz",
+                "packagetype": "sdist",
+                "size": 455688
+            }
+        ],
+        "2.5.3": [
+            {
+                "has_sig": false,
+                "upload_time": "2015-02-24T16:33:49",
+                "comment_text": "",
+                "python_version": "py2.py3",
+                "url": "https://pypi.python.org/packages/py2.py3/r/requests/requests-2.5.3-py2.py3-none-any.whl",
+                "md5_digest": "233249f4627ac5481c948e494d2a090e",
+                "downloads": 873743,
+                "filename": "requests-2.5.3-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 468593
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2015-02-24T16:33:58",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.5.3.tar.gz",
+                "md5_digest": "23bf4fcc89ea8d353eb5353bb4a475b1",
+                "downloads": 874483,
+                "filename": "requests-2.5.3.tar.gz",
+                "packagetype": "sdist",
+                "size": 448318
+            }
+        ],
+        "2.5.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2014-12-01T23:27:51",
+                "comment_text": "",
+                "python_version": "py2.py3",
+                "url": "https://pypi.python.org/packages/py2.py3/r/requests/requests-2.5.0-py2.py3-none-any.whl",
+                "md5_digest": "9d29a8a0210c236d9329bed49277b3fa",
+                "downloads": 877099,
+                "filename": "requests-2.5.0-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 464196
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2014-12-01T23:27:58",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.5.0.tar.gz",
+                "md5_digest": "b8bf3ddca75e7ecf1b6776da1e6e3385",
+                "downloads": 1056687,
+                "filename": "requests-2.5.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 443222
+            }
+        ],
+        "2.5.1": [
+            {
+                "has_sig": false,
+                "upload_time": "2014-12-23T17:55:59",
+                "comment_text": "",
+                "python_version": "py2.py3",
+                "url": "https://pypi.python.org/packages/py2.py3/r/requests/requests-2.5.1-py2.py3-none-any.whl",
+                "md5_digest": "11dc91bc96c5c5e0b566ce8f9c9644ab",
+                "downloads": 1893375,
+                "filename": "requests-2.5.1-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 464421
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2014-12-23T17:56:08",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.5.1.tar.gz",
+                "md5_digest": "c270eb5551a02e8ab7a4cbb83e22af2e",
+                "downloads": 2583555,
+                "filename": "requests-2.5.1.tar.gz",
+                "packagetype": "sdist",
+                "size": 443633
+            }
+        ],
+        "2.7.0": [
+            {
+                "has_sig": false,
+                "upload_time": "2015-05-03T15:01:28",
+                "comment_text": "",
+                "python_version": "2.7",
+                "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.7.0-py2.py3-none-any.whl",
+                "md5_digest": "564fb256f865a79f977e57b79d31659a",
+                "downloads": 8550789,
+                "filename": "requests-2.7.0-py2.py3-none-any.whl",
+                "packagetype": "bdist_wheel",
+                "size": 470641
+            },
+            {
+                "has_sig": false,
+                "upload_time": "2015-05-03T15:01:21",
+                "comment_text": "",
+                "python_version": "source",
+                "url": "https://pypi.python.org/packages/source/r/requests/requests-2.7.0.tar.gz",
+                "md5_digest": "29b173fd5fa572ec0764d1fd7b527260",
+                "downloads": 7696812,
+                "filename": "requests-2.7.0.tar.gz",
+                "packagetype": "sdist",
+                "size": 451723
+            }
+        ]
+    },
+    "urls": [
+        {
+            "has_sig": false,
+            "upload_time": "2015-10-13T12:56:41",
+            "comment_text": "",
+            "python_version": "2.7",
+            "url": "https://pypi.python.org/packages/2.7/r/requests/requests-2.8.1-py2.py3-none-any.whl",
+            "md5_digest": "46f1d621daa3ab38958a42f51478b1ee",
+            "downloads": 3302171,
+            "filename": "requests-2.8.1-py2.py3-none-any.whl",
+            "packagetype": "bdist_wheel",
+            "size": 497953
+        },
+        {
+            "has_sig": false,
+            "upload_time": "2015-10-13T12:56:34",
+            "comment_text": "",
+            "python_version": "source",
+            "url": "https://pypi.python.org/packages/source/r/requests/requests-2.8.1.tar.gz",
+            "md5_digest": "a27ea3d72d7822906ddce5e252d6add9",
+            "downloads": 2462803,
+            "filename": "requests-2.8.1.tar.gz",
+            "packagetype": "sdist",
+            "size": 480803
+        }
+    ]
+}
