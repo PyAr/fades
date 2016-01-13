@@ -12,8 +12,6 @@ fades
     :target: https://coveralls.io/github/PyAr/fades?branch=master
 
 
-
-
 fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and
 even helps to administer big projects.
@@ -29,6 +27,10 @@ created one), installing the necessary dependencies, and execute
 your script inside that virtualenv, with the only requirement
 of executing the script with *fades* and also marking the required
 dependencies.
+
+*(If you don't have a clue why this is necessary or useful, I'd recommend you
+to read this small text about* `Python and the Management of Dependencies
+<https://github.com/PyAr/fades/blob/master/docs/pydepmanag.rst>`_ *.)*
 
 The first non-option parameter (if any) would be then the child program
 to execute, and any other parameters after that are passed as is to that
