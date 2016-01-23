@@ -88,15 +88,15 @@ def go(argv):
                               "virtualenv."))
     parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
     parser.add_argument('--system-site-packages', action='store_true', default=False,
-                        help=("Give the virtual environment access to the"
+                        help=("Give the virtual environment access to the "
                               "system site-packages dir."))
     parser.add_argument('--virtualenv-options', action='append', default=[],
-                        help=("Extra options to be supplied to virtualenv. (this option can be"
+                        help=("Extra options to be supplied to virtualenv. (this option can be "
                               "used multiple times)"))
     parser.add_argument('--check-updates', action='store_true',
                         help=("check for packages updates"))
     parser.add_argument('--pip-options', action='append', default=[],
-                        help=("Extra options to be supplied to pip. (this option can be"
+                        help=("Extra options to be supplied to pip. (this option can be "
                               "used multiple times)"))
     parser.add_argument('--rm', dest='remove', metavar='UUID',
                         help=("Remove a virtualenv by UUID."))
