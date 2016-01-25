@@ -12,7 +12,13 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB-i\fR][\fB--ipython\fR]
 [\fB-d\fR][\fB--dependency\fR]
 [\fB-r\fR][\fB--requirement\fR]
+[\fB-x\fR][\fB--exec\fR]
 [\fB-p\fR \fIversion\fR][\fB--python\fR=\fIversion\fR]
+[\fB--rm\fR=\fIuuid\fR]
+[\fB--system-site-packages\fR]
+[\fB--virtualenv-options\fR=\fIoptions\fR]
+[\fB--pip-options\fR=\fIoptions\fR]
+[\fB--check-updates\fR]
 [child_program [child_options]]
 
 \fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
@@ -89,6 +95,10 @@ Extra options to be supplied to virtualenv. (this option can beused multiple tim
 .TP 
 .BR --pip-options=\fIPIP_OPTION\fR
 Extra options to be supplied to pip. (this option can beused multiple times)
+
+.TP 
+.BR --check-updates
+Will check for updates in PyPI to verify if there are new versions for the requested dependencies. If a new version is available for a dependency, it will use it (if the dependency was requested without version) or just inform which new version is available (if the dependency was requested with a specific version).
 
 .SH EXAMPLES
 

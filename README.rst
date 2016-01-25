@@ -166,6 +166,35 @@ and it will launch this shell instead of the python one.
 
 You can also use ``--system-site-packages`` to create a venv with access to the system libs.
 
+
+How to deal with packages that are upgraded in PyPI
+---------------------------------------------------
+
+When you tell *fades* to create a virtualenv using one dependency and
+don't specify a version, it will install the latest one from PyPI.
+
+For example, you do ``fades -d foobar`` and it installs foobar in
+version 7. At some point, there is a new version of foobar in PyPI,
+version 8, but if do ``fades -d foobar`` it will just reuse previously
+created virtualenv, with version 7, not using the new one!
+
+You can tell fades to do otherwise, just do::
+
+    fades -d foobar --check-updates
+
+...and *fades* will search updates for the package on PyPI, and as it will
+found version 8, will create a new virtualenv using the latest version.
+
+You can even use this parameter when specifying the package version. Say
+you call ``fades -d foobar==7``, *fades* will install version 7 no matter
+which one is the latest. But if you do::
+
+    fades -d foobar==7 --check-updates
+
+...it will still use version 7, but will inform you that a new version
+is available!
+
+
 Under the hood options
 ----------------------
 
