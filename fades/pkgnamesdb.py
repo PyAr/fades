@@ -23,4 +23,5 @@ PKG_NAMES_DB = {
     'postgresql': 'py-postgresql',
     'yaml': 'pyyaml',
     'PIL': 'Pillow',
+    'Crypto': 'pycrypto',
 }
