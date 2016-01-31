@@ -77,16 +77,23 @@ class VEnvsCache:
 
     def _select(self, current_venvs, requirements=None, interpreter='', uuid='', options=None):
         """Select which venv satisfy the received requirements."""
+        def match_by_uuid(env):
+            return env.get('metadata', {}).get('env_path') == env_path
+
+        def match_by_req_and_interpreter(env):
+            return (env.get('options') == options and
+                    env.get('interpreter') == interpreter and
+                    self._venv_match(venv['installed'], requirements))
+
         if uuid:
             logger.debug("Searching a venv by uuid: %s", uuid)
             env_path = os.path.join(helpers.get_basedir(), uuid)
-            match = lambda env: env.get('metadata', {}).get('env_path') == env_path
+            match = match_by_uuid
         else:
             logger.debug("Searching a venv for reqs: %s and interpreter: %s",
                          requirements, interpreter)
-            match = lambda env: (env.get('options') == options and
-                                 env.get('interpreter') == interpreter and
-                                 self._venv_match(venv['installed'], requirements))
+            match = match_by_req_and_interpreter
+
         for venv_str in current_venvs:
             venv = json.loads(venv_str)
             if match(venv):
