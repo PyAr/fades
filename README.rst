@@ -208,6 +208,28 @@ Examples:
 
 ``fades -d requests --pip-options="--index-url="http://example.com"``
 
+Setting options using config files
+----------------------------------
+
+You can also configure fades using `.ini` config files. fades will search for config files in 
+`/etc/fades.ini`, `~/.fades` and `.fades`. 
+
+So you can have different settings at system, user and project level.
+
+The config files are in `.ini` format. (configparser) and fades will search for a `[fades]` section.
+
+You have to use the same configurations that in the CLI:: 
+
+    [fades]
+    ipython=true
+    verbose=true
+    python=python3
+    dependency=requests,django>=1.8
+
+There is a little difference in how fades handle these settings: "dependecy", "pip-options" and 
+"virtualenv-options". In this cases you have to use comma separated. 
+The most important thing is that this options will be merged. So if you configure in `~/.fades.ini` 
+"dependency=requests" you will have requests in all the virtualenvs createds by fades.
 
 How to clean up old virtualenvs?
 --------------------------------
