@@ -25,14 +25,6 @@ from unittest.mock import patch
 from fades import file_options
 
 
-#    def test_simple(self):
-#        parsed = parsing._parse_content(io.StringIO("""
-#            import time
-#            import foo    # fades.pypi
-#        """))
-#        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
-#
-
 class GetParsersTestCase(unittest.TestCase):
     """Check file_options.get_parsers()."""
 
@@ -140,6 +132,18 @@ class OptionsFileTestCase(unittest.TestCase):
         self.assertIsInstance(args, argparse.Namespace)
 
     @patch("fades.file_options.get_parsers")
+    def test_two_config_file_with_booleans(self, mock_get_parsers):
+        parsed_args_a = {'foo': 'false'}
+        parsed_args_b = {'foo': 'true'}
+        mock_get_parsers.return_value = [self.build_parser(parsed_args_a),
+                                         self.build_parser(parsed_args_b)]
+        args = self.argparser.parse_args([])
+        result = file_options.options_from_file(args)
+
+        self.assertFalse(result.foo)
+        self.assertIsInstance(args, argparse.Namespace)
+
+    @patch("fades.file_options.get_parsers")
     def test_two_config_file_override_by_cli(self, mock_get_parsers):
         parsed_args_a = {'bar': 'no_this'}
         parsed_args_b = {'bar': 'no_this_b'}
@@ -152,7 +156,7 @@ class OptionsFileTestCase(unittest.TestCase):
         self.assertIsInstance(args, argparse.Namespace)
 
     @patch("fades.file_options.get_parsers")
-    def test_two_config_file_override(self, mock_get_parsers):
+    def test_three_config_file_override(self, mock_get_parsers):
         parsed_args_a = {'bar': 'this'}
         parsed_args_b = {'bar': 'no_this'}
         parsed_args_c = {'bar': 'neither_this'}

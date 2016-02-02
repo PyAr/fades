@@ -1,4 +1,4 @@
-# Copyright 2014-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -14,7 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-"""Parse fades options from confir files."""
+"""Parse fades options from config files."""
 
 import logging
 from configparser import ConfigParser
@@ -27,22 +27,19 @@ MERGEABLE_CONFIGS = ("dependency", "pip_options", "virtualenv-options")
 
 
 def get_parsers(config_files=CONFIG_FILES):
-    """
-    Search for config files return a ConfigParser for each one.
+    """Search for config files return a ConfigParser for each one.
 
     Return a Configparser with all files merged in the first position and one
     Configparser for each file ordered by priority.
     """
     parser = ConfigParser()
-    existing_files = parser.read(config_files, encoding='cp1250')
+    existing_files = parser.read(config_files)
     if existing_files and parser.sections():
-        if len(existing_files) == 1:
-            return [parser]
         parsers = []
         parsers.append(parser)  # first parser is the one with all the settings.
         for config_file in existing_files:
             single_parser = ConfigParser()
-            single_parser.read(config_file, encoding='cp1250')
+            single_parser.read(config_file)
             if parser.sections():  # avoid empty files.
                 parsers.append(single_parser)
             return parsers
@@ -50,8 +47,6 @@ def get_parsers(config_files=CONFIG_FILES):
 
 def merge_parsers(parsers):
     """Merge options in MERGEABLE_CONFIGS in a uniq ConfigParser."""
-    if len(parsers) == 1:
-        return parsers[0]
     merged_parser = parsers[0]
     for parser in parsers[1:]:
         # list of parsers is ordered by priority, last one is highest.
@@ -64,8 +59,7 @@ def merge_parsers(parsers):
 
 
 def options_from_file(args):
-    """
-    Get a argparse.Namespace and return it updated with options from config files.
+    """Get a argparse.Namespace and return it updated with options from config files.
 
     Config files will be parsed with priority equal to his order in CONFIG_FILES.
     """
@@ -75,7 +69,7 @@ def options_from_file(args):
     parser = merge_parsers(parsers)
     config_items = parser['fades']
     for config_key, config_value in config_items.items():
-        if config_value == ['true', 'false']:
+        if config_value in ['true', 'false']:
             config_value = config_items.getboolean(config_key)
         if config_key in MERGEABLE_CONFIGS:
             current_value = getattr(args, config_key, [])

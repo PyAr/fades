@@ -227,8 +227,8 @@ You have to use the same configurations that in the CLI::
     dependency=requests,django>=1.8
 
 There is a little difference in how fades handle these settings: "dependecy", "pip-options" and 
-"virtualenv-options". In this cases you have to use comma separated. 
-The most important thing is that this options will be merged. So if you configure in `~/.fades.ini` 
+"virtualenv-options". In these cases you have to use comma separated. 
+The most important thing is that these options will be merged. So if you configure in `~/.fades.ini` 
 "dependency=requests" you will have requests in all the virtualenvs createds by fades.
 
 How to clean up old virtualenvs?
