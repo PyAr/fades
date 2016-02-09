@@ -383,6 +383,8 @@ Get some help, give some feedback
 You can ask any question or send any recommendation or request to
 the `mailing list <http://listas.python.org.ar/mailman/listinfo/fades>`_.
 
+Come chat with us on IRC. The #fades channel is located at the `Freenode <http://freenode.net/>`_ network.
+
 Also, you can open an issue
 `here <https://github.com/PyAr/fades/issues/new>`_ (please do if you
 find any problem!).
