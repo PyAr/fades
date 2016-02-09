@@ -117,6 +117,19 @@ class OptionsFileTestCase(unittest.TestCase):
         self.assertIsInstance(args, argparse.Namespace)
 
     @patch("fades.file_options.get_parsers")
+    def test_single_config_file_complex_mergeable(self, mock_get_parsers):
+        parsed_args = {'dependency': 'requests>=2.1,<2.8,!=2.6.5'}
+        mock_get_parsers.return_value = [self.build_parser(parsed_args)]
+        args = self.argparser.parse_args(
+            ['--foo', '--bar', 'other', '--dependency', 'one', 'positional'])
+        result = file_options.options_from_file(args)
+
+        self.assertTrue(result.foo)
+        self.assertEqual(result.bar, 'other')
+        self.assertEqual(result.dependency, ['one', 'requests>=2.1,<2.8,!=2.6.5'])
+        self.assertIsInstance(args, argparse.Namespace)
+
+    @patch("fades.file_options.get_parsers")
     def test_two_config_file_with_mergeable(self, mock_get_parsers):
         parsed_args_a = {'dependency': 'two'}
         parsed_args_b = {'dependency': 'three'}

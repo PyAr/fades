@@ -19,9 +19,12 @@
 import logging
 from configparser import ConfigParser
 
+from fades.helpers import get_confdir
+
 logger = logging.getLogger(__name__)
 
-CONFIG_FILES = ("/etc/fades.ini", "~/.fades.ini", ".fades")
+CONFIG_FILES = ("/etc/fades/fades.ini", get_confdir(), ".fades.ini")
+
 
 MERGEABLE_CONFIGS = ("dependency", "pip_options", "virtualenv-options")
 
@@ -34,6 +37,7 @@ def get_parsers(config_files=CONFIG_FILES):
     """
     parser = ConfigParser()
     existing_files = parser.read(config_files)
+    logger.debug("Found these config files: %s", existing_files)
     if existing_files and parser.sections():
         parsers = []
         parsers.append(parser)  # first parser is the one with all the settings.
@@ -53,7 +57,7 @@ def merge_parsers(parsers):
         items = parser.items('fades')
         for key, value in items:
             if key in MERGEABLE_CONFIGS:
-                new_value = "{},{}".format(merged_parser.get('fades', key), value)
+                new_value = "{};{}".format(merged_parser.get('fades', key), value)
                 merged_parser.set('fades', key, new_value)
     return merged_parser
 
@@ -63,6 +67,7 @@ def options_from_file(args):
 
     Config files will be parsed with priority equal to his order in CONFIG_FILES.
     """
+    logger.debug("updating options from config files")
     parsers = get_parsers()
     if parsers is None:
         return args
@@ -75,7 +80,7 @@ def options_from_file(args):
             current_value = getattr(args, config_key, [])
             if current_value is None:
                 current_value = []
-            config_value = config_value.split(',')
+            config_value = config_value.split(';')
             new_value = current_value + config_value
             logger.debug("Updating %s, from %s to %s", config_key, current_value, new_value)
             setattr(args, config_key, new_value)

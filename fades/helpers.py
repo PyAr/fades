@@ -86,6 +86,17 @@ def get_basedir():
         return expanduser("~/.fades")
 
 
+def get_confdir():
+    """Get the config fades directory, from xdg or kinda hardcoded."""
+    try:
+        from xdg import BaseDirectory  # NOQA
+        return os.path.join(BaseDirectory.xdg_config_home, 'fades')
+    except ImportError:
+        logger.debug("Package xdg not installed; using ~/.fades folder")
+        from os.path import expanduser
+        return expanduser("~/.fades")
+
+
 def _get_interpreter_info(interpreter=None):
     """Return the interpreter's full path using pythonX.Y format."""
     if interpreter is None:
