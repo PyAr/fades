@@ -215,11 +215,12 @@ You can also configure fades using `.ini` config files. fades will search for co
 `/etc/fades/fades.ini`, the path indicated by `xdg` for your system 
 (for example `~/config/fades/fades.ini`) and `.fades.ini`. 
 
+So you can have different settings at system, user and project level.
+
 With fades installed you can get your config dir running::
 
     python -c "from fades.helpers import get_confdir; print(get_confdir())"
 
-So you can have different settings at system, user and project level.
 
 The config files are in `.ini` format. (configparser) and fades will search for a `[fades]` section.
 
@@ -233,12 +234,12 @@ options with a dash, it have to be replaced with a underscore.::
     check_updates=true
     dependency=requests;django>=1.8  # separated by semicolon
 
-There is a little difference in how fades handle these settings: "dependecy", "pip-options" and 
+There is a little difference in how fades handle these settings: "dependency", "pip-options" and 
 "virtualenv-options". In these cases you have to use a semicolon separated list. 
 
 The most important thing is that these options will be merged. So if you configure in 
 `/etc/fades/fades.ini` "dependency=requests" you will have requests in all the virtualenvs 
-createds by fades.
+created by fades.
 
 How to clean up old virtualenvs?
 --------------------------------
