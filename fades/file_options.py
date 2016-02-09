@@ -17,6 +17,7 @@
 """Parse fades options from config files."""
 
 import logging
+import os
 
 from configparser import ConfigParser, NoSectionError
 
@@ -24,7 +25,7 @@ from fades.helpers import get_confdir
 
 logger = logging.getLogger(__name__)
 
-CONFIG_FILES = ("/etc/fades/fades.ini", get_confdir(), ".fades.ini")
+CONFIG_FILES = ("/etc/fades/fades.ini", os.path.join(get_confdir(), 'fades.ini'), ".fades.ini")
 
 MERGEABLE_CONFIGS = ("dependency", "pip_options", "virtualenv-options")
 
@@ -37,6 +38,7 @@ def options_from_file(args):
     logger.debug("updating options from config files")
     updated_from_file = []
     for config_file in CONFIG_FILES:
+        logger.debug("updating from: %s", config_file)
         parser = ConfigParser()
         parser.read(config_file)
         try:
