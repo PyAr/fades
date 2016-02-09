@@ -212,24 +212,33 @@ Setting options using config files
 ----------------------------------
 
 You can also configure fades using `.ini` config files. fades will search for config files in 
-`/etc/fades.ini`, `~/.fades` and `.fades`. 
+`/etc/fades/fades.ini`, the path indicated by `xdg` for your system 
+(for example `~/config/fades/fades.ini`) and `.fades.ini`. 
+
+With fades installed you can get your config dir running::
+
+    python -c "from fades.helpers import get_confdir; print(get_confdir())"
 
 So you can have different settings at system, user and project level.
 
 The config files are in `.ini` format. (configparser) and fades will search for a `[fades]` section.
 
-You have to use the same configurations that in the CLI:: 
+You have to use the same configurations that in the CLI. The only difference is with the config 
+options with a dash, it have to be replaced with a underscore.:: 
 
     [fades]
     ipython=true
     verbose=true
     python=python3
-    dependency=requests,django>=1.8
+    check_updates=true
+    dependency=requests;django>=1.8  # separated by semicolon
 
 There is a little difference in how fades handle these settings: "dependecy", "pip-options" and 
-"virtualenv-options". In these cases you have to use comma separated. 
-The most important thing is that these options will be merged. So if you configure in `~/.fades.ini` 
-"dependency=requests" you will have requests in all the virtualenvs createds by fades.
+"virtualenv-options". In these cases you have to use a semicolon separated list. 
+
+The most important thing is that these options will be merged. So if you configure in 
+`/etc/fades/fades.ini` "dependency=requests" you will have requests in all the virtualenvs 
+createds by fades.
 
 How to clean up old virtualenvs?
 --------------------------------
