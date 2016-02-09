@@ -19,40 +19,9 @@
 import argparse
 import unittest
 from configparser import ConfigParser
-from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
 from fades import file_options
-
-
-class GetParsersTestCase(unittest.TestCase):
-    """Check file_options.get_parsers()."""
-
-    def test_no_config_file_present(self):
-        parsers = file_options.get_parsers(config_files={'none': "/foo/bar"})
-
-        self.assertIsNone(parsers)
-
-    def test_empty_config_files(self):
-        config_file_1 = NamedTemporaryFile()
-        config_file_2 = NamedTemporaryFile()
-
-        parsers = file_options.get_parsers([config_file_1.name, config_file_2.name])
-
-        config_file_1.close()
-        config_file_2.close()
-
-        self.assertIsNone(parsers)
-
-    def test_read_corrupted_config_file(self):
-        with NamedTemporaryFile() as corrupted:
-            corrupted.write(b"""
-                            [fades]
-                            foofoo;1
-                            """)
-            corrupted.seek(0)
-            with self.assertRaises(Exception):
-                file_options.get_parsers([corrupted.name])
 
 
 class OptionsFileTestCase(unittest.TestCase):
@@ -71,19 +40,18 @@ class OptionsFileTestCase(unittest.TestCase):
         config_parser['fades'] = args
         return config_parser
 
-    @patch("fades.file_options.get_parsers")
-    def test_no_parsers(self, mock_get_parsers):
-        mock_get_parsers.return_value = None
-        args = self.argparser.parse_args(['positional'])
+    @patch("fades.file_options.CONFIG_FILES", ('/foo/none', '/dev/null'))
+    def test_no_config_files(self):
+        args = self.argparser.parse_args([])
         result = file_options.options_from_file(args)
 
         self.assertEqual(args, result)
         self.assertIsInstance(args, argparse.Namespace)
 
-    @patch("fades.file_options.get_parsers")
-    def test_single_config_file_no_cli(self, mock_get_parsers):
-        parsed_args = {'foo': 'true', 'bar': 'hux'}
-        mock_get_parsers.return_value = [self.build_parser(parsed_args)]
+    @patch("fades.file_options.CONFIG_FILES", ('mock.ini',))
+    @patch("configparser.ConfigParser.items")
+    def test_single_config_file_no_cli(self, mocked_parser):
+        mocked_parser.return_value = [('foo', 'true'), ('bar', 'hux')]
         args = self.argparser.parse_args(['positional'])
         result = file_options.options_from_file(args)
 
@@ -91,10 +59,10 @@ class OptionsFileTestCase(unittest.TestCase):
         self.assertEqual(result.bar, 'hux')
         self.assertIsInstance(args, argparse.Namespace)
 
-    @patch("fades.file_options.get_parsers")
-    def test_single_config_file(self, mock_get_parsers):
-        parsed_args = {'foo': 'false', 'bar': 'hux', 'no_in_cli': 'testing'}
-        mock_get_parsers.return_value = [self.build_parser(parsed_args)]
+    @patch("fades.file_options.CONFIG_FILES", ('mock.ini',))
+    @patch("configparser.ConfigParser.items")
+    def test_single_config_file_with_cli(self, mocked_parser):
+        mocked_parser.return_value = [('foo', 'false'), ('bar', 'hux'), ('no_in_cli', 'testing')]
         args = self.argparser.parse_args(['--foo', '--bar', 'other', 'positional'])
         result = file_options.options_from_file(args)
 
@@ -103,10 +71,10 @@ class OptionsFileTestCase(unittest.TestCase):
         self.assertEqual(result.no_in_cli, 'testing')
         self.assertIsInstance(args, argparse.Namespace)
 
-    @patch("fades.file_options.get_parsers")
-    def test_single_config_file_with_mergeable(self, mock_get_parsers):
-        parsed_args = {'dependency': 'two'}
-        mock_get_parsers.return_value = [self.build_parser(parsed_args)]
+    @patch("fades.file_options.CONFIG_FILES", ('mock.ini',))
+    @patch("configparser.ConfigParser.items")
+    def test_single_config_file_with_mergeable(self, mocked_parser):
+        mocked_parser.return_value = [('dependency', 'two')]
         args = self.argparser.parse_args(
             ['--foo', '--bar', 'other', '--dependency', 'one', 'positional'])
         result = file_options.options_from_file(args)
@@ -116,10 +84,10 @@ class OptionsFileTestCase(unittest.TestCase):
         self.assertEqual(result.dependency, ['one', 'two'])
         self.assertIsInstance(args, argparse.Namespace)
 
-    @patch("fades.file_options.get_parsers")
-    def test_single_config_file_complex_mergeable(self, mock_get_parsers):
-        parsed_args = {'dependency': 'requests>=2.1,<2.8,!=2.6.5'}
-        mock_get_parsers.return_value = [self.build_parser(parsed_args)]
+    @patch("fades.file_options.CONFIG_FILES", ('mock.ini',))
+    @patch("configparser.ConfigParser.items")
+    def test_single_config_file_complex_mergeable(self, mocked_parser):
+        mocked_parser.return_value = [('dependency', 'requests>=2.1,<2.8,!=2.6.5')]
         args = self.argparser.parse_args(
             ['--foo', '--bar', 'other', '--dependency', 'one', 'positional'])
         result = file_options.options_from_file(args)
@@ -129,12 +97,13 @@ class OptionsFileTestCase(unittest.TestCase):
         self.assertEqual(result.dependency, ['one', 'requests>=2.1,<2.8,!=2.6.5'])
         self.assertIsInstance(args, argparse.Namespace)
 
-    @patch("fades.file_options.get_parsers")
-    def test_two_config_file_with_mergeable(self, mock_get_parsers):
-        parsed_args_a = {'dependency': 'two'}
-        parsed_args_b = {'dependency': 'three'}
-        mock_get_parsers.return_value = [self.build_parser(parsed_args_a),
-                                         self.build_parser(parsed_args_b)]
+    @patch("fades.file_options.CONFIG_FILES", ('mock.ini', 'mock2.ini'))
+    @patch("configparser.ConfigParser.items")
+    def test_two_config_file_with_mergeable(self, mocked_parser):
+        mocked_parser.side_effect = [
+            [('dependency', 'two')],
+            [('dependency', 'three')],
+        ]
         args = self.argparser.parse_args(
             ['--foo', '--bar', 'other', '--dependency', 'one', 'positional'])
         result = file_options.options_from_file(args)
@@ -144,38 +113,40 @@ class OptionsFileTestCase(unittest.TestCase):
         self.assertEqual(result.dependency, ['one', 'two', 'three'])
         self.assertIsInstance(args, argparse.Namespace)
 
-    @patch("fades.file_options.get_parsers")
-    def test_two_config_file_with_booleans(self, mock_get_parsers):
-        parsed_args_a = {'foo': 'false'}
-        parsed_args_b = {'foo': 'true'}
-        mock_get_parsers.return_value = [self.build_parser(parsed_args_a),
-                                         self.build_parser(parsed_args_b)]
+    @patch("fades.file_options.CONFIG_FILES", ('mock.ini', 'mock2.ini'))
+    @patch("configparser.ConfigParser.items")
+    def test_two_config_file_with_booleans(self, mocked_parser):
+        mocked_parser.side_effect = [
+            [('foo', 'true')],
+            [('foo', 'false')],
+        ]
         args = self.argparser.parse_args([])
         result = file_options.options_from_file(args)
 
         self.assertFalse(result.foo)
         self.assertIsInstance(args, argparse.Namespace)
 
-    @patch("fades.file_options.get_parsers")
-    def test_two_config_file_override_by_cli(self, mock_get_parsers):
-        parsed_args_a = {'bar': 'no_this'}
-        parsed_args_b = {'bar': 'no_this_b'}
-        mock_get_parsers.return_value = [self.build_parser(parsed_args_a),
-                                         self.build_parser(parsed_args_b)]
+    @patch("fades.file_options.CONFIG_FILES", ('mock.ini', 'mock2.ini'))
+    @patch("configparser.ConfigParser.items")
+    def test_two_config_file_override_by_cli(self, mocked_parser):
+        mocked_parser.side_effect = [
+            [('bar', 'no_this')],
+            [('bar', 'no_this_b')],
+        ]
         args = self.argparser.parse_args(['--bar', 'this'])
         result = file_options.options_from_file(args)
 
         self.assertEqual(result.bar, 'this')
         self.assertIsInstance(args, argparse.Namespace)
 
-    @patch("fades.file_options.get_parsers")
-    def test_three_config_file_override(self, mock_get_parsers):
-        parsed_args_a = {'bar': 'this'}
-        parsed_args_b = {'bar': 'no_this'}
-        parsed_args_c = {'bar': 'neither_this'}
-        mock_get_parsers.return_value = [self.build_parser(parsed_args_a),
-                                         self.build_parser(parsed_args_b),
-                                         self.build_parser(parsed_args_c)]
+    @patch("fades.file_options.CONFIG_FILES", ('mock.ini', 'mock2.ini', 'mock3.ini'))
+    @patch("configparser.ConfigParser.items")
+    def test_three_config_file_override(self, mocked_parser):
+        mocked_parser.side_effect = [
+            [('bar', 'no_this')],
+            [('bar', 'neither_this')],
+            [('bar', 'this')],
+        ]
         args = self.argparser.parse_args([])
         result = file_options.options_from_file(args)
 
