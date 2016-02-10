@@ -25,19 +25,45 @@ Dead simple:
 How to create a .deb
 --------------------
 
-Create a list of changes, and edit the changelog:
+Create the tarball:
 
-    - EDITOR=vim dch
+  ./setup.py clean sdist
 
-    - put the list of changes
 
-    - put proper version inside parenthesis
+Copy this tarball to a clean dir, renaming as "orig"
 
-    - put 'unstable' in the OS version
+  mkdir /tmp/fades_pack
+  cp dist/fades-X.Y.tar.gz /tmp/fades_pack/fades_X.Y.orig.tar.gz
+  cd /tmp/fades_pack
 
-Build a tarball
 
-    python3 setup.py sdist
+Most of next instructions come from http://wiki.debian.org/Python/GitPackaging
+
+  tar -xf fades_X.Y.orig.tar.gz
+  cd fades-X.Y
+  git init
+  git add .
+  git commit -m "import fades_X.Y.orig.tar.gz"
+  git checkout -b upstream
+  pristine-tar commit ../fades_X.Y.orig.tar.gz upstream
+  git-dpm init ../fades_X.Y.orig.tar.gz
+
+
+Copy the project's debian dir and change changelog
+
+  cp -pr $DEVEL/fades/debian .
+  dch   # doing the following:
+    - version should be   (X.Y-1) unstable
+    - just leave one "* Initial release."
+
+
+Continue with preparations:
+
+  git add debian/*
+  git commit -m "Added debian dir."
+  git-dpm prepare
+  git-dpm status
+
 
 Build the .deb
 
@@ -60,4 +86,9 @@ How to release it to Arch
     Edit ``pkg/archlinux/PKGBUILD`` and set *pkgver* and *md5sums*, then run *makepkg -S* inside
     the same directory that PKGBUILD. It will generate a file named 'fades-X.X-X.src.tar.gz'.
     Finally submit this file at the AUR page.
+
+
+How to sign the files
+---------------------
+
 
