@@ -25,7 +25,7 @@ import subprocess
 
 import fades
 
-from fades import parsing, logger, cache, helpers, envbuilder
+from fades import parsing, logger, cache, helpers, envbuilder, file_options
 
 # the signals to redirect to the child process (note: only these are
 # allowed in Windows, see 'signal' doc).
@@ -109,9 +109,12 @@ def go(argv):
     # executed)
     if len(sys.argv) > 1 and " " in sys.argv[1]:
         real_args = sys.argv[1].split() + sys.argv[2:]
-        args = parser.parse_args(real_args)
+        cli_args = parser.parse_args(real_args)
     else:
-        args = parser.parse_args()
+        cli_args = parser.parse_args()
+
+    # update args from config file (if needed).
+    args = file_options.options_from_file(cli_args)
 
     # validate input, parameters, and support some special options
     if args.version:
