@@ -211,7 +211,7 @@ Examples:
 Setting options using config files
 ----------------------------------
 
-You can also configure fades using `.ini` config files. fades will search for config files in 
+You can also configure fades using `.ini` config files. fades will search config files in 
 `/etc/fades/fades.ini`, the path indicated by `xdg` for your system 
 (for example `~/config/fades/fades.ini`) and `.fades.ini`. 
 
@@ -225,7 +225,7 @@ With fades installed you can get your config dir running::
 The config files are in `.ini` format. (configparser) and fades will search for a `[fades]` section.
 
 You have to use the same configurations that in the CLI. The only difference is with the config 
-options with a dash, it have to be replaced with a underscore.:: 
+options with a dash, it has to be replaced with a underscore.:: 
 
     [fades]
     ipython=true

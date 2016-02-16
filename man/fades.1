@@ -127,6 +127,19 @@ fades -r requirements.txt
 
 Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the requirements.txt file.
 
+.SH USING CONFIGURATION FILES
+
+You can also configure fades using \fB.ini\fR config files. fades will search config files in 
+\fB/etc/fades/fades.ini\fR, the path indicated by \fBxdg\fR for your system 
+(for example ~/config/fades/fades.ini) and .fades.ini. 
+So you can have different settings at system, user and project level.
+
+The config files are in .ini format. (configparser) and fades will search for a [fades] section.
+You have to use the same configurations that in the CLI. The only difference is with the config 
+options with a dash, it has to be replaced with a underscore.
+
+Check http://fades.readthedocs.org/en/latest/readme.html#setting-options-using-config-files for full examples.
+
 
 .SH SEE ALSO
 Development is centralized in https://github.com/PyAr/fades
