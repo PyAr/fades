@@ -49,7 +49,10 @@ Most of next instructions come from http://wiki.debian.org/Python/GitPackaging
   git-dpm init ../fades_X.Y.orig.tar.gz
 
 
-Copy the project's debian dir and change changelog
+Copy the project's debian dir and change changelog (be sure that this
+"debian" dir is properly updated in the project... notably, be sure
+copyright year is current one and also that no new dependencies were
+introduced since last release).
 
   cp -pr $DEVEL/fades/debian .
   dch   # doing the following:
@@ -83,12 +86,24 @@ If you want to uninstall it do:
 How to release it to Arch
 -------------------------
 
-    Edit ``pkg/archlinux/PKGBUILD`` and set *pkgver* and *md5sums*, then run *makepkg -S* inside
-    the same directory that PKGBUILD. It will generate a file named 'fades-X.X-X.src.tar.gz'.
-    Finally submit this file at the AUR page.
+Edit ``pkg/archlinux/PKGBUILD`` and set *pkgver* and *md5sums*, then run
+*makepkg -S* inside the same directory that PKGBUILD. It will generate a
+file named 'fades-X.X-X.src.tar.gz'.
+
+Finally submit this file at the AUR page.
 
 
 How to sign the files
 ---------------------
 
+If you are putting files to download (notably, installators: .deb,
+tarballs, etc) it's a good idea to sign them and offer checksums, in
+case of somebody wanting to validate the files.
 
+To sign it:
+
+    gpg --armor --sign --detach-sig FILENAME
+
+To create the checksum:
+
+    sha1sum FILENAME > FILENAME.sha1

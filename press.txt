@@ -1,6 +1,6 @@
 Hello all,
 
-We're glad to announce the release of fades 4.
+We're glad to announce the release of fades 5.
 
 fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and
@@ -18,49 +18,38 @@ also mark the required dependencies. More details here:
 
 What's new in this release?
 
-- New option to use iPython as the interactive interpreter: --ipython
-  (thanks Ariel Rossanigo).
+- Support for passing parameters through configuration files.
 
-- Now it's possible to execute a program inside the virtualenv, with -x
-  (thanks Ricardo Kirkner).
+- New option --check-updates to find new releases in PyPI of already
+  used dependencies (thanks Diego Duncan).
 
-  For example, it's possible to create a django project without needing
-  django installed in your system, just doing:
+- fades now transmit back the error code from child process to
+  whoever called it
 
-    fades -d django -x manage startproject foo
+- Fixed the extra parameter handling when fades was used in the shebang.
 
-- Can execute fades as a Python's module (thanks Javi Mansilla)
+- Dependencies indicated in docstring now are properly utilized.
 
-- Support using Python 3.3 to run fades
+- Updated the package names DB.
 
-- If you want to fiddle with lower layers options, we have several options
-  for you:
+- Improved logging information and error reporting.
 
-    - you can send parameters to virtualend with --virtualenv-options
-
-    - also to pip, with --pip-options
-
-    - it's possible to remove a managed-by-fades virtualenv with --rm <uuid>
-
-- We have a logo!
-
-- Now we run the fades tests using fades itself, no need to install
-  anything previously
-
-- You can create virtualenvs with --system-site-packages
+- Better documentation (new IRC channel, help fixes, better links, etc)
 
 - Other minor bugfixes and improvements
 
 
 To get it:
 
-- If you are in debian unstable, just do:
+- If you are in Ubuntu Xenial or Debian Sid (unstable), just do:
 
     sudo apt-get install fades
 
-- For other debian/ubuntu you have a .deb here:
+- For other debian/ubuntu you have a .deb here (with checksum and signature):
 
     http://taniquetil.com.ar/fades/fades-latest.deb
+    http://taniquetil.com.ar/fades/fades-latest.deb.sha1
+    http://taniquetil.com.ar/fades/fades-latest.deb.asc
 
 - Install it in Arch is very simple:
 
@@ -78,13 +67,20 @@ To get it:
     cd fades-*
     sudo ./setup.py install
 
+  Also have the checksum and signature, if interested:
+
+    http://taniquetil.com.ar/fades/fades-latest.tar.gz.sha1
+    http://taniquetil.com.ar/fades/fades-latest.tar.gz.asc
+
 
 Help / questions:
 
 - You can ask any question or send any recommendation or request
-  to the mailing list.
+  to the mailing list...
 
     http://listas.python.org.ar/mailman/listinfo/fades
+
+  ... or in the #fades IRC channel (in Freenode).
 
 - Also, you can open an issue here (please do if you find any problem!).
 
@@ -93,6 +89,12 @@ Help / questions:
 - The project itself is in
 
     https://github.com/PyAr/fades
+
+  It's very easy to run latest development version:
+
+    git clone https://github.com/PyAr/fades.git
+    cd fades
+    bin/fades
 
 
 Thanks in advance for your time!
@@ -103,7 +105,7 @@ Thanks in advance for your time!
 
 Hola a todas y todos,
 
-Estamos contentos de anunciar la liberación de fades 4.
+Estamos encantados de anunciar la liberación de fades 5.
 
 fades es un sistema que maneja automáticamente los virtualenvs en los
 casos que uno normalmente encuentra al escribir scripts y programas
@@ -121,50 +123,38 @@ Python) y también marcar las dependencias necesarias. Más detalles acá:
 
 ¿Qué hay de nuevo en esta release?
 
-- Nueva opción para usar iPython en el interprete interactivo: --ipython
-  (gracias Ariel Rossanigo)
+- Soporte para pasar argumentos a través de archivos de configuración.
 
-- Ahora es posible ejecutar un programa dentro del virtualenv con -x.
-  (Gracias Ricardo Kirkner)
+- Nueva opción --check-updates para revisar en PyPI si hay nuevas
+  versiones de dependencias que ya se están usando (gracias Diego Duncan).
 
-  Por ejemplo es posible crear un proyecto de django sin tener django
-  instalado en tu sistema usando:
+- fades ahora transmite el código de error del proceso hijo a quien sea
+  que lo esté llamando.
 
-    fades -d django -x manage startproject foo
+- Se corrigió el manejo de los parámetros extras cuando fades se usa desde el shebang.
 
-- Podés ejecutar fades como un módulo de python. Simplemente hay que
-  ejecutar python -m fades (Gracias Javi Mansilla)
+- Las dependencias indicadas en los docstrings ahora se utilizan correctamente.
 
-- Soportamos Python 3.3 para ejecutar fades.
+- Se actualizó la DB de nombres de paquetes.
 
-- Si sos un usuario especial y no te alanzan las opciones que tenemos
-  tenemos cosas para vos!
+- Se mejoró la información enviada a los logs y los reportes de error.
 
-    - Podes pasarle opciones a virtualenv con --virtualenv-options
+- Hay mejor documentación (nuevo canal de IRC, correcciones en la ayuda, mejores enlaces, etc).
 
-    - También a pip con --pip-options
-
-    - Es posible eliminar un virtualenv con --rm <uuid>
-
-- Tenemos un logo!!
-
-- Los tests de fades se ejecutan con fades! No hay necesidad de instalar
-  nada previamente
-
-- Se pueden crear virtualevs con --system-site-packages
-
-- Varios bug fixeados y otros nuevos ;)
+- Otras correcciones y mejoras menores.
 
 
 Para obtenerlo:
 
-- Si estás en debian unstable, hacé:
+- Si estás en Ubuntu Xenial o Debian Sid (unstable), hacé:
 
     sudo apt-get install fades
 
-- Para otros debian/ubuntu hay un .deb acá:
+- Para otros debian/ubuntu hay un .deb acá (con checksum y firma):
 
     http://taniquetil.com.ar/fades/fades-latest.deb
+    http://taniquetil.com.ar/fades/fades-latest.deb.sha1
+    http://taniquetil.com.ar/fades/fades-latest.deb.asc
 
 - Instalarlo en Arch es muy simple:
 
@@ -182,13 +172,20 @@ Para obtenerlo:
     cd fades-*
     sudo ./setup.py install
 
+  También tenés el checksum y la firma, si te interesa:
+
+    http://taniquetil.com.ar/fades/fades-latest.tar.gz.sha1
+    http://taniquetil.com.ar/fades/fades-latest.tar.gz.asc
+
 
 Ayuda / preguntas:
 
 - Podés hacer cualquier pregunta o mandar una recomendación o pedido
-  en la lista de correo:
+  en la lista de correo...
 
     http://listas.python.org.ar/mailman/listinfo/fades
+
+  ... o en el canal de IRC #fades en Freenode.
 
 - También podés abrir un issue acá (por favor hacelo si
   encontrás algún problema!):
@@ -199,6 +196,11 @@ Ayuda / preguntas:
 
     https://github.com/PyAr/fades
 
+  Es muy fácil ejecutar la última versión de desarrollo:
+
+    git clone https://github.com/PyAr/fades.git
+    cd fades
+    bin/fades
+
 
 Desde ya, muchas gracias por tu tiempo!
-
