@@ -190,19 +190,6 @@ class EnvDestructionTestCase(unittest.TestCase):
         builder.destroy_env()
         self.assertFalse(os.path.exists(builder.env_path))
 
-    def test_destroy_venv(self):
-        builder = envbuilder.FadesEnvBuilder()
-        # make sure the virtualenv exists on disk
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": ['--system-site-packages'],
-                   "pip-options": [],
-                   }
-        builder.create_env('python', False, options=options)
-        assert os.path.exists(builder.env_path)
-
-        envbuilder.destroy_venv(builder.env_path)
-        self.assertFalse(os.path.exists(builder.env_path))
-
     def test_destroy_venv_if_env_path_not_found(self):
         builder = envbuilder.FadesEnvBuilder()
         assert not os.path.exists(builder.env_path)
