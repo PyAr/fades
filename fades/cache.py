@@ -17,16 +17,15 @@
 
 """The cache manager for virtualenvs."""
 
-import fcntl
 import json
 import logging
 import os
 import time
-from contextlib import contextmanager
 
 from pkg_resources import Distribution
 
 from fades import helpers
+from fades.multiplatform import filelock
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +37,7 @@ class VEnvsCache:
         """Init."""
         logger.debug("Using cache index: %r", filepath)
         self.filepath = filepath
+        self.lockpath = filepath + ".lock"
 
     def _venv_match(self, installed, requirements):
         """Return True if what is installed satisfies the requirements.
@@ -117,12 +117,12 @@ class VEnvsCache:
         }
         logger.debug("Storing installed=%s metadata=%s interpreter=%s options=%s",
                      installed_stuff, metadata, interpreter, options)
-        with self.lock_cache():
+        with filelock(self.lockpath):
             self._write_cache([json.dumps(new_content)], append=True)
 
     def remove(self, env_path):
         """Remove metadata for a given virtualenv from cache."""
-        with self.lock_cache():
+        with filelock(self.lockpath):
             cache = self._read_cache()
             logger.debug("Removing virtualenv from cache: %s" % env_path)
             lines = [
@@ -130,17 +130,6 @@ class VEnvsCache:
                 if json.loads(line).get('metadata', {}).get('env_path') != env_path
             ]
             self._write_cache(lines)
-
-    @contextmanager
-    def lock_cache(self):
-        """Context manager used to lock over the cache usage."""
-        lock_file = self.filepath + '.lock'
-        with open(lock_file, 'a') as fh:
-            fcntl.flock(fh, fcntl.LOCK_EX)
-            yield
-            fcntl.flock(fh, fcntl.LOCK_UN)
-        if os.path.exists(lock_file):
-            os.remove(lock_file)
 
     def _read_cache(self):
         """Read virtualenv metadata from cache."""
