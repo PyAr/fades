@@ -211,9 +211,9 @@ Examples:
 Setting options using config files
 ----------------------------------
 
-You can also configure fades using `.ini` config files. fades will search config files in 
-`/etc/fades/fades.ini`, the path indicated by `xdg` for your system 
-(for example `~/config/fades/fades.ini`) and `.fades.ini`. 
+You can also configure fades using `.ini` config files. fades will search config files in
+`/etc/fades/fades.ini`, the path indicated by `xdg` for your system
+(for example `~/config/fades/fades.ini`) and `.fades.ini`.
 
 So you can have different settings at system, user and project level.
 
@@ -224,8 +224,8 @@ With fades installed you can get your config dir running::
 
 The config files are in `.ini` format. (configparser) and fades will search for a `[fades]` section.
 
-You have to use the same configurations that in the CLI. The only difference is with the config 
-options with a dash, it has to be replaced with a underscore.:: 
+You have to use the same configurations that in the CLI. The only difference is with the config
+options with a dash, it has to be replaced with a underscore.::
 
     [fades]
     ipython=true
@@ -234,11 +234,11 @@ options with a dash, it has to be replaced with a underscore.::
     check_updates=true
     dependency=requests;django>=1.8  # separated by semicolon
 
-There is a little difference in how fades handle these settings: "dependency", "pip-options" and 
-"virtualenv-options". In these cases you have to use a semicolon separated list. 
+There is a little difference in how fades handle these settings: "dependency", "pip-options" and
+"virtualenv-options". In these cases you have to use a semicolon separated list.
 
-The most important thing is that these options will be merged. So if you configure in 
-`/etc/fades/fades.ini` "dependency=requests" you will have requests in all the virtualenvs 
+The most important thing is that these options will be merged. So if you configure in
+`/etc/fades/fades.ini` "dependency=requests" you will have requests in all the virtualenvs
 created by fades.
 
 How to clean up old virtualenvs?
@@ -283,6 +283,37 @@ Uses the ``django-admin.py`` script to start a new project named ``foo``, withou
 ``fades --rm 89a2bf83-c280-4918-a78d-c35506efd69d``
 
 Removes a virtualenv matching the given uuid from disk and cache index.
+
+
+What if Python is updated in my system?
+---------------------------------------
+
+The virtualenvs created by fades depend on the Python version used to
+create them, considering its major and minor version.
+
+This means that if run fades with a Python version and then run it again
+with a different Python version, it may need to create a new virtualenv.
+
+Let's see some examples. Let's say you run fades with ``python``, which
+is a symlink in your ``/usr/bin/`` to ``python3.4`` (running it directly
+by hand or because fades is installed to use that Python version).
+
+If you have Python 3.4.2 installed in your system, and it's upgraded to
+Python 3.4.3, fades will keep reusing the already created virtualenvs, as
+only the micro version changed, not minor or major.
+
+But if Python 3.5 is installed in your system, and the default ``python``
+is pointed to this new one, fades will start creating all the
+virtualenvs again, with this new version.
+
+This is a good thing, because you want that the dependencies installed
+with one specific Python in the virtualenv are kept being used by the
+same Python version.
+
+However, if you want to avoid this behaviour, be sure to always call fades
+with the specific Python version (``/usr/bin/python3.4`` or ``python3.4``,
+for example), so it won't matter if a new version is available in the
+system.
 
 
 How to install it
@@ -376,6 +407,22 @@ Yes! Branch the project and use the executable::
     git clone https://github.com/PyAr/fades.git
     cd fades
     bin/fades your_script.py
+
+
+What about Windows?
+-------------------
+
+Windows is a platform supported by fades.
+
+However, we don't have a proper Windows installer (a ``.exe`` or
+``.msi``), but you can install it using ``pip``, or from the tarball,
+or try it directly from the project. All these options are properly
+described above.
+
+We *do* want to have a Windows installer. If you can help us in this
+regard, please contact us. Also we would want a Travis running in
+Windows so that GitHub runs all the tests in this platform too before
+landing any code. Thanks!
 
 
 Get some help, give some feedback
