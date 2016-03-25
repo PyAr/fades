@@ -106,6 +106,10 @@ class VEnvsCache:
         lines = self._read_cache()
         return self._select(lines, requirements, interpreter, uuid=uuid, options=options)
 
+    def get_venvs_metadata(self):
+        for line in self._read_cache():
+            yield json.loads(line)['metadata']
+
     def store(self, installed_stuff, metadata, interpreter, options):
         """Store the virtualenv metadata for the indicated installed_stuff."""
         new_content = {

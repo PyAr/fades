@@ -201,6 +201,11 @@ def go(argv):
     # run forest run!!
     python_exe = 'ipython' if args.ipython else 'python'
     python_exe = os.path.join(venv_data['env_bin_path'], python_exe)
+
+    # start usage manager and store usage information
+    usage_manager = envbuilder.UsageManager()
+    usage_manager.store_usage_stat(venv_data, venvscache)
+
     if args.child_program is None:
         l.debug("Calling the interactive Python interpreter")
         p = subprocess.Popen([python_exe])
