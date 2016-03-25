@@ -139,7 +139,12 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
         repo_requested = requested_deps[repo]
         logger.debug("Installing dependencies for repo %r: requested=%s", repo, repo_requested)
         for dependency in repo_requested:
-            mgr.install(dependency)
+            try:
+                mgr.install(dependency)
+            except:
+                logger.debug("Installation Step failed, removing virtualenv")
+                destroy_venv(env_path)
+                exit()
 
             # always store the installed dependency, as in the future we'll select the venv
             # based on what is installed, not what used requested (remember that user may
