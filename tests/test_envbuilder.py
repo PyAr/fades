@@ -17,14 +17,15 @@
 """Tests for the venv builder module."""
 
 import os
+import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from pkg_resources import parse_requirements
 
 import logassert
 
-from fades import REPO_PYPI, envbuilder
+from fades import REPO_PYPI, cache, envbuilder, helpers
 from venv import EnvBuilder
 
 
@@ -209,3 +210,49 @@ class EnvDestructionTestCase(unittest.TestCase):
 
         envbuilder.destroy_venv(builder.env_path)
         self.assertFalse(os.path.exists(builder.env_path))
+
+
+class UsageManagerTestCase(unittest.TestCase):
+
+    def setUp(self):
+        _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
+        self.temp_folder = tempfile.mkdtemp()
+        self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
+
+        self.mock_base_dir = patch('fades.helpers.get_basedir')
+        base_dir = self.mock_base_dir.start()
+        base_dir.return_value = self.temp_folder
+        self.addCleanup(lambda: self.mock_base_dir.stop())
+
+        self.uuids = ['env1', 'env2', 'env3']
+
+        self.venvscache = cache.VEnvsCache(self.tempfile)
+        for uuid in self.uuids:
+            self.venvscache.store('', {'env_path': os.path.join(self.temp_folder, uuid)}, '', '')
+
+    def test_file_usage_dont_exists_then_it_is_created_and_initialized(self):
+        file_path = os.path.join(self.temp_folder, 'usage_stats')
+        self.assertFalse(os.path.exists(file_path), msg="First file doesn't exists")
+        envbuilder.UsageManager(self.venvscache)
+        self.assertTrue(os.path.exists(file_path), msg="When instance is created file is created")
+        lines = open(file_path).readlines()
+        self.assertEqual(len(lines), len(self.uuids), msg="File have one line per venv")
+
+        pending_uuids = self.uuids[:]
+        for line in lines:
+            uuid, dt = line.split()
+            self.assertTrue(uuid in pending_uuids, msg="Every uuid is in file")
+            pending_uuids.remove(uuid)
+
+    def test_usage_record_is_recorded(self):
+        file_path = os.path.join(self.temp_folder, 'usage_stats')
+        manager = envbuilder.UsageManager(self.venvscache)
+        self.assertTrue(os.path.exists(file_path))
+        lines = open(file_path).readlines()
+        self.assertEqual(len(lines), len(self.uuids), msg="File have one line per venv")
+
+        venv = self.venvscache.get_venv(uuid=self.uuids[0])
+        manager.store_usage_stat(venv, self.venvscache)
+        lines = open(file_path).readlines()
+        self.assertEqual(2, len([x for x in lines if x.split()[0] == self.uuids[0]]),
+                         msg="Selected uuid is two times in file")
