@@ -107,6 +107,7 @@ class VEnvsCache:
         return self._select(lines, requirements, interpreter, uuid=uuid, options=options)
 
     def get_venvs_metadata(self):
+        """Yield metadata of each existing venv."""
         for line in self._read_cache():
             yield json.loads(line)['metadata']
 

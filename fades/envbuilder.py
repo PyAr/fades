@@ -160,7 +160,10 @@ def destroy_venv(env_path):
 
 
 class UsageManager:
+    """Class to handle usage file and venv cleanning."""
+
     def __init__(self, venvscache):
+        """Init."""
         self.stat_file_path = os.path.join(helpers.get_basedir(), 'usage_stats')
         self.stat_file_lock = self.stat_file_path + '.lock'
         self.venvscache = venvscache
@@ -190,10 +193,7 @@ class UsageManager:
         return datetime.strptime(str_, "%Y-%m-%dT%H:%M:%S.%f")
 
     def clean_unused_venvs(self, max_days_to_keep):
-        """
-        Compact usage stats and remove venvs that have not been used for more max_days_to_keep
-        days.
-        """
+        """Compact usage stats and remove venvs."""
         with filelock(self.stat_file_lock):
             now = datetime.utcnow()
             venvs_dict = self._get_compacted_dict_usage_from_file()
