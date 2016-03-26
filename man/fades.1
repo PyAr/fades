@@ -19,6 +19,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB--virtualenv-options\fR=\fIoptions\fR]
 [\fB--pip-options\fR=\fIoptions\fR]
 [\fB--check-updates\fR]
+[\fB--clean-unused-venvs\fR=\fImax_days_to_keep\fR]
 [child_program [child_options]]
 
 \fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
@@ -99,6 +100,10 @@ Extra options to be supplied to pip. (this option can beused multiple times)
 .TP 
 .BR --check-updates
 Will check for updates in PyPI to verify if there are new versions for the requested dependencies. If a new version is available for a dependency, it will use it (if the dependency was requested without version) or just inform which new version is available (if the dependency was requested with a specific version).
+
+.TP
+.BR --clean-unused-venvs=\fIMAX_DAYS_TO_KEEP\fR
+Will remove all virtualenvs that haven't been used for more than MAX_DAYS_TO_KEEP days. Appart from that, will compact usage stats file.
 
 .SH EXAMPLES
 

@@ -100,6 +100,12 @@ def go(argv):
                               "used multiple times)"))
     parser.add_argument('--rm', dest='remove', metavar='UUID',
                         help=("Remove a virtualenv by UUID."))
+    parser.add_argument('--clean-unused-venvs', action='store',
+                        help=("This option remove venvs that haven't been used for more than "
+                              "CLEAN_UNUSED_VENVS days. Appart from that, will compact usage "
+                              "stats file.\n"
+                              "When this option is present, the cleaning takes place at the "
+                              "beginning of the execution."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 

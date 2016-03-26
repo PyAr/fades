@@ -164,6 +164,10 @@ If you want to use IPython shell you need to call *fades* with ``-i`` or
 ``--ipython`` option. This option will add IPython as a dependency to *fades*
 and it will launch this shell instead of the python one.
 
+If you want to remove unused virtualenvs you need to call *fades* with ``--clean-unused-venvs``.
+All virtualenvs that haven't been used for more days than the value indicated in param will be removed.
+Appart from that, will compact usage stats file.
+
 You can also use ``--system-site-packages`` to create a venv with access to the system libs.
 
 
