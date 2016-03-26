@@ -33,6 +33,7 @@ from uuid import uuid4
 from fades import REPO_PYPI
 from fades import helpers
 from fades.pipmanager import PipManager
+from fades.multiplatform import filelock
 
 logger = logging.getLogger(__name__)
 
@@ -161,6 +162,7 @@ def destroy_venv(env_path):
 class UsageManager:
     def __init__(self, venvscache):
         self.stat_file_path = os.path.join(helpers.get_basedir(), 'usage_stats')
+        self.stat_file_lock = self.stat_file_path + '.lock'
         self.venvscache = venvscache
         self._create_initial_usage_file_if_not_exists()
 
@@ -186,3 +188,36 @@ class UsageManager:
 
     def _str_to_datetime(self, str_):
         return datetime.strptime(str_, "%Y-%m-%dT%H:%M:%S.%f")
+
+    def clean_unused_venvs(self, max_days_to_keep):
+        """
+        Compact usage stats and remove venvs that have not been used for more max_days_to_keep
+        days.
+        """
+        with filelock(self.stat_file_lock):
+            now = datetime.utcnow()
+            venvs_dict = self._get_compacted_dict_usage_from_file()
+            for venv_uuid, usage_date in venvs_dict.copy().items():
+                usage_date = self._str_to_datetime(usage_date)
+                if (now - usage_date).days > max_days_to_keep:
+                    # remove venv from usage dict
+                    del venvs_dict[venv_uuid]
+                    venv_meta = self.venvscache.get_venv(uuid=venv_uuid)
+                    if venv_meta is None:  # only exists in usage data
+                        continue
+                    env_path = venv_meta['env_path']
+                    # remove venv itself
+                    destroy_venv(env_path)
+                    # remove venv from cache
+                    self.venvscache.remove(env_path)
+
+            self._write_compacted_dict_usage_to_file(venvs_dict)
+
+    def _get_compacted_dict_usage_from_file(self):
+        all_lines = open(self.stat_file_path).readlines()
+        return dict(x.split() for x in all_lines)
+
+    def _write_compacted_dict_usage_to_file(self, dict_usage):
+        with open(self.stat_file_path, 'wt') as file_:
+            for uuid, date in dict_usage.items():
+                file_.write('{} {}\n'.format(uuid, date))
