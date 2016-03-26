@@ -159,24 +159,22 @@ def destroy_venv(env_path):
 
 
 class UsageManager:
-    def store_usage_stat(self, venv_data, cache):
-        """
-        Log an usage record for venv_data.
-        If usage_stats file doesn't exists, manager will create it and log an usage record for
-        every existing virtualenv in cache.
-        """
-        stat_file_path = os.path.join(helpers.get_basedir(), 'usage_stats')
-        if not os.path.exists(stat_file_path):
-            self._create_initial_usage_file(stat_file_path, cache)
-        else:
-            with open(stat_file_path, 'at') as f:
-                self._write_venv_usage(f, venv_data)
+    def __init__(self, venvscache):
+        self.stat_file_path = os.path.join(helpers.get_basedir(), 'usage_stats')
+        self.venvscache = venvscache
+        self._create_initial_usage_file_if_not_exists()
 
-    def _create_initial_usage_file(self, path, cache):
-        existing_venvs = cache.get_venvs_metadata()
-        with open(path, 'wt') as f:
-            for venv_data in existing_venvs:
-                self._write_venv_usage(f, venv_data)
+    def store_usage_stat(self, venv_data, cache):
+        """Log an usage record for venv_data."""
+        with open(self.stat_file_path, 'at') as f:
+            self._write_venv_usage(f, venv_data)
+
+    def _create_initial_usage_file_if_not_exists(self):
+        if not os.path.exists(self.stat_file_path):
+            existing_venvs = self.venvscache.get_venvs_metadata()
+            with open(self.stat_file_path, 'wt') as f:
+                for venv_data in existing_venvs:
+                    self._write_venv_usage(f, venv_data)
 
     def _write_venv_usage(self, file_, venv_data):
         _, uuid = os.path.split(venv_data['env_path'])

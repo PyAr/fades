@@ -140,6 +140,8 @@ def go(argv):
 
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
+    # start usage manager
+    usage_manager = envbuilder.UsageManager(venvscache)
 
     uuid = args.remove
     if uuid:
@@ -208,8 +210,7 @@ def go(argv):
     python_exe = 'ipython' if args.ipython else 'python'
     python_exe = os.path.join(venv_data['env_bin_path'], python_exe)
 
-    # start usage manager and store usage information
-    usage_manager = envbuilder.UsageManager()
+    # store usage information
     usage_manager.store_usage_stat(venv_data, venvscache)
 
     if args.child_program is None:
