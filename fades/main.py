@@ -100,6 +100,12 @@ def go(argv):
                               "used multiple times)"))
     parser.add_argument('--rm', dest='remove', metavar='UUID',
                         help=("Remove a virtualenv by UUID."))
+    parser.add_argument('--clean-unused-venvs', action='store',
+                        help=("This option remove venvs that haven't been used for more than "
+                              "CLEAN_UNUSED_VENVS days. Appart from that, will compact usage "
+                              "stats file.\n"
+                              "When this option is present, the cleaning takes place at the "
+                              "beginning of the execution."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -134,6 +140,19 @@ def go(argv):
 
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
+    # start usage manager
+    usage_manager = envbuilder.UsageManager(os.path.join(helpers.get_basedir(), 'usage_stats'),
+                                            venvscache)
+
+    if args.clean_unused_venvs:
+        try:
+            max_days_to_keep = int(args.clean_unused_venvs)
+            usage_manager.clean_unused_venvs(max_days_to_keep)
+        except:
+            l.debug("CLEAN_UNUSED_VENVS must be an integer.")
+            raise
+        finally:
+            sys.exit()
 
     uuid = args.remove
     if uuid:
@@ -142,8 +161,7 @@ def go(argv):
             # remove this venv from the cache
             env_path = venv_data.get('env_path')
             if env_path:
-                venvscache.remove(env_path)
-                envbuilder.destroy_venv(env_path)
+                envbuilder.destroy_venv(env_path, venvscache)
             else:
                 l.warning("Invalid 'env_path' found in virtualenv metadata: %r. "
                           "Not removing virtualenv.", env_path)
@@ -201,6 +219,10 @@ def go(argv):
     # run forest run!!
     python_exe = 'ipython' if args.ipython else 'python'
     python_exe = os.path.join(venv_data['env_bin_path'], python_exe)
+
+    # store usage information
+    usage_manager.store_usage_stat(venv_data, venvscache)
+
     if args.child_program is None:
         l.debug("Calling the interactive Python interpreter")
         p = subprocess.Popen([python_exe])

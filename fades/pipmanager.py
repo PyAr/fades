@@ -62,10 +62,10 @@ class PipManager():
             helpers.logged_exec(args)
         except helpers.ExecutionError as error:
             error.dump_to_log(logger)
-            exit()
+            raise error
         except Exception as error:
             logger.exception("Error installing %s: %s", str_dep, error)
-            exit()
+            raise error
 
     def get_version(self, dependency):
         """Return the installed version parsing the output of 'pip show'."""
