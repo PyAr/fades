@@ -153,10 +153,12 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
     return venv_data, installed
 
 
-def destroy_venv(env_path):
+def destroy_venv(env_path, venvscache):
     """Destroy a venv."""
     env = FadesEnvBuilder(env_path)
     env.destroy_env()
+    # remove venv from cache
+    venvscache.remove(env_path)
 
 
 class UsageManager:
@@ -192,7 +194,16 @@ class UsageManager:
         return datetime.strptime(str_, "%Y-%m-%dT%H:%M:%S.%f")
 
     def clean_unused_venvs(self, max_days_to_keep):
-        """Compact usage stats and remove venvs."""
+        """Compact usage stats and remove venvs.
+
+        This method loads the complete file usage in memory, for every venv compact all records in
+        one (the lastest), updates this info for every env deleted and, finally, write the entire
+        file to disk.
+
+        If something failed during this steps, usage file remains unchanged and can contain some
+        data about some deleted env. This is not a problem, the next time this function it's
+        called, this records will be deleted.
+        """
         with filelock(self.stat_file_lock):
             now = datetime.utcnow()
             venvs_dict = self._get_compacted_dict_usage_from_file()
@@ -202,13 +213,12 @@ class UsageManager:
                     # remove venv from usage dict
                     del venvs_dict[venv_uuid]
                     venv_meta = self.venvscache.get_venv(uuid=venv_uuid)
-                    if venv_meta is None:  # only exists in usage data
+                    if venv_meta is None:
+                        # if meta isn't found means that something had failed previously and
+                        # usage_file wasn't updated.
                         continue
                     env_path = venv_meta['env_path']
-                    # remove venv itself
-                    destroy_venv(env_path)
-                    # remove venv from cache
-                    self.venvscache.remove(env_path)
+                    destroy_venv(env_path, self.venvscache)
 
             self._write_compacted_dict_usage_to_file(venvs_dict)
 

@@ -20,7 +20,7 @@ import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from pkg_resources import parse_requirements
 
@@ -190,7 +190,6 @@ class EnvDestructionTestCase(unittest.TestCase):
         assert os.path.exists(builder.env_path)
 
         builder.destroy_env()
-        self.assertFalse(os.path.exists(builder.env_path))
 
     def test_destroy_venv(self):
         builder = envbuilder.FadesEnvBuilder()
@@ -202,15 +201,19 @@ class EnvDestructionTestCase(unittest.TestCase):
         builder.create_env('python', False, options=options)
         assert os.path.exists(builder.env_path)
 
-        envbuilder.destroy_venv(builder.env_path)
+        cache_mock = Mock()
+        envbuilder.destroy_venv(builder.env_path, cache_mock)
         self.assertFalse(os.path.exists(builder.env_path))
+        cache_mock.remove.assert_called_with(builder.env_path)
 
     def test_destroy_venv_if_env_path_not_found(self):
         builder = envbuilder.FadesEnvBuilder()
         assert not os.path.exists(builder.env_path)
 
-        envbuilder.destroy_venv(builder.env_path)
+        cache_mock = Mock()
+        envbuilder.destroy_venv(builder.env_path, cache_mock)
         self.assertFalse(os.path.exists(builder.env_path))
+        cache_mock.remove.assert_called_with(builder.env_path)
 
 
 class UsageManagerTestCase(unittest.TestCase):
@@ -316,17 +319,15 @@ class UsageManagerTestCase(unittest.TestCase):
             self.assertEqual(len(self.uuids) + 2, len(lines))
 
             with patch('fades.envbuilder.destroy_venv') as destroy_venv_mock:
-                with patch.object(self.venvscache, 'remove') as remove_mock:
-                    manager.clean_unused_venvs(4)
-                    lines = self.get_usage_lines(manager)
-                    self.assertEqual(1, len(lines), msg="Only one venv remains alive")
-                    uuid, d = lines[0]
+                manager.clean_unused_venvs(4)
+                lines = self.get_usage_lines(manager)
+                self.assertEqual(1, len(lines), msg="Only one venv remains alive")
+                uuid, d = lines[0]
 
-                    self.assertEqual(self.uuids[0], uuid,
-                                     msg="The env who survive is the last used one.")
+                self.assertEqual(self.uuids[0], uuid,
+                                 msg="The env who survive is the last used one.")
 
-                    # destroy_env and cache.remove was called for the others
-                    for uuid in self.uuids[1:]:
-                        env_path = self.venvscache.get_venv(uuid=uuid)['env_path']
-                        destroy_venv_mock.assert_any_call(env_path)
-                        remove_mock.assert_any_call(env_path)
+                # destroy_env and cache.remove was called for the others
+                for uuid in self.uuids[1:]:
+                    env_path = self.venvscache.get_venv(uuid=uuid)['env_path']
+                    destroy_venv_mock.assert_any_call(env_path, self.venvscache)
