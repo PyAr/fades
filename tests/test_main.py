@@ -18,7 +18,7 @@
 
 import unittest
 
-from fades import main, __version__
+from fades import main, __version__, VERSION
 
 
 class DepsMergingTestCase(unittest.TestCase):
@@ -53,6 +53,6 @@ class DepsMergingTestCase(unittest.TestCase):
 
     def test_version_show(self):
         self.assertEqual(
-            main._fades_version(),
-            '.'.join([str(v) for v in __version__]),
+            __version__,
+            '.'.join([str(v) for v in VERSION]),
         )

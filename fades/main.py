@@ -54,10 +54,6 @@ help_usage = """
 """
 
 
-def _fades_version():
-    return '.'.join([str(v) for v in fades.__version__])
-
-
 def _merge_deps(*deps):
     """Merge all the dependencies; latest dicts overwrite first ones."""
     final = {}
@@ -122,7 +118,7 @@ def go(argv):
 
     # validate input, parameters, and support some special options
     if args.version:
-        print("Running 'fades' version", _fades_version())
+        print("Running 'fades' version", fades.__version__)
         print("    Python:", sys.version_info)
         print("    System:", sys.platform)
         sys.exit()
@@ -130,7 +126,7 @@ def go(argv):
     # set up logger and dump basic version info
     l = logger.set_up(args.verbose, args.quiet)
     l.debug("Running Python %s on %r", sys.version_info, sys.platform)
-    l.debug("Starting fades v. %s", _fades_version())
+    l.debug("Starting fades v. %s", fades.__version__)
     l.debug("Arguments: %s", args)
 
     if args.verbose and args.quiet:
