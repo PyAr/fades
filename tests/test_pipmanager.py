@@ -90,7 +90,7 @@ class PipManagerTestCase(unittest.TestCase):
         mgr = PipManager('/usr/bin', pip_installed=True)
         with patch.object(helpers, 'logged_exec') as mock:
             mock.side_effect = Exception("Kapow!")
-            with self.assertRaises(SystemExit):
+            with self.assertRaises(Exception):
                 mgr.install('foo')
         self.assertLoggedError("Error installing foo: Kapow!")
 
