@@ -24,7 +24,6 @@ import time
 
 from pkg_resources import Distribution
 
-from fades import helpers
 from fades.multiplatform import filelock
 
 logger = logging.getLogger(__name__)
@@ -77,8 +76,12 @@ class VEnvsCache:
 
     def _select(self, current_venvs, requirements=None, interpreter='', uuid='', options=None):
         """Select which venv satisfy the received requirements."""
-        def match_by_uuid(env):
-            return env.get('metadata', {}).get('env_path') == env_path
+        def get_match_by_uuid(uuid):
+            def match_by_uuid(env):
+                env_path = env.get('metadata', {}).get('env_path')
+                _, env_uuid = os.path.split(env_path)
+                return env_uuid == uuid
+            return match_by_uuid
 
         def match_by_req_and_interpreter(env):
             return (env.get('options') == options and
@@ -87,8 +90,7 @@ class VEnvsCache:
 
         if uuid:
             logger.debug("Searching a venv by uuid: %s", uuid)
-            env_path = os.path.join(helpers.get_basedir(), uuid)
-            match = match_by_uuid
+            match = get_match_by_uuid(uuid)
         else:
             logger.debug("Searching a venv for reqs: %s and interpreter: %s",
                          requirements, interpreter)
