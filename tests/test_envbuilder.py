@@ -50,6 +50,10 @@ class EnvCreationTestCase(unittest.TestCase):
         def get_version(self, dependency):
             return self.really_installed[dependency]
 
+    class FailInstallManager(FakeManager):
+        def install(self, dependency):
+            raise Exception("Kapow!")
+
     def setUp(self):
         logassert.setup(self, 'fades.envbuilder')
 
@@ -100,6 +104,33 @@ class EnvCreationTestCase(unittest.TestCase):
                 envbuilder.create_venv(requested, interpreter, is_current, options, pip_options)
 
         self.assertLoggedWarning("Install from 'unknown' not implemented")
+
+    def test_non_existing_dep(self):
+        requested = {
+            REPO_PYPI: [get_req('dep1 == 1000')]
+        }
+        interpreter = 'python3'
+        is_current = True
+        options = {'virtualenv_options': [],
+                   'pyvenv_options': [],
+                   }
+        pip_options = []
+
+        with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
+            with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
+                mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
+                mock_mgr_c.return_value = self.FailInstallManager()
+                with self.assertRaises(SystemExit):
+                    with patch.object(envbuilder, 'destroy_venv') as mock_destroy:
+                        envbuilder.create_venv(
+                            requested,
+                            interpreter,
+                            is_current,
+                            options,
+                            pip_options)
+                        mock_destroy.assert_called_once_with('env_path')
+
+        self.assertLoggedDebug("Installation Step failed, removing virtualenv")
 
     def test_different_versions(self):
         requested = {

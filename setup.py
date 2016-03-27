@@ -37,10 +37,10 @@ from setuptools.command.install import install
 def get_version():
     """Retrieves package version from the file."""
     with open('fades/_version.py') as fh:
-        m = re.search("'([^']*)'", fh.read())
+        m = re.search("\(([^']*)\)", fh.read())
     if m is None:
         raise ValueError("Unrecognized version in 'fades/_version.py'")
-    return m.groups()[0]
+    return m.groups()[0].replace(', ', '.')
 
 
 class CustomInstall(install):

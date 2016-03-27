@@ -1,3 +1,4 @@
 """Holder of the fades version number."""
 
-__version__ = '5'
+VERSION = (5, 0)
+__version__ = '.'.join([str(x) for x in VERSION])
