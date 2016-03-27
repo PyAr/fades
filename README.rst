@@ -252,6 +252,17 @@ unnecessary virtual environments from disk.
 By running *fades* with the ``--rm`` argument, *fades* will remove the virtualenv
 matching the provided uuid if such a virtualenv exists.
 
+Another way to clean up the cache is to remove all venvs that haven't been used for some time.
+In order to do this you need to call *fades* with ``--clean-unused-venvs``.
+When fades it's called with this option, it runs in mantain mode, this means that fades will exit
+after finished this task.
+All virtualenvs that haven't been used for more days than the value indicated in param will be
+removed.
+
+It is recommended to have some automatically way of run this option;
+ie, add a cron task that perform this command::
+
+    fades --clean-unused-venvs=42
 
 Some command line examples
 --------------------------
