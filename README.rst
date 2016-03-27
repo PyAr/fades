@@ -322,8 +322,9 @@ Else, keep reading to know how to install the dependencies first, and
 Dependencies
 ------------
 
-Fades depends on the ``pkg_resources`` package, that comes in with
-``setuptools``. It's installed almost everywhere, but in any case,
+Besides needing Python 3.3 or greater, fades depends also on the 
+``pkg_resources`` package, that comes in with ``setuptools``. 
+It's installed almost everywhere, but in any case,
 you can install it in Ubuntu/Debian with::
 
     apt-get install python3-setuptools
