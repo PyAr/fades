@@ -162,10 +162,10 @@ def destroy_venv(env_path):
 class UsageManager:
     """Class to handle usage file and venv cleanning."""
 
-    def __init__(self, venvscache):
+    def __init__(self, stat_file_path, venvscache):
         """Init."""
-        self.stat_file_path = os.path.join(helpers.get_basedir(), 'usage_stats')
-        self.stat_file_lock = self.stat_file_path + '.lock'
+        self.stat_file_path = stat_file_path
+        self.stat_file_lock = stat_file_path + '.lock'
         self.venvscache = venvscache
         self._create_initial_usage_file_if_not_exists()
 
@@ -183,8 +183,7 @@ class UsageManager:
 
     def _write_venv_usage(self, file_, venv_data):
         _, uuid = os.path.split(venv_data['env_path'])
-        file_.write('{} {}\n'.format(uuid,
-                                     self._datetime_to_str(datetime.utcnow())))
+        file_.write('{} {}\n'.format(uuid, self._datetime_to_str(datetime.utcnow())))
 
     def _datetime_to_str(self, datetime_):
         return datetime.strftime(datetime_, "%Y-%m-%dT%H:%M:%S.%f")

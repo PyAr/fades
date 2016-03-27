@@ -221,11 +221,6 @@ class UsageManagerTestCase(unittest.TestCase):
         self.file_path = os.path.join(self.temp_folder, 'usage_stats')
         self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
 
-        self.mock_base_dir = patch('fades.helpers.get_basedir')
-        base_dir = self.mock_base_dir.start()
-        base_dir.return_value = self.temp_folder
-        self.addCleanup(lambda: self.mock_base_dir.stop())
-
         self.uuids = ['env1', 'env2', 'env3']
 
         self.venvscache = cache.VEnvsCache(self.tempfile)
@@ -243,7 +238,7 @@ class UsageManagerTestCase(unittest.TestCase):
 
     def test_file_usage_dont_exists_then_it_is_created_and_initialized(self):
         self.assertFalse(os.path.exists(self.file_path), msg="First file doesn't exists")
-        manager = envbuilder.UsageManager(self.venvscache)
+        manager = envbuilder.UsageManager(self.file_path, self.venvscache)
         lines = self.get_usage_lines(manager)
         self.assertEqual(len(lines), len(self.uuids), msg="File have one line per venv")
 
@@ -253,7 +248,7 @@ class UsageManagerTestCase(unittest.TestCase):
             pending_uuids.remove(uuid)
 
     def test_usage_record_is_recorded(self):
-        manager = envbuilder.UsageManager(self.venvscache)
+        manager = envbuilder.UsageManager(self.file_path, self.venvscache)
         lines = self.get_usage_lines(manager)
         self.assertEqual(len(lines), len(self.uuids), msg="File have one line per venv")
 
@@ -273,7 +268,7 @@ class UsageManagerTestCase(unittest.TestCase):
             mock_datetime.strptime.side_effect = lambda *args, **kw: datetime.strptime(*args, **kw)
             mock_datetime.strftime.side_effect = lambda *args, **kw: datetime.strftime(*args, **kw)
 
-            manager = envbuilder.UsageManager(self.venvscache)
+            manager = envbuilder.UsageManager(self.file_path, self.venvscache)
             lines = self.get_usage_lines(manager)
             for u, d in lines:
                 self.assertEqual(old_date, d, msg="All records have the same date")
@@ -306,7 +301,7 @@ class UsageManagerTestCase(unittest.TestCase):
             mock_datetime.strptime.side_effect = lambda *args, **kw: datetime.strptime(*args, **kw)
             mock_datetime.strftime.side_effect = lambda *args, **kw: datetime.strftime(*args, **kw)
 
-            manager = envbuilder.UsageManager(self.venvscache)
+            manager = envbuilder.UsageManager(self.file_path, self.venvscache)
             lines = self.get_usage_lines(manager)
             for u, d in lines:
                 self.assertEqual(old_date, d, msg="All records have the same date")

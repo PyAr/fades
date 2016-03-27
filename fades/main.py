@@ -141,7 +141,8 @@ def go(argv):
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
     # start usage manager
-    usage_manager = envbuilder.UsageManager(venvscache)
+    usage_manager = envbuilder.UsageManager(os.path.join(helpers.get_basedir(), 'usage_stats'),
+                                            venvscache)
 
     if args.clean_unused_venvs:
         try:
