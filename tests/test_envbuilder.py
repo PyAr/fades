@@ -17,14 +17,16 @@
 """Tests for the venv builder module."""
 
 import os
+import tempfile
 import unittest
-from unittest.mock import patch
+from datetime import datetime, timedelta
+from unittest.mock import Mock, patch
 
 from pkg_resources import parse_requirements
 
 import logassert
 
-from fades import REPO_PYPI, envbuilder
+from fades import REPO_PYPI, cache, envbuilder
 from venv import EnvBuilder
 
 
@@ -47,6 +49,10 @@ class EnvCreationTestCase(unittest.TestCase):
 
         def get_version(self, dependency):
             return self.really_installed[dependency]
+
+    class FailInstallManager(FakeManager):
+        def install(self, dependency):
+            raise Exception("Kapow!")
 
     def setUp(self):
         logassert.setup(self, 'fades.envbuilder')
@@ -98,6 +104,33 @@ class EnvCreationTestCase(unittest.TestCase):
                 envbuilder.create_venv(requested, interpreter, is_current, options, pip_options)
 
         self.assertLoggedWarning("Install from 'unknown' not implemented")
+
+    def test_non_existing_dep(self):
+        requested = {
+            REPO_PYPI: [get_req('dep1 == 1000')]
+        }
+        interpreter = 'python3'
+        is_current = True
+        options = {'virtualenv_options': [],
+                   'pyvenv_options': [],
+                   }
+        pip_options = []
+
+        with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
+            with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
+                mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
+                mock_mgr_c.return_value = self.FailInstallManager()
+                with self.assertRaises(SystemExit):
+                    with patch.object(envbuilder, 'destroy_venv') as mock_destroy:
+                        envbuilder.create_venv(
+                            requested,
+                            interpreter,
+                            is_current,
+                            options,
+                            pip_options)
+                        mock_destroy.assert_called_once_with('env_path')
+
+        self.assertLoggedDebug("Installation Step failed, removing virtualenv")
 
     def test_different_versions(self):
         requested = {
@@ -188,7 +221,6 @@ class EnvDestructionTestCase(unittest.TestCase):
         assert os.path.exists(builder.env_path)
 
         builder.destroy_env()
-        self.assertFalse(os.path.exists(builder.env_path))
 
     def test_destroy_venv(self):
         builder = envbuilder.FadesEnvBuilder()
@@ -200,12 +232,133 @@ class EnvDestructionTestCase(unittest.TestCase):
         builder.create_env('python', False, options=options)
         assert os.path.exists(builder.env_path)
 
-        envbuilder.destroy_venv(builder.env_path)
+        cache_mock = Mock()
+        envbuilder.destroy_venv(builder.env_path, cache_mock)
         self.assertFalse(os.path.exists(builder.env_path))
+        cache_mock.remove.assert_called_with(builder.env_path)
 
     def test_destroy_venv_if_env_path_not_found(self):
         builder = envbuilder.FadesEnvBuilder()
         assert not os.path.exists(builder.env_path)
 
-        envbuilder.destroy_venv(builder.env_path)
+        cache_mock = Mock()
+        envbuilder.destroy_venv(builder.env_path, cache_mock)
         self.assertFalse(os.path.exists(builder.env_path))
+        cache_mock.remove.assert_called_with(builder.env_path)
+
+
+class UsageManagerTestCase(unittest.TestCase):
+
+    def setUp(self):
+        _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
+        self.temp_folder = tempfile.mkdtemp()
+        self.file_path = os.path.join(self.temp_folder, 'usage_stats')
+        self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
+
+        self.uuids = ['env1', 'env2', 'env3']
+
+        self.venvscache = cache.VEnvsCache(self.tempfile)
+        for uuid in self.uuids:
+            self.venvscache.store('', {'env_path': os.path.join(self.temp_folder, uuid)}, '', '')
+
+    def get_usage_lines(self, manager):
+        self.assertTrue(os.path.exists(self.file_path), msg="File usage exists")
+        lines = []
+        for line in open(self.file_path).readlines():
+            uuid, d = line.split()
+            d = manager._str_to_datetime(d)
+            lines.append((uuid, d))
+        return lines
+
+    def test_file_usage_dont_exists_then_it_is_created_and_initialized(self):
+        self.assertFalse(os.path.exists(self.file_path), msg="First file doesn't exists")
+        manager = envbuilder.UsageManager(self.file_path, self.venvscache)
+        lines = self.get_usage_lines(manager)
+        self.assertEqual(len(lines), len(self.uuids), msg="File have one line per venv")
+
+        pending_uuids = self.uuids[:]
+        for uuid, dt in lines:
+            self.assertTrue(uuid in pending_uuids, msg="Every uuid is in file")
+            pending_uuids.remove(uuid)
+
+    def test_usage_record_is_recorded(self):
+        manager = envbuilder.UsageManager(self.file_path, self.venvscache)
+        lines = self.get_usage_lines(manager)
+        self.assertEqual(len(lines), len(self.uuids), msg="File have one line per venv")
+
+        venv = self.venvscache.get_venv(uuid=self.uuids[0])
+        manager.store_usage_stat(venv, self.venvscache)
+
+        lines = self.get_usage_lines(manager)
+        self.assertEqual(2, len([1 for u, d in lines if u == self.uuids[0]]),
+                         msg="Selected uuid is two times in file")
+
+    def test_usage_file_is_compacted_when_though_no_venv_is_removed(self):
+        old_date = datetime.utcnow()
+        new_date = old_date + timedelta(days=1)
+
+        with patch('fades.envbuilder.datetime') as mock_datetime:
+            mock_datetime.utcnow.return_value = old_date
+            mock_datetime.strptime.side_effect = lambda *args, **kw: datetime.strptime(*args, **kw)
+            mock_datetime.strftime.side_effect = lambda *args, **kw: datetime.strftime(*args, **kw)
+
+            manager = envbuilder.UsageManager(self.file_path, self.venvscache)
+            lines = self.get_usage_lines(manager)
+            for u, d in lines:
+                self.assertEqual(old_date, d, msg="All records have the same date")
+
+            venv = self.venvscache.get_venv(uuid=self.uuids[0])
+            manager.store_usage_stat(venv, self.venvscache)
+
+            mock_datetime.utcnow.return_value = new_date
+            manager.store_usage_stat(venv, self.venvscache)
+
+            lines = self.get_usage_lines(manager)
+            self.assertEqual(len(self.uuids) + 2, len(lines))
+
+            manager.clean_unused_venvs(4)
+            lines = self.get_usage_lines(manager)
+            self.assertEqual(len(self.uuids), len(lines))
+
+            for u, d in lines:
+                if u == self.uuids[0]:
+                    self.assertEqual(new_date, d, msg="Selected env have new date")
+                else:
+                    self.assertEqual(old_date, d, msg="Others envs have old date")
+
+    def test_when_a_venv_is_removed_it_is_removed_from_everywhere(self):
+        old_date = datetime.utcnow()
+        new_date = old_date + timedelta(days=5)
+
+        with patch('fades.envbuilder.datetime') as mock_datetime:
+            mock_datetime.utcnow.return_value = old_date
+            mock_datetime.strptime.side_effect = lambda *args, **kw: datetime.strptime(*args, **kw)
+            mock_datetime.strftime.side_effect = lambda *args, **kw: datetime.strftime(*args, **kw)
+
+            manager = envbuilder.UsageManager(self.file_path, self.venvscache)
+            lines = self.get_usage_lines(manager)
+            for u, d in lines:
+                self.assertEqual(old_date, d, msg="All records have the same date")
+
+            venv = self.venvscache.get_venv(uuid=self.uuids[0])
+            manager.store_usage_stat(venv, self.venvscache)
+
+            mock_datetime.utcnow.return_value = new_date
+            manager.store_usage_stat(venv, self.venvscache)
+
+            lines = self.get_usage_lines(manager)
+            self.assertEqual(len(self.uuids) + 2, len(lines))
+
+            with patch('fades.envbuilder.destroy_venv') as destroy_venv_mock:
+                manager.clean_unused_venvs(4)
+                lines = self.get_usage_lines(manager)
+                self.assertEqual(1, len(lines), msg="Only one venv remains alive")
+                uuid, d = lines[0]
+
+                self.assertEqual(self.uuids[0], uuid,
+                                 msg="The env who survive is the last used one.")
+
+                # destroy_env and cache.remove was called for the others
+                for uuid in self.uuids[1:]:
+                    env_path = self.venvscache.get_venv(uuid=uuid)['env_path']
+                    destroy_venv_mock.assert_any_call(env_path, self.venvscache)

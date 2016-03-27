@@ -26,12 +26,14 @@ import os
 import shutil
 import sys
 
+from datetime import datetime
 from venv import EnvBuilder
 from uuid import uuid4
 
 from fades import REPO_PYPI
 from fades import helpers
 from fades.pipmanager import PipManager
+from fades.multiplatform import filelock
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +141,12 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
         repo_requested = requested_deps[repo]
         logger.debug("Installing dependencies for repo %r: requested=%s", repo, repo_requested)
         for dependency in repo_requested:
-            mgr.install(dependency)
+            try:
+                mgr.install(dependency)
+            except:
+                logger.debug("Installation Step failed, removing virtualenv")
+                destroy_venv(env_path)
+                exit()
 
             # always store the installed dependency, as in the future we'll select the venv
             # based on what is installed, not what used requested (remember that user may
@@ -151,7 +158,80 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
     return venv_data, installed
 
 
-def destroy_venv(env_path):
+def destroy_venv(env_path, venvscache):
     """Destroy a venv."""
     env = FadesEnvBuilder(env_path)
     env.destroy_env()
+    # remove venv from cache
+    venvscache.remove(env_path)
+
+
+class UsageManager:
+    """Class to handle usage file and venv cleanning."""
+
+    def __init__(self, stat_file_path, venvscache):
+        """Init."""
+        self.stat_file_path = stat_file_path
+        self.stat_file_lock = stat_file_path + '.lock'
+        self.venvscache = venvscache
+        self._create_initial_usage_file_if_not_exists()
+
+    def store_usage_stat(self, venv_data, cache):
+        """Log an usage record for venv_data."""
+        with open(self.stat_file_path, 'at') as f:
+            self._write_venv_usage(f, venv_data)
+
+    def _create_initial_usage_file_if_not_exists(self):
+        if not os.path.exists(self.stat_file_path):
+            existing_venvs = self.venvscache.get_venvs_metadata()
+            with open(self.stat_file_path, 'wt') as f:
+                for venv_data in existing_venvs:
+                    self._write_venv_usage(f, venv_data)
+
+    def _write_venv_usage(self, file_, venv_data):
+        _, uuid = os.path.split(venv_data['env_path'])
+        file_.write('{} {}\n'.format(uuid, self._datetime_to_str(datetime.utcnow())))
+
+    def _datetime_to_str(self, datetime_):
+        return datetime.strftime(datetime_, "%Y-%m-%dT%H:%M:%S.%f")
+
+    def _str_to_datetime(self, str_):
+        return datetime.strptime(str_, "%Y-%m-%dT%H:%M:%S.%f")
+
+    def clean_unused_venvs(self, max_days_to_keep):
+        """Compact usage stats and remove venvs.
+
+        This method loads the complete file usage in memory, for every venv compact all records in
+        one (the lastest), updates this info for every env deleted and, finally, write the entire
+        file to disk.
+
+        If something failed during this steps, usage file remains unchanged and can contain some
+        data about some deleted env. This is not a problem, the next time this function it's
+        called, this records will be deleted.
+        """
+        with filelock(self.stat_file_lock):
+            now = datetime.utcnow()
+            venvs_dict = self._get_compacted_dict_usage_from_file()
+            for venv_uuid, usage_date in venvs_dict.copy().items():
+                usage_date = self._str_to_datetime(usage_date)
+                if (now - usage_date).days > max_days_to_keep:
+                    # remove venv from usage dict
+                    del venvs_dict[venv_uuid]
+                    venv_meta = self.venvscache.get_venv(uuid=venv_uuid)
+                    if venv_meta is None:
+                        # if meta isn't found means that something had failed previously and
+                        # usage_file wasn't updated.
+                        continue
+                    env_path = venv_meta['env_path']
+                    destroy_venv(env_path, self.venvscache)
+
+            self._write_compacted_dict_usage_to_file(venvs_dict)
+
+    def _get_compacted_dict_usage_from_file(self):
+        all_lines = open(self.stat_file_path).readlines()
+        return dict(x.split() for x in all_lines)
+
+    def _write_compacted_dict_usage_to_file(self, dict_usage):
+        with open(self.stat_file_path, 'wt') as file_:
+            for uuid, date in dict_usage.items():
+                file_.write('{} {}\n'.format(uuid, date))
