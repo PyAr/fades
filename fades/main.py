@@ -150,6 +150,8 @@ def go(argv):
         except:
             l.debug("CLEAN_UNUSED_VENVS must be an integer.")
             raise
+        finally:
+            sys.exit()
 
     uuid = args.remove
     if uuid:
