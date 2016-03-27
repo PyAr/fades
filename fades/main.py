@@ -207,18 +207,19 @@ def go(argv):
         options['virtualenv_options'].append("--system-site-packages")
         options['pyvenv_options'] = ["--system-site-packages"]
 
+    create_venv = False
     venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
     if venv_data:
         env_path = venv_data['env_path']
         # A venv was found in the cache check if its valid or re-generate it.
         if not os.path.exists(env_path):
-            l.warning("Missing directory: %s. The virtualenv will be re-created.", env_path)
+            l.warning("Missing directory (the virtualenv will be re-created): %r", env_path)
             venvscache.remove(env_path)
-            venv_data, installed = envbuilder.create_venv(indicated_deps, args.python, is_current,
-                                                          options, pip_options)
-            # store this new venv in the cache
-            venvscache.store(installed, venv_data, interpreter, options)
+            create_venv = True
     else:
+        create_venv = True
+
+    if create_venv:
         # Create a new venv
         venv_data, installed = envbuilder.create_venv(indicated_deps, args.python, is_current,
                                                       options, pip_options)
