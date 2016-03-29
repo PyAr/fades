@@ -120,15 +120,15 @@ class EnvCreationTestCase(unittest.TestCase):
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FailInstallManager()
-                with self.assertRaises(SystemExit):
-                    with patch.object(envbuilder, 'destroy_venv') as mock_destroy:
+                with patch.object(envbuilder, 'destroy_venv', spec=True) as mock_destroy:
+                    with self.assertRaises(SystemExit):
                         envbuilder.create_venv(
                             requested,
                             interpreter,
                             is_current,
                             options,
                             pip_options)
-                        mock_destroy.assert_called_once_with('env_path')
+                    mock_destroy.assert_called_once_with('env_path')
 
         self.assertLoggedDebug("Installation Step failed, removing virtualenv")
 
