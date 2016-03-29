@@ -108,10 +108,11 @@ class FadesEnvBuilder(EnvBuilder):
             self.pip_installed = False
         return self.env_path, self.env_bin_path, self.pip_installed
 
-    def destroy_env(self):
+    @staticmethod
+    def destroy_env(env_path):
         """Destroy the virtualenv."""
-        logger.debug("Destroying virtualenv at: %s", self.env_path)
-        shutil.rmtree(self.env_path, ignore_errors=True)
+        logger.debug("Destroying virtualenv at: %s", env_path)
+        shutil.rmtree(env_path, ignore_errors=True)
 
     def post_setup(self, context):
         """Get the bin path from context."""
@@ -160,8 +161,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
 
 def destroy_venv(env_path, venvscache):
     """Destroy a venv."""
-    env = FadesEnvBuilder(env_path)
-    env.destroy_env()
+    FadesEnvBuilder.destroy_env(env_path)
     # remove venv from cache
     venvscache.remove(env_path)
 
