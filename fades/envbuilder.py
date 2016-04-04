@@ -159,11 +159,12 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
     return venv_data, installed
 
 
-def destroy_venv(env_path, venvscache):
+def destroy_venv(env_path, venvscache=None):
     """Destroy a venv."""
     FadesEnvBuilder.destroy_env(env_path)
     # remove venv from cache
-    venvscache.remove(env_path)
+    if venvscache is not None:
+        venvscache.remove(env_path)
 
 
 class UsageManager:
