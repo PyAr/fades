@@ -220,7 +220,7 @@ class EnvDestructionTestCase(unittest.TestCase):
         builder.create_env('python', False, options=options)
         assert os.path.exists(builder.env_path)
 
-        builder.destroy_env()
+        envbuilder.FadesEnvBuilder.destroy_env(builder.env_path)
 
     def test_destroy_venv(self):
         builder = envbuilder.FadesEnvBuilder()
