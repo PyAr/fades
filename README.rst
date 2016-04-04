@@ -346,6 +346,10 @@ For Arch linux:
 
     yaourt -S fades
 
+For Mac OS X (and `Homebrew <http://brew.sh/>`_):
+    
+    brew install fades
+
 Else, keep reading to know how to install the dependencies first, and
 ``fades`` in your system next.
 
