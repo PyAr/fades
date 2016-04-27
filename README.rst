@@ -130,6 +130,19 @@ In case of multiple definitions of the same dependency, command line
 overrides everything else, and requirements file overrides what is
 specified in the source code.
 
+Finally, you can include package names in the script docstring, after
+a line where "fades" is written, until the end of the docstring;
+for example::
+
+    """Script to do stuff.
+
+    It's a very important script.
+
+    We need some dependencies to run ok, installed by fades:
+        request
+        otherpackage
+    """
+
 
 How to control the virtualenv creation and usage?
 -------------------------------------------------
@@ -241,6 +254,7 @@ The most important thing is that these options will be merged. So if you configu
 `/etc/fades/fades.ini` "dependency=requests" you will have requests in all the virtualenvs
 created by fades.
 
+
 How to clean up old virtualenvs?
 --------------------------------
 
@@ -347,7 +361,7 @@ For Arch linux:
     yaourt -S fades
 
 For Mac OS X (and `Homebrew <http://brew.sh/>`_):
-    
+
     brew install fades
 
 Else, keep reading to know how to install the dependencies first, and
@@ -357,8 +371,8 @@ Else, keep reading to know how to install the dependencies first, and
 Dependencies
 ------------
 
-Besides needing Python 3.3 or greater, fades depends also on the 
-``pkg_resources`` package, that comes in with ``setuptools``. 
+Besides needing Python 3.3 or greater, fades depends also on the
+``pkg_resources`` package, that comes in with ``setuptools``.
 It's installed almost everywhere, but in any case,
 you can install it in Ubuntu/Debian with::
 
