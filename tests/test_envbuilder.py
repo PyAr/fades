@@ -67,7 +67,7 @@ class EnvCreationTestCase(unittest.TestCase):
                    "pyvenv_options": [],
                    }
         pip_options = []
-        with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
+        with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
@@ -97,7 +97,7 @@ class EnvCreationTestCase(unittest.TestCase):
                    "pyvenv_options": [],
                    }
         pip_options = []
-        with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
+        with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FakeManager()
@@ -116,7 +116,7 @@ class EnvCreationTestCase(unittest.TestCase):
                    }
         pip_options = []
 
-        with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
+        with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FailInstallManager()
@@ -142,7 +142,7 @@ class EnvCreationTestCase(unittest.TestCase):
                    "pyvenv_options": [],
                    }
         pip_options = []
-        with patch.object(envbuilder.FadesEnvBuilder, 'create_env') as mock_create:
+        with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
@@ -158,7 +158,7 @@ class EnvCreationTestCase(unittest.TestCase):
         })
 
     def test_create_system_site_pkgs_pyvenv(self):
-        env_builder = envbuilder.FadesEnvBuilder()
+        env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'python3'
         is_current = True
         options = {"virtualenv_options": [],
@@ -170,7 +170,7 @@ class EnvCreationTestCase(unittest.TestCase):
                 self.assertTrue(mock_create.called)
 
     def test_create_pyvenv(self):
-        env_builder = envbuilder.FadesEnvBuilder()
+        env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'python3'
         is_current = True
         options = {"virtualenv_options": [],
@@ -182,48 +182,36 @@ class EnvCreationTestCase(unittest.TestCase):
                 self.assertTrue(mock_create.called)
 
     def test_create_system_site_pkgs_virtualenv(self):
-        env_builder = envbuilder.FadesEnvBuilder()
+        env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'pythonX.Y'
         is_current = False
         options = {"virtualenv_options": ['--system-site-packages'],
                    "pyvenv_options": [],
                    }
-        with patch.object(envbuilder.FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
+        with patch.object(envbuilder._FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
                 env_builder.create_env(interpreter, is_current, options)
                 mock_create.assert_called_with(interpreter, options['virtualenv_options'])
 
     def test_create_virtualenv(self):
-        env_builder = envbuilder.FadesEnvBuilder()
+        env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'pythonX.Y'
         is_current = False
         options = {"virtualenv_options": [],
                    "pyvenv_options": [],
                    }
-        with patch.object(envbuilder.FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
+        with patch.object(envbuilder._FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
                 env_builder.create_env(interpreter, is_current, options)
                 mock_create.assert_called_with(interpreter, options['virtualenv_options'])
 
     def test_custom_env_path(self):
-        builder = envbuilder.FadesEnvBuilder('some-path')
+        builder = envbuilder._FadesEnvBuilder('some-path')
         self.assertEqual(builder.env_path, 'some-path')
 
 
 class EnvDestructionTestCase(unittest.TestCase):
 
-    def test_destroy_env(self):
-        builder = envbuilder.FadesEnvBuilder()
-        # make sure the virtualenv exists on disk
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": ['--system-site-packages'],
-                   "pip-options": [],
-                   }
-        builder.create_env('python', False, options=options)
-        assert os.path.exists(builder.env_path)
-
-        envbuilder.FadesEnvBuilder.destroy_env(builder.env_path)
-
     def test_destroy_venv(self):
-        builder = envbuilder.FadesEnvBuilder()
+        builder = envbuilder._FadesEnvBuilder()
         # make sure the virtualenv exists on disk
         options = {"virtualenv_options": [],
                    "pyvenv_options": ['--system-site-packages'],
@@ -238,7 +226,7 @@ class EnvDestructionTestCase(unittest.TestCase):
         cache_mock.remove.assert_called_with(builder.env_path)
 
     def test_destroy_venv_if_env_path_not_found(self):
-        builder = envbuilder.FadesEnvBuilder()
+        builder = envbuilder._FadesEnvBuilder()
         assert not os.path.exists(builder.env_path)
 
         cache_mock = Mock()

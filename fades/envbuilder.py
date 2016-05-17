@@ -38,8 +38,13 @@ from fades.multiplatform import filelock
 logger = logging.getLogger(__name__)
 
 
-class FadesEnvBuilder(EnvBuilder):
-    """Create always a virtualenv."""
+class _FadesEnvBuilder(EnvBuilder):
+    """Create always a virtualenv.
+
+    This is structured as a class mostly to take advantage of EnvBuilder, not because
+    it's provides the best interface: external callers should just use module's ``create_env``
+    and ``destroy_env``.
+    """
 
     def __init__(self, env_path=None):
         """Init."""
@@ -108,12 +113,6 @@ class FadesEnvBuilder(EnvBuilder):
             self.pip_installed = False
         return self.env_path, self.env_bin_path, self.pip_installed
 
-    @staticmethod
-    def destroy_env(env_path):
-        """Destroy the virtualenv."""
-        logger.debug("Destroying virtualenv at: %s", env_path)
-        shutil.rmtree(env_path, ignore_errors=True)
-
     def post_setup(self, context):
         """Get the bin path from context."""
         self.env_bin_path = context.bin_path
@@ -122,7 +121,7 @@ class FadesEnvBuilder(EnvBuilder):
 def create_venv(requested_deps, interpreter, is_current, options, pip_options):
     """Create a new virtualvenv with the requirements of this script."""
     # create virtualenv
-    env = FadesEnvBuilder()
+    env = _FadesEnvBuilder()
     env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current, options)
     venv_data = {}
     venv_data['env_path'] = env_path
@@ -161,7 +160,10 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
 
 def destroy_venv(env_path, venvscache=None):
     """Destroy a venv."""
-    FadesEnvBuilder.destroy_env(env_path)
+    # remove the venv itself in disk
+    logger.debug("Destroying virtualenv at: %s", env_path)
+    shutil.rmtree(env_path, ignore_errors=True)
+
     # remove venv from cache
     if venvscache is not None:
         venvscache.remove(env_path)
