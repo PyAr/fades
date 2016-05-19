@@ -19,11 +19,15 @@
 import io
 import os
 import sys
+import tempfile
 import unittest
+
 from unittest.mock import patch
 from urllib.error import HTTPError
 
 import logassert
+
+from xdg import BaseDirectory
 
 from fades import helpers
 from fades import parsing
@@ -208,3 +212,43 @@ class CheckPyPIUpdatesTestCase(unittest.TestCase):
                 helpers.check_pypi_updates(self.deps_same_than_latest)
                 self.assertLoggedInfo(
                     "The requested version for django is the latest one in PyPI: 1.9")
+
+
+class GetDirsTestCase(unittest.TestCase):
+    """Utilities to get dir."""
+
+    _home = os.path.expanduser("~")
+
+    def test_basedir_xdg(self):
+        direct = helpers.get_basedir()
+        self.assertEqual(direct, os.path.join(BaseDirectory.xdg_data_home, 'fades'))
+
+    def test_basedir_default(self):
+        with patch.object(helpers, "_get_basedirectory") as mock:
+            mock.side_effect = ImportError()
+            direct = helpers.get_basedir()
+            self.assertEqual(direct, os.path.join(self._home, '.fades'))
+
+    def test_basedir_nonexistant(self):
+        with patch("xdg.BaseDirectory") as mock:
+            with tempfile.TemporaryDirectory() as dirname:
+                mock.xdg_data_home = dirname
+                direct = helpers.get_basedir()
+                self.assertTrue(os.path.exists(direct))
+
+    def test_confdir_xdg(self):
+        direct = helpers.get_confdir()
+        self.assertEqual(direct, os.path.join(BaseDirectory.xdg_config_home, 'fades'))
+
+    def test_confdir_default(self):
+        with patch.object(helpers, "_get_basedirectory") as mock:
+            mock.side_effect = ImportError()
+            direct = helpers.get_confdir()
+            self.assertEqual(direct, os.path.join(self._home, '.fades'))
+
+    def test_confdir_nonexistant(self):
+        with patch("xdg.BaseDirectory") as mock:
+            with tempfile.TemporaryDirectory() as dirname:
+                mock.xdg_config_home = dirname
+                direct = helpers.get_confdir()
+                self.assertTrue(os.path.exists(direct))
