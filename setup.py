@@ -51,19 +51,24 @@ class CustomInstall(install):
         install.run(self)
 
         # man directory
-        if not os.path.exists(self._custom_man_dir):
-            os.makedirs(self._custom_man_dir)
-        shutil.copy("man/fades.1", self._custom_man_dir)
+        if self._custom_man_dir is not None:
+            if not os.path.exists(self._custom_man_dir):
+                os.makedirs(self._custom_man_dir)
+            shutil.copy("man/fades.1", self._custom_man_dir)
 
     def finalize_options(self):
         """Alter the installation path."""
         install.finalize_options(self)
-        man_dir = os.path.join(self.prefix, "share", "man", "man1")
+        if self.prefix is None:
+            # no place for man page (like in a 'snap')
+            man_dir = None
+        else:
+            man_dir = os.path.join(self.prefix, "share", "man", "man1")
 
-        # if we have 'root', put the building path also under it (used normally
-        # by pbuilder)
-        if self.root is not None:
-            man_dir = os.path.join(self.root, man_dir[1:])
+            # if we have 'root', put the building path also under it (used normally
+            # by pbuilder)
+            if self.root is not None:
+                man_dir = os.path.join(self.root, man_dir[1:])
         self._custom_man_dir = man_dir
 
 
