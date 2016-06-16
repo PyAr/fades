@@ -75,26 +75,35 @@ def logged_exec(cmd):
     return stdout
 
 
-def get_basedir():
-    """Get the base fades directory, from xdg or kinda hardcoded."""
+def _get_basedirectory():
+    from xdg import BaseDirectory
+    return BaseDirectory
+
+
+def _get_specific_dir(xdg_attrib):
+    """Get a specific directory, using some XDG base, with sensible default."""
     try:
-        from xdg import BaseDirectory  # NOQA
-        return os.path.join(BaseDirectory.xdg_data_home, 'fades')
+        basedirectory = _get_basedirectory()
+        base = getattr(basedirectory, xdg_attrib)
+        direct = os.path.join(base, 'fades')
     except ImportError:
         logger.debug("Package xdg not installed; using ~/.fades folder")
         from os.path import expanduser
-        return expanduser("~/.fades")
+        direct = os.path.join(expanduser("~"), ".fades")
+
+    if not os.path.exists(direct):
+        os.makedirs(direct)
+    return direct
+
+
+def get_basedir():
+    """Get the base fades directory, from xdg or kinda hardcoded."""
+    return _get_specific_dir('xdg_data_home')
 
 
 def get_confdir():
     """Get the config fades directory, from xdg or kinda hardcoded."""
-    try:
-        from xdg import BaseDirectory  # NOQA
-        return os.path.join(BaseDirectory.xdg_config_home, 'fades')
-    except ImportError:
-        logger.debug("Package xdg not installed; using ~/.fades folder")
-        from os.path import expanduser
-        return expanduser("~/.fades")
+    return _get_specific_dir('xdg_config_home')
 
 
 def _get_interpreter_info(interpreter=None):
