@@ -15,6 +15,5 @@ apps:
 parts:
   fades:
     plugin: python3
-#    source: /home/facundo/devel/reps/fades/
     source: https://github.com/PyAr/fades.git
     source-type: git
