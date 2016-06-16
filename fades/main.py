@@ -234,10 +234,12 @@ def go(argv):
     usage_manager.store_usage_stat(venv_data, venvscache)
 
     if args.child_program is None:
+        interactive = True
         l.debug("Calling the interactive Python interpreter")
         p = subprocess.Popen([python_exe])
 
     else:
+        interactive = False
         if args.executable:
             cmd = [os.path.join(venv_data['env_bin_path'], args.child_program)]
         else:
@@ -246,14 +248,22 @@ def go(argv):
                 args.child_program, args.child_options)
         p = subprocess.Popen(cmd + args.child_options)
 
-        def _signal_handler(signum, _):
-            """Handle signals received by parent process, send them to child."""
+    def _signal_handler(signum, _):
+        """Handle signals received by parent process, send them to child.
+
+        The only exception is CTRL-C, that is generated *from* the interactive
+        interpreter (it's a keyboard combination!), so we swallow it for the
+        interpreter to not see it twice.
+        """
+        if interactive and signum == signal.SIGINT:
+            l.debug("Swallowing signal %s", signum)
+        else:
             l.debug("Redirecting signal %s to child", signum)
             os.kill(p.pid, signum)
 
-        # redirect these signals
-        for s in REDIRECTED_SIGNALS:
-            signal.signal(s, _signal_handler)
+    # redirect the useful signals
+    for s in REDIRECTED_SIGNALS:
+        signal.signal(s, _signal_handler)
 
     # wait child to finish, end
     rc = p.wait()
