@@ -1,4 +1,4 @@
-# Copyright 2014 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -30,7 +30,7 @@ from datetime import datetime
 from venv import EnvBuilder
 from uuid import uuid4
 
-from fades import REPO_PYPI
+from fades import REPO_PYPI, REPO_VCS
 from fades import helpers
 from fades.pipmanager import PipManager
 from fades.multiplatform import filelock
@@ -131,7 +131,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
     # install deps
     installed = {}
     for repo in requested_deps.keys():
-        if repo == REPO_PYPI:
+        if repo in (REPO_PYPI, REPO_VCS):
             mgr = PipManager(env_bin_path, pip_installed=pip_installed, options=pip_options)
         else:
             logger.warning("Install from %r not implemented", repo)
@@ -148,11 +148,18 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
                 destroy_venv(env_path)
                 exit()
 
-            # always store the installed dependency, as in the future we'll select the venv
-            # based on what is installed, not what used requested (remember that user may
-            # request >, >=, etc!)
-            project = dependency.project_name
-            installed[repo][project] = mgr.get_version(project)
+            if repo == REPO_VCS:
+                # no need to request the installed version, as we'll always compare
+                # to the url itself
+                project = dependency.url
+                version = None
+            else:
+                # always store the installed dependency, as in the future we'll select the venv
+                # based on what is installed, not what used requested (remember that user may
+                # request >, >=, etc!)
+                project = dependency.project_name
+                version = mgr.get_version(project)
+            installed[repo][project] = version
 
         logger.debug("Installed dependencies: %s", installed)
     return venv_data, installed

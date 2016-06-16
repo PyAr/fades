@@ -1,4 +1,4 @@
-# Copyright 2014, 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -21,10 +21,71 @@ import re
 
 from pkg_resources import parse_requirements
 
-from fades import REPO_PYPI
+from fades import REPO_PYPI, REPO_VCS
 from fades.pkgnamesdb import PKG_NAMES_DB
 
 logger = logging.getLogger(__name__)
+
+
+class VCSDependency:
+    """A dependency object for VCS urls (git, bzr, etc.).
+
+    It stores as unique identifier the whole URL; there may be a little
+    inefficiency because we may consider as different two urls for same
+    project but using different transports, but it's a small price for
+    not needing to parse and analyze url parts.
+    """
+
+    def __init__(self, url):
+        """Init."""
+        self.url = url
+
+    def __str__(self):
+        """Return the URL as this is the interface to get what pip will use."""
+        return self.url
+
+    def __repr__(self):
+        """Repr."""
+        return "<VCSDependency: {!r}>".format(self.url)
+
+    def __contains__(self, other):
+        """Tell if requirement is satisfied."""
+        return other.url == self.url
+
+    def __eq__(self, other):
+        """Tell if one VCSDependency is equal to other."""
+        if not isinstance(other, VCSDependency):
+            return False
+        return self.url == other.url
+
+    def __hash__(self):
+        """Pair to __eq__ to make this hashable."""
+        return hash(self.url)
+
+
+def parse_fade_requirement(text):
+    """Return a requirement and repo from the given text, already parsed and converted."""
+    text = text.strip()
+
+    if "::" in text:
+        repo_raw, requirement = text.split("::", 1)
+        try:
+            repo = {'pypi': REPO_PYPI, 'vcs': REPO_VCS}[repo_raw]
+        except KeyError:
+            logger.warning("Not understood fades repository: %r", repo_raw)
+            return
+    else:
+        if ":" in text and "/" in text:
+            repo = REPO_VCS
+        else:
+            repo = REPO_PYPI
+        requirement = text
+
+    if repo == REPO_VCS:
+        dependency = VCSDependency(requirement)
+    else:
+        dependency = list(parse_requirements(requirement))[0]
+    return repo, dependency
 
 
 def _parse_content(fh):
@@ -77,31 +138,24 @@ def _parse_content(fh):
         # To match the "safe" name that pkg_resources creates:
         module = module.replace('_', '-')
 
-        # get the fades info
-        if fades_part.startswith("fades.pypi"):
-            repo = REPO_PYPI
-            marked = fades_part[10:].strip()
-        elif fades_part.startswith("fades") and (len(fades_part) == 5 or fades_part[5] in "<>=! "):
-            # starts with 'fades' only, and continues with a space or a
-            # comparison, not a dot, neither other word stuck together
-            repo = REPO_PYPI
-            marked = fades_part[5:].strip()
-        else:
+        # get the fades info after 'fades' mark, if any
+        if len(fades_part) == 5 or fades_part[5:].strip()[0] in "<>=!":
+            # just the 'fades' mark, and maybe a version specification, the requirement is what
+            # was imported (maybe with that version comparison)
+            requirement = module + fades_part[5:]
+        elif fades_part[5] != " ":
+            # starts with fades but it's part of a longer weird word
             logger.warning("Not understood fades info: %r", fades_part)
             continue
-
-        if not marked:
-            # nothing after the pypi token
-            requirement = module
-        elif marked[0] in "<>=!":
-            # the rest is just the version
-            requirement = module + ' ' + marked
         else:
-            # the rest involves not only a version, but also the project name
-            requirement = marked
+            # more complex stuff, to be parsed as a normal requirement
+            requirement = fades_part[5:]
 
-        # record the dependency
-        dependency = list(parse_requirements(requirement))[0]
+        # parse and convert the requirement
+        parsed_req = parse_fade_requirement(requirement)
+        if parsed_req is None:
+            continue
+        repo, dependency = parsed_req
         deps.setdefault(repo, []).append(dependency)
 
     return deps
@@ -155,18 +209,10 @@ def _parse_requirement(iterable):
         if not line or line[0] == '#':
             continue
 
-        if "::" in line:
-            try:
-                repo_raw, requirement = line.split("::")
-                repo = {'pypi': REPO_PYPI}[repo_raw]
-            except:
-                logger.warning("Not understood dependency: %r", line)
-                continue
-        else:
-            repo = REPO_PYPI
-            requirement = line
-
-        dependency = list(parse_requirements(requirement))[0]
+        parsed_req = parse_fade_requirement(line)
+        if parsed_req is None:
+            continue
+        repo, dependency = parsed_req
         deps.setdefault(repo, []).append(dependency)
 
     return deps

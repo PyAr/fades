@@ -1,4 +1,4 @@
-# Copyright 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -27,7 +27,7 @@ from unittest.mock import patch
 
 from pkg_resources import parse_requirements
 
-from fades import cache, helpers
+from fades import cache, helpers, parsing
 
 
 def get_req(text):
@@ -224,13 +224,26 @@ class SelectionTestCase(TempfileTestCase):
         resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
-    def test_nomatch_dependency(self):
+    def test_nomatch_pypi_dependency(self):
         reqs = {'pypi': get_req('dep1 == 5')}
         interpreter = 'pythonX.Y'
         options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep2': '5'}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
+        self.assertEqual(resp, None)
+
+    def test_nomatch_vcs_dependency(self):
+        reqs = {'vcs': [parsing.VCSDependency('someurl')]}
+        interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
+        venv = json.dumps({
+            'metadata': 'foobar',
+            'installed': {'vcs': {'otherurl': None}},
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
@@ -250,13 +263,67 @@ class SelectionTestCase(TempfileTestCase):
         resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
         self.assertEqual(resp, None)
 
-    def test_simple_match(self):
+    def test_simple_pypi_match(self):
         reqs = {'pypi': get_req('dep == 5')}
         interpreter = 'pythonX.Y'
         options = {'foo': 'bar'}
         venv = json.dumps({
             'metadata': 'foobar',
             'installed': {'pypi': {'dep': '5'}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
+        self.assertEqual(resp, 'foobar')
+
+    def test_simple_vcs_match(self):
+        reqs = {'vcs': [parsing.VCSDependency('someurl')]}
+        interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
+        venv = json.dumps({
+            'metadata': 'foobar',
+            'installed': {'vcs': {'someurl': None}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        resp = self.venvscache._select([venv], reqs, interpreter, uuid='', options=options)
+        self.assertEqual(resp, 'foobar')
+
+    def test_match_mixed_single(self):
+        reqs = {'vcs': [parsing.VCSDependency('someurl')], 'pypi': get_req('dep == 5')}
+        interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
+        venv1 = json.dumps({
+            'metadata': 'foobar1',
+            'installed': {'vcs': {'someurl': None}, 'pypi': {'dep': '5'}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        venv2 = json.dumps({
+            'metadata': 'foobar2',
+            'installed': {'pypi': {'dep': '5'}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        venv3 = json.dumps({
+            'metadata': 'foobar3',
+            'installed': {'vcs': {'someurl': None}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        resp = self.venvscache._select(
+            [venv1, venv2, venv3], reqs, interpreter, uuid='', options=options)
+        self.assertEqual(resp, 'foobar1')
+
+    def test_match_mixed_multiple(self):
+        reqs = {'vcs': [parsing.VCSDependency('url1'), parsing.VCSDependency('url2')],
+                'pypi': get_req(['dep1 == 5', 'dep2'])}
+        interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
+        venv = json.dumps({
+            'metadata': 'foobar',
+            'installed': {'vcs': {'url1': None, 'url2': None},
+                          'pypi': {'dep1': '5', 'dep2': '7'}},
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
