@@ -1,5 +1,6 @@
-fades
-=====
+What is fades?
+==============
+
 
 .. image:: https://travis-ci.org/PyAr/fades.svg?branch=master
     :target: https://travis-ci.org/PyAr/fades
@@ -17,10 +18,6 @@ cases normally found when writing scripts and simple programs, and
 even helps to administer big projects.
 
 .. image:: https://raw.githubusercontent.com/PyAr/fades/master/resources/logo256.png
-
-
-What does it do?
-----------------
 
 *fades* will automagically create a new virtualenv (or reuse a previous
 created one), installing the necessary dependencies, and execute
@@ -40,6 +37,8 @@ child script.
 in this mode it will open a Python interactive interpreter inside the
 created/reused virtualenv (taking dependencies from ``--dependency`` or
 ``--requirement`` options).
+
+.. contents::
 
 
 How to use it?
