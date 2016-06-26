@@ -1,4 +1,4 @@
-# Copyright 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -20,3 +20,4 @@
 from ._version import __version__, VERSION  # NOQA; provides module level version attr
 
 REPO_PYPI = 'pypi'
+REPO_VCS = 'vcs'

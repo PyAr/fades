@@ -86,26 +86,27 @@ the previous one.
 
 The simplest comment is like::
 
-    import somemodule   # fades.pypi
-    from somepackage import othermodule    # fades.pypi
+    import somemodule   # fades
+    from somepackage import othermodule    # fades
 
-The ``fades.pypi`` is mandatory, it may allow more options in the future.
+The ``fades`` is mandatory, in this examples the repository is PyPI,
+see `About different repositories`_ below for other examples.
 
 With that comment, *fades* will install automatically in the virtualenv the
 ``somemodule`` or ``somepackage`` from PyPI.
 
 Also, you can indicate a particular version condition, examples::
 
-    import somemodule   # fades.pypi == 3
-    import somemodule   # fades.pypi >= 2.1
-    import somemodule   # fades.pypi >=2.1,<2.8,!=2.6.5
+    import somemodule   # fades == 3
+    import somemodule   # fades >= 2.1
+    import somemodule   # fades >=2.1,<2.8,!=2.6.5
 
 Sometimes, the project itself doesn't match the name of the module; in
 these cases you can specify the project name (optionally, before the
 version)::
 
-    import bs4   # fades.pypi beautifulsoup4
-    import bs4   # fades.pypi beautifulsoup4 == 4.2
+    import bs4   # fades beautifulsoup4
+    import bs4   # fades beautifulsoup4 == 4.2
 
 
 Other ways to specify dependencies
@@ -141,6 +142,42 @@ for example::
         request
         otherpackage
     """
+
+
+About different repositories
+----------------------------
+
+*fades* supports installing the required dependencies from multiples repositories: besides PyPI, you can specify URLs that can point to projects from GitHub, Launchpad, etc. (basically, everything that is supported by ``pip`` itself).
+
+When a dependency is specified, *fades* deduces the proper repository. For example, in the following examples *fades* will install requests from the latest revision from PyPI in the first case, and in the second case the latest revision from the project itself from GitHub::
+
+    -d requests
+    -d git+https://github.com/kennethreitz/requests.git#egg=requests
+
+If you prefer, you can be explicit about which kind of repository *fades* should use, prefixing the dependency with the special token double colon (``::``)::
+
+    -d pypi::requests
+    -d vcs::git+https://github.com/kennethreitz/requests.git#egg=requests
+
+
+There are two basic repositories: ``pypi`` which will make *fades* to install the desired dependency from PyPI, and ``vcs``, which will make *fades* to treat the dependency as a URL for a version control system site. In the first case, for PyPI, a full range of version comparators can be specified, as usual. For ``vcs`` repositories, though, the comparison is always exact: if the very same dependency is specified, a *virtualenv* is reused, otherwise a new one will be created and populated.
+
+In both cases (specifying the repository explicitly or implicitly) there is no difference if the dependency is specified in the command line, in a ``requirements.txt`` file, in the script's docstring, etc.  In the case of marking the ``import`` directly in the script, it slightly different.
+
+When marking the ``import`` it normally happens that the package itself to be installed has the name of the imported module, and because of that it can only be found in PyPI. So, in the following cases the ``pypi`` repository is not only deduced, but unavoidable::
+
+    import requests  # fades
+    from foo import bar  # fades
+    import requests  # fades <= 3
+
+But if the package is specified (normally needed because it's different than the module name), or if a version control system URL is specified, the same possibilities stated above are available: let *fades* to deduce the proper repository or mark it explicitly::
+
+    import bs4  # fades beautifulsoup
+    import bs4  # fades pypi::beautifulsoup
+    import requests  # fades git+https://github.com/kennethreitz/requests.git#egg=requests
+    import requests  # fades vcs::git+https://github.com/kennethreitz/requests.git#egg=requests
+
+One last detail about the ``vcs`` repository: the format to write the URLs is the same (as it's passed without modifications) than what ``pip`` itself supports (see `pip docs <https://pip.readthedocs.io/en/stable/reference/pip_install/#vcs-support>`_ for more details).
 
 
 How to control the virtualenv creation and usage?

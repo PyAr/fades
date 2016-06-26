@@ -57,11 +57,13 @@ Runs IPython shell instead of python ones.
 
 .TP
 .BR -d ", " --dependency
-Specify dependencies through command line. This option can be specified multiple times (once per dependency), and each time the format is \fBrepository::dependency\fR. The dependency may have versions specifications, and the repository is optional (defaults to 'pypi'). Examples:
+Specify dependencies through command line. This option can be specified multiple times (once per dependency), and each time the format is \fBrepository::dependency\fR. The dependency may have versions specifications, and the repository is optional (it will infer it). Examples:
 
     requests
     pypi::requests > 2.3
     requests<=3
+    git+https://github.com/kennethreitz/requests.git#egg=requests
+    vcs::git+https://github.com/kennethreitz/requests.git#egg=requests
 
 See more examples below for real command line usage explanations.
 

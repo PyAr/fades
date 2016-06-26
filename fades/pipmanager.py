@@ -1,4 +1,4 @@
-# Copyright 2014, 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -70,7 +70,7 @@ class PipManager():
     def get_version(self, dependency):
         """Return the installed version parsing the output of 'pip show'."""
         logger.debug("getting installed version for %s", dependency)
-        stdout = helpers.logged_exec([self.pip_exe, "show", dependency])
+        stdout = helpers.logged_exec([self.pip_exe, "show", str(dependency)])
         version = [line for line in stdout if line.startswith('Version:')]
         if len(version) == 1:
             version = version[0].strip().split()[1]

@@ -1,4 +1,4 @@
-# Copyright 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -22,9 +22,12 @@ import logging
 import os
 import time
 
+from fades import REPO_VCS
+
 from pkg_resources import Distribution
 
 from fades.multiplatform import filelock
+from fades.parsing import VCSDependency
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +53,17 @@ class VEnvsCache:
             # check anything: the venv is useful if nothing installed too
             return not bool(installed)
 
-        useful_inst = set()
         for repo, req_deps in requirements.items():
+            useful_inst = set()
             if repo not in installed:
                 # the venv doesn't even have the repo
                 return False
 
-            inst_deps = {Distribution(project_name=dep, version=ver)
-                         for (dep, ver) in installed[repo].items()}
+            if repo == REPO_VCS:
+                inst_deps = {VCSDependency(url) for url in installed[repo].keys()}
+            else:
+                inst_deps = {Distribution(project_name=dep, version=ver)
+                             for (dep, ver) in installed[repo].items()}
             for req in req_deps:
                 for inst in inst_deps:
                     if inst in req:

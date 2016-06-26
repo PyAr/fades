@@ -1,4 +1,4 @@
-# Copyright 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -26,7 +26,7 @@ from pkg_resources import parse_requirements
 
 import logassert
 
-from fades import REPO_PYPI, cache, envbuilder
+from fades import REPO_PYPI, REPO_VCS, cache, envbuilder, parsing
 from venv import EnvBuilder
 
 
@@ -86,6 +86,28 @@ class EnvCreationTestCase(unittest.TestCase):
                 'dep2': 'v2',
             }
         })
+
+    def test_create_vcs(self):
+        requested = {
+            REPO_VCS: [parsing.VCSDependency("someurl")]
+        }
+        interpreter = 'python3'
+        is_current = True
+        options = {"virtualenv_options": [], "pyvenv_options": []}
+        pip_options = []
+        with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
+            with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
+                mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
+                mock_mgr_c.return_value = self.FakeManager()
+                venv_data, installed = envbuilder.create_venv(requested, interpreter, is_current,
+                                                              options, pip_options)
+
+        self.assertEqual(venv_data, {
+            'env_bin_path': 'env_bin_path',
+            'env_path': 'env_path',
+            'pip_installed': 'pip_installed',
+        })
+        self.assertDictEqual(installed, {REPO_VCS: {'someurl': None}})
 
     def test_unknown_repo(self):
         requested = {
