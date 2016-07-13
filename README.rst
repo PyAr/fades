@@ -255,7 +255,7 @@ Examples:
 
 ``fades -d requests --virtualenv-options="--always-copy" --virtualenv-options="--extra-search-dir=/tmp"``
 
-``fades -d requests --pip-options="--index-url="http://example.com"``
+``fades -d requests --pip-options="--index-url='http://example.com'"``
 
 Setting options using config files
 ----------------------------------
