@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 #
 # Copyright 2014 Facundo Batista, Nicolás Demarchi
@@ -22,7 +23,7 @@
 import os
 import sys
 
-# small hack to allow fades to be run directly from the project, using code 
+# small hack to allow fades to be run directly from the project, using code
 # from project itself, not anything already installed in the system
 parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0])))
 if os.path.basename(parent_dir) == 'fades':

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Holder of the fades version number."""
 
 VERSION = (5, 0)
