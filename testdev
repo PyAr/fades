@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# Copyright 2014-2016 Facundo Batista, Nicolás Demarchi
+
+set -eu
+
+if [ $# -ne 0 ]; then
+    TARGET_TESTS="$@"
+else
+    TARGET_TESTS="fades tests"
+fi
+
+./bin/fades -r requirements.txt -x nosetests -v -s $TARGET_TESTS
