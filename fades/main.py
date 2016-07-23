@@ -63,6 +63,32 @@ def _merge_deps(*deps):
     return final
 
 
+def detect_inside_virtualenv():
+    """Tell if fades is inside a virtualenv.
+
+    This is a slightly adapted version from ipython's own check.
+    """
+    p_venv = os.environ.get('VIRTUAL_ENV')
+    if p_venv is None:
+        return
+
+    # let's normalize the path case for Windows
+    p_venv = os.path.normcase(p_venv)
+
+    # stdlib venv may symlink sys.executable, so we can't use realpath, but others can
+    # symlink *to* the venv Python, so we can't just use sys.executable; so we just check
+    # every item in the symlink tree (generally <= 3)
+    p = os.path.normcase(sys.executable)
+    paths = [p]
+    while os.path.islink(p):
+        p = os.path.normcase(os.path.join(os.path.dirname(p), os.readlink(p)))
+        paths.append(p)
+
+    for p in paths:
+        if p.startswith(p_venv):
+            return p
+
+
 def go(argv):
     """Make the magic happen."""
     parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog, usage=help_usage,
@@ -134,6 +160,11 @@ def go(argv):
     l.debug("Running Python %s on %r", sys.version_info, sys.platform)
     l.debug("Starting fades v. %s", fades.__version__)
     l.debug("Arguments: %s", args)
+
+    # verify that the module is NOT being used from a virtualenv
+    venvpath = detect_inside_virtualenv()
+    if venvpath is not None:
+        logger.warning("fades is running from a virtualenv (%r), which is not supported", venvpath)
 
     if args.verbose and args.quiet:
         l.warning("Overriding 'quiet' option ('verbose' also requested)")

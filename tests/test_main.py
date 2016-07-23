@@ -1,4 +1,4 @@
-# Copyright 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -16,9 +16,47 @@
 
 """Tests for some code in main."""
 
+import os
+import sys
+import tempfile
 import unittest
 
+from unittest.mock import patch
+
 from fades import main, __version__, VERSION
+
+
+class VirtualenvCheckingTestCase(unittest.TestCase):
+    """Tests for the virtualenv checker."""
+
+    def test_no_virtualenv(self):
+        with patch.dict(os.environ, {}, clear=True):
+            resp = main.detect_inside_virtualenv()
+        self.assertIsNone(resp)
+
+    def test_in_virtualenv(self):
+        # set up a temp file
+        _, fpath = tempfile.mkstemp(prefix="test-temp-file")
+        self.addCleanup(os.remove, fpath)
+
+        with patch.dict(os.environ, {'VIRTUAL_ENV': '/tmp/test-'}):
+            with patch.object(sys, 'executable', fpath):
+                resp = main.detect_inside_virtualenv()
+        self.assertEqual(resp, fpath)
+
+    def test_in_symlinked_virtualenv(self):
+        # set up a temp file and a symlink to it
+        _, fpath1 = tempfile.mkstemp(prefix="test1-temp-file")
+        _, fpath2 = tempfile.mkstemp(prefix="test2-temp-file")
+        os.remove(fpath2)
+        os.symlink(fpath1, fpath2)
+        self.addCleanup(os.remove, fpath1)
+        self.addCleanup(os.remove, fpath2)
+
+        with patch.dict(os.environ, {'VIRTUAL_ENV': '/tmp/test1-'}):
+            with patch.object(sys, 'executable', fpath2):
+                resp = main.detect_inside_virtualenv()
+        self.assertEqual(resp, fpath1)
 
 
 class DepsMergingTestCase(unittest.TestCase):
