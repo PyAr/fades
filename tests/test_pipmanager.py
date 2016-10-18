@@ -109,4 +109,4 @@ class PipManagerTestCase(unittest.TestCase):
             self.assertLoggedInfo("say hi")
             logassert.setup(self, 'fades.pipmanager')
             mgr.install('bar')
-            self.assertNotLoggedInfo("say hi")
+            self.assertNotLoggedInfo("Hi! This is fades")
