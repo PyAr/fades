@@ -143,13 +143,14 @@ class EnvCreationTestCase(unittest.TestCase):
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FailInstallManager()
                 with patch.object(envbuilder, 'destroy_venv', spec=True) as mock_destroy:
-                    with self.assertRaises(SystemExit):
+                    with self.assertRaises(SystemExit) as cm:
                         envbuilder.create_venv(
                             requested,
                             interpreter,
                             is_current,
                             options,
                             pip_options)
+                    self.assertEqual(cm.exception.code, 4)
                     mock_destroy.assert_called_once_with('env_path')
 
         self.assertLoggedDebug("Installation Step failed, removing virtualenv")
@@ -335,6 +336,46 @@ class UsageManagerTestCase(unittest.TestCase):
                     self.assertEqual(new_date, d, msg="Selected env have new date")
                 else:
                     self.assertEqual(old_date, d, msg="Others envs have old date")
+
+    def test_exit_1_on_FileNotFound(self):
+        env_builder = envbuilder._FadesEnvBuilder()
+        interpreter = 'python3'
+        is_current = False
+        options = {"virtualenv_options": [],
+                   "pyvenv_options": ['--system-site-packages'],
+                   }
+        with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
+                # mock_lexec.side_effect = envbuilder.helpers.ExecutionError('matanga!')
+                mock_lexec.side_effect = FileNotFoundError('matanga!')
+                with self.assertRaises(SystemExit) as cm:
+                    env_builder.create_env(interpreter, is_current, options)
+                self.assertEqual(cm.exception.code, 1)
+
+    def test_exit_2_on_ExecutionError(self):
+        env_builder = envbuilder._FadesEnvBuilder()
+        interpreter = 'python3'
+        is_current = False
+        options = {"virtualenv_options": [],
+                   "pyvenv_options": ['--system-site-packages'],
+                   }
+        with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
+                mock_lexec.side_effect = envbuilder.helpers.ExecutionError(1, 'cmd', 'stdout')
+                with self.assertRaises(SystemExit) as cm:
+                    env_builder.create_env(interpreter, is_current, options)
+                self.assertEqual(cm.exception.code, 2)
+
+    def test_exit_3_on_any_Exception(self):
+        env_builder = envbuilder._FadesEnvBuilder()
+        interpreter = 'python3'
+        is_current = False
+        options = {"virtualenv_options": [],
+                   "pyvenv_options": ['--system-site-packages'],
+                   }
+        with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
+                mock_lexec.side_effect = Exception()
+                with self.assertRaises(SystemExit) as cm:
+                    env_builder.create_env(interpreter, is_current, options)
+                self.assertEqual(cm.exception.code, 3)
 
     def test_when_a_venv_is_removed_it_is_removed_from_everywhere(self):
         old_date = datetime.utcnow()
