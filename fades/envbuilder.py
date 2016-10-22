@@ -84,13 +84,13 @@ class _FadesEnvBuilder(EnvBuilder):
         except FileNotFoundError as error:
             logger.error('Virtualenv is not installed. It is needed to create a virtualenv with '
                          'a different python version than fades (got {})'.format(error))
-            exit()
+            exit(1)
         except helpers.ExecutionError as error:
             error.dump_to_log(logger)
-            exit()
+            exit(1)
         except Exception as error:
             logger.exception("Error creating virtualenv:  %s", error)
-            exit()
+            exit(1)
 
     def create_env(self, interpreter, is_current, options):
         """Create the virtualenv and return its info."""
@@ -146,7 +146,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
             except:
                 logger.debug("Installation Step failed, removing virtualenv")
                 destroy_venv(env_path)
-                exit()
+                exit(1)
 
             if repo == REPO_VCS:
                 # no need to request the installed version, as we'll always compare

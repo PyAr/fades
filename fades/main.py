@@ -127,7 +127,7 @@ def go(argv):
         print("Running 'fades' version", fades.__version__)
         print("    Python:", sys.version_info)
         print("    System:", sys.platform)
-        sys.exit()
+        sys.exit(0)
 
     # set up logger and dump basic version info
     l = logger.set_up(args.verbose, args.quiet)
@@ -144,15 +144,17 @@ def go(argv):
     usage_manager = envbuilder.UsageManager(os.path.join(helpers.get_basedir(), 'usage_stats'),
                                             venvscache)
 
+    rc = 0
     if args.clean_unused_venvs:
         try:
             max_days_to_keep = int(args.clean_unused_venvs)
             usage_manager.clean_unused_venvs(max_days_to_keep)
         except:
+            rc = 1
             l.debug("CLEAN_UNUSED_VENVS must be an integer.")
             raise
         finally:
-            sys.exit()
+            sys.exit(rc)
 
     uuid = args.remove
     if uuid:
