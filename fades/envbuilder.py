@@ -87,10 +87,10 @@ class _FadesEnvBuilder(EnvBuilder):
             sys.exit(1)
         except helpers.ExecutionError as error:
             error.dump_to_log(logger)
-            sys.exit(1)
+            sys.exit(2)
         except Exception as error:
             logger.exception("Error creating virtualenv:  %s", error)
-            sys.exit(1)
+            sys.exit(3)
 
     def create_env(self, interpreter, is_current, options):
         """Create the virtualenv and return its info."""
@@ -146,7 +146,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
             except:
                 logger.debug("Installation Step failed, removing virtualenv")
                 destroy_venv(env_path)
-                sys.exit(1)
+                sys.exit(4)
 
             if repo == REPO_VCS:
                 # no need to request the installed version, as we'll always compare
