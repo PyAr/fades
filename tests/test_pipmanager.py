@@ -101,3 +101,12 @@ class PipManagerTestCase(unittest.TestCase):
                 mgr.install('foo')
                 self.assertEqual(mocked_install_pip.call_count, 1)
             mocked_exec.assert_called_with(['/usr/bin/pip', 'install', 'foo'])
+
+    def test_say_hi_on_first_install(self):
+        mgr = PipManager('/usr/bin', pip_installed=True, options=['--bar=baz'])
+        with patch.object(helpers, 'logged_exec'):
+            mgr.install('foo')
+            self.assertLoggedInfo("Hi! This is fades")
+            logassert.setup(self, 'fades.pipmanager')
+            mgr.install('bar')
+            self.assertNotLoggedInfo("Hi! This is fades")

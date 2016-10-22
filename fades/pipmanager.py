@@ -27,6 +27,7 @@ import logging
 from urllib import request
 
 from fades import helpers
+from fades._version import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +45,14 @@ class PipManager():
         self.pip_exe = os.path.join(self.env_bin_path, "pip")
         basedir = helpers.get_basedir()
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
+        self.said_hi = False
 
     def install(self, dependency):
         """Install a new dependency."""
+        if not self.said_hi:
+            logger.info("Hi! This is fades %s, automatically managing your dependencies", __version__)
+            self.said_hi = True
+
         if not self.pip_installed:
             logger.info("Need to install a dependency with pip, but no builtin, "
                         "doing it manually (just wait a little, all should go well)")
