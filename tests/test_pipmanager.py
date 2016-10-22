@@ -106,7 +106,7 @@ class PipManagerTestCase(unittest.TestCase):
         mgr = PipManager('/usr/bin', pip_installed=True, options=['--bar=baz'])
         with patch.object(helpers, 'logged_exec'):
             mgr.install('foo')
-            self.assertLoggedInfo("say hi")
+            self.assertLoggedInfo("Hi! This is fades")
             logassert.setup(self, 'fades.pipmanager')
             mgr.install('bar')
             self.assertNotLoggedInfo("Hi! This is fades")
