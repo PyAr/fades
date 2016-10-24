@@ -1,4 +1,4 @@
-# Copyright 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -16,9 +16,34 @@
 
 """Tests for some code in main."""
 
+import os
+import sys
+import tempfile
 import unittest
 
+from unittest.mock import patch
+
 from fades import main, __version__, VERSION
+
+
+class VirtualenvCheckingTestCase(unittest.TestCase):
+    """Tests for the virtualenv checker."""
+
+    def test_have_realprefix(self):
+        resp = main.detect_inside_virtualenv('prefix',  'real_prefix', 'base_prefix')
+        self.assertTrue(resp)
+
+    def test_no_baseprefix(self):
+        resp = main.detect_inside_virtualenv('prefix',  None, None)
+        self.assertFalse(resp)
+
+    def test_prefix_is_baseprefix(self):
+        resp = main.detect_inside_virtualenv('prefix',  None, 'prefix')
+        self.assertFalse(resp)
+
+    def test_prefix_is_not_baseprefix(self):
+        resp = main.detect_inside_virtualenv('prefix',  None, 'other prefix')
+        self.assertTrue(resp)
 
 
 class DepsMergingTestCase(unittest.TestCase):
