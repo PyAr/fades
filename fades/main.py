@@ -64,29 +64,21 @@ def _merge_deps(*deps):
 
 
 def detect_inside_virtualenv():
-    """Tell if fades is inside a virtualenv.
+    """Tell if fades is running inside a virtualenv.
 
-    This is a slightly adapted version from ipython's own check.
+    This is copied from pip code (slightly modified), see
+
+        https://github.com/pypa/pip/blob/281eb61b09d87765d7c2b92f6982b3fe76ccb0af/
+            pip/locations.py#L39
     """
-    p_venv = os.environ.get('VIRTUAL_ENV')
-    if p_venv is None:
-        return
+    if hasattr(sys, 'real_prefix'):
+        return True
 
-    # let's normalize the path case for Windows
-    p_venv = os.path.normcase(p_venv)
+    if not hasattr(sys, 'base_prefix'):
+        return False
 
-    # stdlib venv may symlink sys.executable, so we can't use realpath, but others can
-    # symlink *to* the venv Python, so we can't just use sys.executable; so we just check
-    # every item in the symlink tree (generally <= 3)
-    p = os.path.normcase(sys.executable)
-    paths = [p]
-    while os.path.islink(p):
-        p = os.path.normcase(os.path.join(os.path.dirname(p), os.readlink(p)))
-        paths.append(p)
-
-    for p in paths:
-        if p.startswith(p_venv):
-            return p
+    # if prefix is different than base_prefix, it's a venv
+    return sys.prefix != sys.base_prefix
 
 
 def go(argv):
@@ -162,9 +154,8 @@ def go(argv):
     l.debug("Arguments: %s", args)
 
     # verify that the module is NOT being used from a virtualenv
-    venvpath = detect_inside_virtualenv()
-    if venvpath is not None:
-        logger.warning("fades is running from a virtualenv (%r), which is not supported", venvpath)
+    if detect_inside_virtualenv():
+        l.warning("fades is running from a virtualenv (%r), which is not supported", sys.prefix)
 
     if args.verbose and args.quiet:
         l.warning("Overriding 'quiet' option ('verbose' also requested)")
