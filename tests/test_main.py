@@ -29,34 +29,21 @@ from fades import main, __version__, VERSION
 class VirtualenvCheckingTestCase(unittest.TestCase):
     """Tests for the virtualenv checker."""
 
-    def test_no_virtualenv(self):
-        with patch.dict(os.environ, {}, clear=True):
-            resp = main.detect_inside_virtualenv()
-        self.assertIsNone(resp)
+    def test_have_realprefix(self):
+        resp = main.detect_inside_virtualenv('prefix',  'real_prefix', 'base_prefix')
+        self.assertTrue(resp)
 
-    def test_in_virtualenv(self):
-        # set up a temp file
-        _, fpath = tempfile.mkstemp(prefix="test-temp-file")
-        self.addCleanup(os.remove, fpath)
+    def test_no_baseprefix(self):
+        resp = main.detect_inside_virtualenv('prefix',  None, None)
+        self.assertFalse(resp)
 
-        with patch.dict(os.environ, {'VIRTUAL_ENV': '/tmp/test-'}):
-            with patch.object(sys, 'executable', fpath):
-                resp = main.detect_inside_virtualenv()
-        self.assertEqual(resp, fpath)
+    def test_prefix_is_baseprefix(self):
+        resp = main.detect_inside_virtualenv('prefix',  None, 'prefix')
+        self.assertFalse(resp)
 
-    def test_in_symlinked_virtualenv(self):
-        # set up a temp file and a symlink to it
-        _, fpath1 = tempfile.mkstemp(prefix="test1-temp-file")
-        _, fpath2 = tempfile.mkstemp(prefix="test2-temp-file")
-        os.remove(fpath2)
-        os.symlink(fpath1, fpath2)
-        self.addCleanup(os.remove, fpath1)
-        self.addCleanup(os.remove, fpath2)
-
-        with patch.dict(os.environ, {'VIRTUAL_ENV': '/tmp/test1-'}):
-            with patch.object(sys, 'executable', fpath2):
-                resp = main.detect_inside_virtualenv()
-        self.assertEqual(resp, fpath1)
+    def test_prefix_is_not_baseprefix(self):
+        resp = main.detect_inside_virtualenv('prefix',  None, 'other prefix')
+        self.assertTrue(resp)
 
 
 class DepsMergingTestCase(unittest.TestCase):

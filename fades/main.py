@@ -63,22 +63,24 @@ def _merge_deps(*deps):
     return final
 
 
-def detect_inside_virtualenv():
+def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
     """Tell if fades is running inside a virtualenv.
+
+    The params 'real_prefix' and 'base_prefix' may be None.
 
     This is copied from pip code (slightly modified), see
 
         https://github.com/pypa/pip/blob/281eb61b09d87765d7c2b92f6982b3fe76ccb0af/
             pip/locations.py#L39
     """
-    if hasattr(sys, 'real_prefix'):
+    if real_prefix is not None:
         return True
 
-    if not hasattr(sys, 'base_prefix'):
+    if base_prefix is None:
         return False
 
     # if prefix is different than base_prefix, it's a venv
-    return sys.prefix != sys.base_prefix
+    return prefix != base_prefix
 
 
 def go(argv):
@@ -154,7 +156,8 @@ def go(argv):
     l.debug("Arguments: %s", args)
 
     # verify that the module is NOT being used from a virtualenv
-    if detect_inside_virtualenv():
+    if detect_inside_virtualenv(sys.prefix, getattr(sys, 'real_prefix', None),
+                                getattr(sys, 'base_prefix', None)):
         l.warning("fades is running from a virtualenv (%r), which is not supported", sys.prefix)
 
     if args.verbose and args.quiet:
