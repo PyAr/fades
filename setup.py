@@ -1,6 +1,6 @@
-#!/usr/bin/env python3.4
+#!/usr/bin/env python3
 
-# Copyright 2014, 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2017 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -20,7 +20,7 @@
 
 Needed packages to run (using Debian/Ubuntu package names):
 
-    python3.4
+    python3
     python3-xdg   (optional)
     python3-pkg-resources
     python3-setuptools
