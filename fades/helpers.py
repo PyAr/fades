@@ -29,6 +29,7 @@ import pkg_resources
 
 logger = logging.getLogger(__name__)
 
+# command to retrieve the version from an external Python
 SHOW_VERSION_CMD = """
 import sys, json
 d = dict(path=sys.executable)
@@ -37,9 +38,15 @@ print(json.dumps(d))
 """
 
 
+# the url to query PyPI for project versions
 BASE_PYPI_URL = 'https://pypi.python.org/pypi/{name}/json'
 
+# prefix for all stdout lines when running a command
 STDOUT_LOG_PREFIX = ":: "
+
+# env var name provided by snappy where process can read/write; this path already includes
+# 'fades' in it, it's a different dir for each user, and accessable by different versions of fades
+SNAP_BASEDIR_NAME = 'SNAP_USER_COMMON'
 
 
 class ExecutionError(Exception):
@@ -80,16 +87,22 @@ def _get_basedirectory():
     return BaseDirectory
 
 
-def _get_specific_dir(xdg_attrib):
+def _get_specific_dir(dir_type):
     """Get a specific directory, using some XDG base, with sensible default."""
-    try:
-        basedirectory = _get_basedirectory()
-        base = getattr(basedirectory, xdg_attrib)
-        direct = os.path.join(base, 'fades')
-    except ImportError:
-        logger.debug("Package xdg not installed; using ~/.fades folder")
-        from os.path import expanduser
-        direct = os.path.join(expanduser("~"), ".fades")
+    if SNAP_BASEDIR_NAME in os.environ:
+        logger.debug("Getting base dir information from SNAP_BASEDIR_NAME env var.")
+        direct = os.path.join(os.environ[SNAP_BASEDIR_NAME], dir_type)
+    else:
+        try:
+            basedirectory = _get_basedirectory()
+        except ImportError:
+            logger.debug("Using last resort base dir: ~/.fades")
+            from os.path import expanduser
+            direct = os.path.join(expanduser("~"), ".fades")
+        else:
+            xdg_attrib = 'xdg_{}_home'.format(dir_type)
+            base = getattr(basedirectory, xdg_attrib)
+            direct = os.path.join(base, 'fades')
 
     if not os.path.exists(direct):
         os.makedirs(direct)
@@ -98,12 +111,12 @@ def _get_specific_dir(xdg_attrib):
 
 def get_basedir():
     """Get the base fades directory, from xdg or kinda hardcoded."""
-    return _get_specific_dir('xdg_data_home')
+    return _get_specific_dir('data')
 
 
 def get_confdir():
     """Get the config fades directory, from xdg or kinda hardcoded."""
-    return _get_specific_dir('xdg_config_home')
+    return _get_specific_dir('config')
 
 
 def _get_interpreter_info(interpreter=None):

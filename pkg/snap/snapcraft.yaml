@@ -6,13 +6,12 @@ description: >
     normally found when writing scripts and simple programs, and even helps
     to administer big projects.
 icon: resources/logo256.png
-confinement: devmode
-grade: devel
+confinement: classic
+grade: stable
 
 apps:
   fades:
     command: bin/fades
-    plugs: [home, network]
 
 parts:
   fades:
