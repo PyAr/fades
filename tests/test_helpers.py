@@ -223,22 +223,45 @@ class GetDirsTestCase(unittest.TestCase):
         direct = helpers.get_basedir()
         self.assertEqual(direct, os.path.join(BaseDirectory.xdg_data_home, 'fades'))
 
+    def _fake_snap_env_dir(self, direct):
+        """Fake Snap's environment variable."""
+        os.environ[helpers.SNAP_BASEDIR_NAME] = direct
+        self.addCleanup(os.environ.pop, helpers.SNAP_BASEDIR_NAME)
+
+    def test_basedir_snap(self):
+        with tempfile.TemporaryDirectory() as dirname:
+            self._fake_snap_env_dir(dirname)
+            direct = helpers.get_basedir()
+            self.assertEqual(direct, os.path.join(dirname, 'data'))
+
     def test_basedir_default(self):
         with patch.object(helpers, "_get_basedirectory") as mock:
             mock.side_effect = ImportError()
             direct = helpers.get_basedir()
             self.assertEqual(direct, os.path.join(self._home, '.fades'))
 
-    def test_basedir_nonexistant(self):
+    def test_basedir_xdg_nonexistant(self):
         with patch("xdg.BaseDirectory") as mock:
             with tempfile.TemporaryDirectory() as dirname:
                 mock.xdg_data_home = dirname
                 direct = helpers.get_basedir()
                 self.assertTrue(os.path.exists(direct))
 
+    def test_basedir_snap_nonexistant(self):
+        with tempfile.TemporaryDirectory() as dirname:
+            self._fake_snap_env_dir(dirname)
+            direct = helpers.get_basedir()
+            self.assertTrue(os.path.exists(direct))
+
     def test_confdir_xdg(self):
         direct = helpers.get_confdir()
         self.assertEqual(direct, os.path.join(BaseDirectory.xdg_config_home, 'fades'))
+
+    def test_confdir_snap(self):
+        with tempfile.TemporaryDirectory() as dirname:
+            self._fake_snap_env_dir(dirname)
+            direct = helpers.get_confdir()
+            self.assertEqual(direct, os.path.join(dirname, 'config'))
 
     def test_confdir_default(self):
         with patch.object(helpers, "_get_basedirectory") as mock:
@@ -246,9 +269,15 @@ class GetDirsTestCase(unittest.TestCase):
             direct = helpers.get_confdir()
             self.assertEqual(direct, os.path.join(self._home, '.fades'))
 
-    def test_confdir_nonexistant(self):
+    def test_confdir_xdg_nonexistant(self):
         with patch("xdg.BaseDirectory") as mock:
             with tempfile.TemporaryDirectory() as dirname:
                 mock.xdg_config_home = dirname
                 direct = helpers.get_confdir()
                 self.assertTrue(os.path.exists(direct))
+
+    def test_confdir_snap_nonexistant(self):
+        with tempfile.TemporaryDirectory() as dirname:
+            self._fake_snap_env_dir(dirname)
+            direct = helpers.get_confdir()
+            self.assertTrue(os.path.exists(direct))
