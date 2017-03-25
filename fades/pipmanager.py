@@ -56,7 +56,7 @@ class PipManager():
         if not self.pip_installed:
             logger.info("Need to install a dependency with pip, but no builtin, "
                         "doing it manually (just wait a little, all should go well)")
-            self._brute_force_install_pip()
+            self.brute_force_install_pip()
 
         str_dep = str(dependency)
         args = [self.pip_exe, "install", str_dep]
@@ -87,7 +87,7 @@ class PipManager():
                          'Run with -v or check the logs for details')
             return ''
 
-    def _brute_force_install_pip(self):
+    def brute_force_install_pip(self):
         """A brute force install of pip itself."""
         if os.path.exists(self.pip_installer_fname):
             logger.debug("Using pip installer from %r", self.pip_installer_fname)
