@@ -23,6 +23,8 @@ the created virtualenv.
 
 import os
 import logging
+import shutil
+import tempfile
 
 from urllib import request
 
@@ -89,13 +91,10 @@ class PipManager():
 
     def download_pip_installer(self):
         u = request.urlopen(PIP_INSTALLER)
-        try:
-            with open(self.pip_installer_fname, 'wb') as fh:
-                fh.write(u.read())
-        except:
-            if os.path.exists(self.pip_installer_fname):
-                os.remove(self.pip_installer_fname)
-            raise
+        with tempfile.NamedTemporaryFile('wb') as f:
+            shutil.copyfileobj(u, f)
+            f.flush()
+            shutil.copy(f.name, self.pip_installer_fname)
 
     def brute_force_install_pip(self):
         """A brute force install of pip itself."""
