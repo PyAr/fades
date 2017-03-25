@@ -240,6 +240,18 @@ class EnvDestructionTestCase(unittest.TestCase):
                    "pyvenv_options": ['--system-site-packages'],
                    "pip-options": [],
                    }
+
+        def fake_create(*_):
+            """Fake venv create.
+
+            This is for the test to avoid network usage on venv creation, but also create
+            and set the fake dir.
+            """
+            os.mkdir(fake_venv_path)
+            builder.env_path = fake_venv_path
+
+        fake_venv_path = tempfile.TemporaryDirectory().name
+        builder.create_with_virtualenv = fake_create
         builder.create_env('python', False, options=options)
         assert os.path.exists(builder.env_path)
 
