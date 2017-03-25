@@ -110,3 +110,14 @@ class PipManagerTestCase(unittest.TestCase):
             logassert.setup(self, 'fades.pipmanager')
             mgr.install('bar')
             self.assertNotLoggedInfo("Hi! This is fades")
+
+    def test_brute_force_install_pip_installer_exists(self):
+        mgr = PipManager('/usr/bin', pip_installed=False)
+        with patch.object(helpers, 'logged_exec') as mocked_exec:
+            with patch('os.path.exists') as os_exists:
+                os_exists.return_value = True
+                mgr.brute_force_install_pip()
+
+                os_exists.assert_called_once_with(mgr.pip_installer_fname)
+            mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
+        self.assertTrue(mgr.pip_installed)
