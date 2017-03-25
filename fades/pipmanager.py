@@ -50,7 +50,8 @@ class PipManager():
     def install(self, dependency):
         """Install a new dependency."""
         if not self.said_hi:
-            logger.info("Hi! This is fades %s, automatically managing your dependencies", __version__)
+            logger.info(
+                "Hi! This is fades %s, automatically managing your dependencies", __version__)
             self.said_hi = True
 
         if not self.pip_installed:
@@ -58,12 +59,17 @@ class PipManager():
                         "doing it manually (just wait a little, all should go well)")
             self._brute_force_install_pip()
 
+        # split to pass several tokens on multiword dependency (this is very specific for '-e' on
+        # external requirements, but implemented generically; note that this does not apply for
+        # normal reqs, because even if it originally is 'foo > 1.2', after parsing it loses the
+        # internal spaces)
         str_dep = str(dependency)
-        args = [self.pip_exe, "install", str_dep]
+        args = [self.pip_exe, "install"] + str_dep.split()
+
         if self.options:
             for option in self.options:
                 args.extend(option.split())
-        logger.info("Installing dependency: %s", str_dep)
+        logger.info("Installing dependency: %r", str_dep)
         try:
             helpers.logged_exec(args)
         except helpers.ExecutionError as error:
