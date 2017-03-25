@@ -14,7 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-""" Tests for pip related code. """
+"""Tests for pip related code."""
 
 import unittest
 from unittest import mock
@@ -28,7 +28,7 @@ from fades import helpers
 
 
 class PipManagerTestCase(unittest.TestCase):
-    """ Check parsing for `pip show`. """
+    """Check parsing for `pip show`."""
 
     def setUp(self):
         logassert.setup(self, 'fades.pipmanager')
