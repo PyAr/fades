@@ -87,6 +87,16 @@ class PipManager():
                          'Run with -v or check the logs for details')
             return ''
 
+    def download_pip_installer(self):
+        u = request.urlopen(PIP_INSTALLER)
+        try:
+            with open(self.pip_installer_fname, 'wb') as fh:
+                fh.write(u.read())
+        except:
+            if os.path.exists(self.pip_installer_fname):
+                os.remove(self.pip_installer_fname)
+            raise
+
     def brute_force_install_pip(self):
         """A brute force install of pip itself."""
         if os.path.exists(self.pip_installer_fname):
@@ -94,9 +104,7 @@ class PipManager():
         else:
             logger.debug(
                 "Installer for pip not found in %r, downloading it", self.pip_installer_fname)
-            u = request.urlopen(PIP_INSTALLER)
-            with open(self.pip_installer_fname, 'wb') as fh:
-                fh.write(u.read())
+            self.download_pip_installer()
 
         logger.debug("Installing PIP manually in the virtualenv")
         python_exe = os.path.join(self.env_bin_path, "python")
