@@ -121,3 +121,16 @@ class PipManagerTestCase(unittest.TestCase):
                 os_exists.assert_called_once_with(mgr.pip_installer_fname)
             mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
         self.assertTrue(mgr.pip_installed)
+
+    def test_brute_force_install_pip_no_installer(self):
+        mgr = PipManager('/usr/bin', pip_installed=False)
+        with patch.object(helpers, 'logged_exec') as mocked_exec:
+            with patch('os.path.exists') as os_exists:
+                with patch.object(mgr, 'download_pip_installer') as download_installer:
+                    os_exists.return_value = False
+                    mgr.brute_force_install_pip()
+
+                    os_exists.assert_called_once_with(mgr.pip_installer_fname)
+                    download_installer.assert_called_once_with()
+            mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
+        self.assertTrue(mgr.pip_installed)
