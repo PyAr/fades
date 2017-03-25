@@ -17,11 +17,13 @@
 """ Tests for pip related code. """
 
 import unittest
+from unittest import mock
 from unittest.mock import patch
 
 import logassert
 
 from fades.pipmanager import PipManager
+from fades import pipmanager
 from fades import helpers
 
 
@@ -134,3 +136,26 @@ class PipManagerTestCase(unittest.TestCase):
                     download_installer.assert_called_once_with()
             mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
         self.assertTrue(mgr.pip_installed)
+
+    def test_download_pip_installer(self):
+        mgr = PipManager('/usr/bin', pip_installed=False)
+        with patch('fades.pipmanager.request.urlopen') as urlopen:
+            urlopen().read.return_value = mock.sentinel.get_pip_content
+            urlopen.reset_mock()
+            with patch('builtins.open', mock.mock_open()) as open:
+                mgr.download_pip_installer()
+
+                open().write.assert_called_once_with(mock.sentinel.get_pip_content)
+            urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
+
+    def test_download_pip_installer_fail(self):
+        mgr = PipManager('/usr/bin', pip_installed=False)
+        with patch('fades.pipmanager.request.urlopen') as urlopen, \
+                patch('os.path.exists') as os_exists, \
+                patch('os.remove') as os_remove, \
+                patch('builtins.open', mock.mock_open()):
+            urlopen().read.side_effect = Exception
+            os_exists.return_value = True
+            with self.assertRaises(Exception):
+                mgr.download_pip_installer()
+                os_remove.assert_called_once_with(mgr.pip_installer_fname)
