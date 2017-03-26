@@ -92,8 +92,7 @@ class PipManager():
 
     def download_pip_installer(self):
         u = request.urlopen(PIP_INSTALLER)
-        with contextlib.closing(u), \
-                tempfile.NamedTemporaryFile('wb') as f:
+        with contextlib.closing(u), tempfile.NamedTemporaryFile('wb') as f:
             shutil.copyfileobj(u, f)
             f.flush()
             shutil.copy(f.name, self.pip_installer_fname)
