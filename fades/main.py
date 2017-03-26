@@ -266,7 +266,8 @@ def go(argv):
     if args.child_program is None:
         interactive = True
         l.debug("Calling the interactive Python interpreter with arguments %r", python_options)
-        p = subprocess.Popen([python_exe, *python_options])
+        cmd = [python_exe] + python_options
+        p = subprocess.Popen(cmd)
     else:
         interactive = False
         if args.executable:
@@ -274,7 +275,7 @@ def go(argv):
             l.debug("Calling child program %r with options %s",
                     args.child_program, args.child_options)
         else:
-            cmd = [python_exe, *python_options, args.child_program]
+            cmd = [python_exe] + python_options + [args.child_program]
             l.debug("Calling Python interpreter with arguments %s to execute the child program"
                     " %r with options %s", python_options, args.child_program, args.child_options)
 
