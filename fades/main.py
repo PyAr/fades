@@ -265,18 +265,19 @@ def go(argv):
     usage_manager.store_usage_stat(venv_data, venvscache)
     if args.child_program is None:
         interactive = True
-        l.debug("Calling the interactive Python interpreter")
+        l.debug("Calling the interactive Python interpreter with arguments %r", python_options)
         p = subprocess.Popen([python_exe, *python_options])
     else:
         interactive = False
         if args.executable:
             cmd = [os.path.join(venv_data['env_bin_path'], args.child_program)]
+            l.debug("Calling child program %r with options %s",
+                    args.child_program, args.child_options)
         else:
             cmd = [python_exe, *python_options, args.child_program]
-        l.debug("Calling the child program %r with options %s",
-                args.child_program, args.child_options)
+            l.debug("Calling Python interpreter with arguments %s to execute the child program"
+                    " %r with options %s", python_options, args.child_program, args.child_options)
 
-        l.debug("Ejecutando %s ", cmd)
         p = subprocess.Popen(cmd + args.child_options)
 
     def _signal_handler(signum, _):

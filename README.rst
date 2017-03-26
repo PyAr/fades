@@ -248,7 +248,7 @@ Under the hood options
 ----------------------
 
 For particular use cases you can send specifics arguments to ``virtualenv``, ``pip`` and ``python``. using the
-``--virtuaenv-options``, ``--pip-options`` and ``--python-options``. You have to use that argument for each argument
+``--virtuaenv-options``, ``--pip-options`` and ``--python-options`` respectively. You have to use that argument for each argument
 sent.
 
 Examples:
