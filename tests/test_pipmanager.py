@@ -117,26 +117,33 @@ class PipManagerTestCase(unittest.TestCase):
 
     def test_brute_force_install_pip_installer_exists(self):
         mgr = PipManager('/usr/bin', pip_installed=False)
-        with patch.object(helpers, 'logged_exec') as mocked_exec:
-            with patch('os.path.exists') as os_exists:
-                os_exists.return_value = True
-                mgr._brute_force_install_pip()
+        with patch.object(helpers, 'logged_exec') as mocked_exec, \
+                patch.object(mgr, '_download_pip_installer') as download_installer:
+            # Create empty file
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                mgr.pip_installer_fname = f.name
 
-                os_exists.assert_called_once_with(mgr.pip_installer_fname)
+            try:
+                mgr._brute_force_install_pip()
+            finally:
+                os.remove(mgr.pip_installer_fname)
+
+            self.assertEqual(download_installer.call_count, 0)
             mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
         self.assertTrue(mgr.pip_installed)
 
     def test_brute_force_install_pip_no_installer(self):
         mgr = PipManager('/usr/bin', pip_installed=False)
-        with patch.object(helpers, 'logged_exec') as mocked_exec:
-            with patch('os.path.exists') as os_exists:
-                with patch.object(mgr, '_download_pip_installer') as download_installer:
-                    os_exists.return_value = False
-                    mgr._brute_force_install_pip()
+        with patch.object(helpers, 'logged_exec') as mocked_exec, \
+                patch.object(mgr, '_download_pip_installer') as download_installer:
+            with tempfile.NamedTemporaryFile() as temp_file:
+                mgr.pip_installer_fname = temp_file.name
+                temp_file.close()   # Without this the file does not gets created
 
-                    os_exists.assert_called_once_with(mgr.pip_installer_fname)
-                    download_installer.assert_called_once_with()
-            mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
+                mgr._brute_force_install_pip()
+
+            download_installer.assert_called_once_with()
+        mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
         self.assertTrue(mgr.pip_installed)
 
     def test_download_pip_installer(self):
