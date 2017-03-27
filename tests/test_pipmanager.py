@@ -16,6 +16,9 @@
 
 """Tests for pip related code."""
 
+import os
+import io
+import tempfile
 import unittest
 from unittest import mock
 from unittest.mock import patch
@@ -139,11 +142,10 @@ class PipManagerTestCase(unittest.TestCase):
 
     def test_download_pip_installer(self):
         mgr = PipManager('/usr/bin', pip_installed=False)
-        with patch('fades.pipmanager.request.urlopen') as urlopen, \
-                patch('os.rename') as rename, \
-                patch('shutil.copyfileobj') as copyobj:
-            mgr.download_pip_installer()
-
+        with tempfile.NamedTemporaryFile() as temp_file:
+            mgr.pip_installer_fname = temp_file.name
+            with patch('fades.pipmanager.request.urlopen') as urlopen:
+                urlopen.return_value = io.BytesIO(b'hola')
+                mgr.download_pip_installer()
+            self.assertTrue(os.path.exists(mgr.pip_installer_fname))
         urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
-        self.assertEqual(copyobj.call_count, 1)
-        rename.assert_has_calls([mock.call(mgr.pip_installer_fname + '.temp', mgr.pip_installer_fname)])
