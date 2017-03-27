@@ -140,10 +140,10 @@ class PipManagerTestCase(unittest.TestCase):
     def test_download_pip_installer(self):
         mgr = PipManager('/usr/bin', pip_installed=False)
         with patch('fades.pipmanager.request.urlopen') as urlopen, \
-                patch('shutil.copy') as copy, \
+                patch('os.rename') as rename, \
                 patch('shutil.copyfileobj') as copyobj:
             mgr.download_pip_installer()
 
         urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
         self.assertEqual(copyobj.call_count, 1)
-        copy.assert_has_calls([mock.call(mock.ANY, mgr.pip_installer_fname)])
+        rename.assert_has_calls([mock.call(mgr.pip_installer_fname + '.temp', mgr.pip_installer_fname)])

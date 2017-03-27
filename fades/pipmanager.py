@@ -92,10 +92,10 @@ class PipManager():
 
     def download_pip_installer(self):
         u = request.urlopen(PIP_INSTALLER)
-        with contextlib.closing(u), tempfile.NamedTemporaryFile('wb') as f:
+        temp_location = self.pip_installer_fname + '.temp'
+        with contextlib.closing(u), open(temp_location, 'wb') as f:
             shutil.copyfileobj(u, f)
-            f.flush()
-            shutil.copy(f.name, self.pip_installer_fname)
+        os.rename(temp_location, self.pip_installer_fname)
 
     def brute_force_install_pip(self):
         """A brute force install of pip itself."""
