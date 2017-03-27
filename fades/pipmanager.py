@@ -59,7 +59,7 @@ class PipManager():
         if not self.pip_installed:
             logger.info("Need to install a dependency with pip, but no builtin, "
                         "doing it manually (just wait a little, all should go well)")
-            self.brute_force_install_pip()
+            self._brute_force_install_pip()
 
         str_dep = str(dependency)
         args = [self.pip_exe, "install", str_dep]
@@ -90,21 +90,21 @@ class PipManager():
                          'Run with -v or check the logs for details')
             return ''
 
-    def download_pip_installer(self):
+    def _download_pip_installer(self):
         u = request.urlopen(PIP_INSTALLER)
         temp_location = self.pip_installer_fname + '.temp'
         with contextlib.closing(u), open(temp_location, 'wb') as f:
             shutil.copyfileobj(u, f)
         os.rename(temp_location, self.pip_installer_fname)
 
-    def brute_force_install_pip(self):
+    def _brute_force_install_pip(self):
         """A brute force install of pip itself."""
         if os.path.exists(self.pip_installer_fname):
             logger.debug("Using pip installer from %r", self.pip_installer_fname)
         else:
             logger.debug(
                 "Installer for pip not found in %r, downloading it", self.pip_installer_fname)
-            self.download_pip_installer()
+            self._download_pip_installer()
 
         logger.debug("Installing PIP manually in the virtualenv")
         python_exe = os.path.join(self.env_bin_path, "python")

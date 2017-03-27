@@ -102,7 +102,7 @@ class PipManagerTestCase(unittest.TestCase):
     def test_install_without_pip(self):
         mgr = PipManager('/usr/bin', pip_installed=False)
         with patch.object(helpers, 'logged_exec') as mocked_exec:
-            with patch.object(mgr, 'brute_force_install_pip') as mocked_install_pip:
+            with patch.object(mgr, '_brute_force_install_pip') as mocked_install_pip:
                 mgr.install('foo')
                 self.assertEqual(mocked_install_pip.call_count, 1)
             mocked_exec.assert_called_with(['/usr/bin/pip', 'install', 'foo'])
@@ -121,7 +121,7 @@ class PipManagerTestCase(unittest.TestCase):
         with patch.object(helpers, 'logged_exec') as mocked_exec:
             with patch('os.path.exists') as os_exists:
                 os_exists.return_value = True
-                mgr.brute_force_install_pip()
+                mgr._brute_force_install_pip()
 
                 os_exists.assert_called_once_with(mgr.pip_installer_fname)
             mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
@@ -131,9 +131,9 @@ class PipManagerTestCase(unittest.TestCase):
         mgr = PipManager('/usr/bin', pip_installed=False)
         with patch.object(helpers, 'logged_exec') as mocked_exec:
             with patch('os.path.exists') as os_exists:
-                with patch.object(mgr, 'download_pip_installer') as download_installer:
+                with patch.object(mgr, '_download_pip_installer') as download_installer:
                     os_exists.return_value = False
-                    mgr.brute_force_install_pip()
+                    mgr._brute_force_install_pip()
 
                     os_exists.assert_called_once_with(mgr.pip_installer_fname)
                     download_installer.assert_called_once_with()
@@ -146,6 +146,6 @@ class PipManagerTestCase(unittest.TestCase):
             mgr.pip_installer_fname = temp_file.name
             with patch('fades.pipmanager.request.urlopen') as urlopen:
                 urlopen.return_value = io.BytesIO(b'hola')
-                mgr.download_pip_installer()
+                mgr._download_pip_installer()
             self.assertTrue(os.path.exists(mgr.pip_installer_fname))
         urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
