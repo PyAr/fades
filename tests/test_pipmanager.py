@@ -14,19 +14,23 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-""" Tests for pip related code. """
+"""Tests for pip related code."""
 
+import os
+import io
+import tempfile
 import unittest
 from unittest.mock import patch
 
 import logassert
 
 from fades.pipmanager import PipManager
+from fades import pipmanager
 from fades import helpers
 
 
 class PipManagerTestCase(unittest.TestCase):
-    """ Check parsing for `pip show`. """
+    """Check parsing for `pip show`."""
 
     def setUp(self):
         logassert.setup(self, 'fades.pipmanager')
@@ -110,3 +114,44 @@ class PipManagerTestCase(unittest.TestCase):
             logassert.setup(self, 'fades.pipmanager')
             mgr.install('bar')
             self.assertNotLoggedInfo("Hi! This is fades")
+
+    def test_brute_force_install_pip_installer_exists(self):
+        mgr = PipManager('/usr/bin', pip_installed=False)
+        with patch.object(helpers, 'logged_exec') as mocked_exec, \
+                patch.object(mgr, '_download_pip_installer') as download_installer:
+            # Create empty file
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                mgr.pip_installer_fname = f.name
+
+            try:
+                mgr._brute_force_install_pip()
+            finally:
+                os.remove(mgr.pip_installer_fname)
+
+            self.assertEqual(download_installer.call_count, 0)
+            mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
+        self.assertTrue(mgr.pip_installed)
+
+    def test_brute_force_install_pip_no_installer(self):
+        mgr = PipManager('/usr/bin', pip_installed=False)
+        with patch.object(helpers, 'logged_exec') as mocked_exec, \
+                patch.object(mgr, '_download_pip_installer') as download_installer:
+            with tempfile.NamedTemporaryFile() as temp_file:
+                mgr.pip_installer_fname = temp_file.name
+                temp_file.close()   # Without this the file does not gets created
+
+                mgr._brute_force_install_pip()
+
+            download_installer.assert_called_once_with()
+        mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
+        self.assertTrue(mgr.pip_installed)
+
+    def test_download_pip_installer(self):
+        mgr = PipManager('/usr/bin', pip_installed=False)
+        with tempfile.NamedTemporaryFile() as temp_file:
+            mgr.pip_installer_fname = temp_file.name
+            with patch('fades.pipmanager.request.urlopen') as urlopen:
+                urlopen.return_value = io.BytesIO(b'hola')
+                mgr._download_pip_installer()
+            self.assertTrue(os.path.exists(mgr.pip_installer_fname))
+        urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
