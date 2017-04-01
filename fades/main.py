@@ -118,6 +118,9 @@ def go(argv):
     parser.add_argument('--pip-options', action='append', default=[],
                         help=("Extra options to be supplied to pip. (this option can be "
                               "used multiple times)"))
+    parser.add_argument('--python-options', action='append', default=[],
+                        help=("Extra options to be supplied to python. (this option can be "
+                              "used multiple times)"))
     parser.add_argument('--rm', dest='remove', metavar='UUID',
                         help=("Remove a virtualenv by UUID."))
     parser.add_argument('--clean-unused-venvs', action='store',
@@ -227,6 +230,7 @@ def go(argv):
 
     # options
     pip_options = args.pip_options  # pip_options mustn't store.
+    python_options = args.python_options
     options = {}
     options['pyvenv_options'] = []
     options['virtualenv_options'] = args.virtualenv_options
@@ -259,20 +263,22 @@ def go(argv):
 
     # store usage information
     usage_manager.store_usage_stat(venv_data, venvscache)
-
     if args.child_program is None:
         interactive = True
-        l.debug("Calling the interactive Python interpreter")
-        p = subprocess.Popen([python_exe])
-
+        l.debug("Calling the interactive Python interpreter with arguments %r", python_options)
+        cmd = [python_exe] + python_options
+        p = subprocess.Popen(cmd)
     else:
         interactive = False
         if args.executable:
             cmd = [os.path.join(venv_data['env_bin_path'], args.child_program)]
+            l.debug("Calling child program %r with options %s",
+                    args.child_program, args.child_options)
         else:
-            cmd = [python_exe, args.child_program]
-        l.debug("Calling the child program %r with options %s",
-                args.child_program, args.child_options)
+            cmd = [python_exe] + python_options + [args.child_program]
+            l.debug("Calling Python interpreter with arguments %s to execute the child program"
+                    " %r with options %s", python_options, args.child_program, args.child_options)
+
         p = subprocess.Popen(cmd + args.child_options)
 
     def _signal_handler(signum, _):

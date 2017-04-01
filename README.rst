@@ -247,8 +247,8 @@ is available!
 Under the hood options
 ----------------------
 
-For particular use cases you can send specifics arguments to ``virtualenv`` or ``pip``. using the
-``--virtuaenv-options`` and ``--pip-options``. You have to use that argument for each argument
+For particular use cases you can send specifics arguments to ``virtualenv``, ``pip`` and ``python``. using the
+``--virtuaenv-options``, ``--pip-options`` and ``--python-options`` respectively. You have to use that argument for each argument
 sent.
 
 Examples:
@@ -256,6 +256,8 @@ Examples:
 ``fades -d requests --virtualenv-options="--always-copy" --virtualenv-options="--extra-search-dir=/tmp"``
 
 ``fades -d requests --pip-options="--index-url='http://example.com'"``
+
+``fades --python-options=-B foo.py``
 
 Setting options using config files
 ----------------------------------
