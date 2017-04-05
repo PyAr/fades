@@ -44,6 +44,17 @@ created/reused virtualenv (taking dependencies from ``--dependency`` or
 How to use it?
 ==============
 
+Click in the following image to see a video/screencast that shows most of
+fades features in just 5', but please keep reading for more detailed
+information...
+
+.. image:: resources/video/screenshot.png
+    :target: https://www.youtube.com/watch?v=BCTd_TyCm98
+
+
+Yes, please, I want to read
+---------------------------
+
 When you write an script, you have to take two special measures:
 
 - need to execute it with *fades* (not *python*)
