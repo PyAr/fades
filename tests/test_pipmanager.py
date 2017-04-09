@@ -78,6 +78,12 @@ class PipManagerTestCase(unittest.TestCase):
             mgr.install('foo')
             mock.assert_called_with(['/usr/bin/pip', 'install', 'foo'])
 
+    def test_install_multiword_dependency(self):
+        mgr = PipManager('/usr/bin', pip_installed=True)
+        with patch.object(helpers, 'logged_exec') as mock:
+            mgr.install('foo bar')
+            mock.assert_called_with(['/usr/bin/pip', 'install', 'foo', 'bar'])
+
     def test_install_with_options(self):
         mgr = PipManager('/usr/bin', pip_installed=True, options=['--bar baz'])
         with patch.object(helpers, 'logged_exec') as mock:
