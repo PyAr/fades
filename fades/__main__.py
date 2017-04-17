@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Init file to allow execution of fades as a module."""
 
 import sys

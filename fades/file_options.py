@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2016 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
