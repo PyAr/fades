@@ -24,7 +24,6 @@ the created virtualenv.
 import os
 import logging
 import shutil
-import tempfile
 import contextlib
 
 from urllib import request
@@ -53,7 +52,8 @@ class PipManager():
     def install(self, dependency):
         """Install a new dependency."""
         if not self.said_hi:
-            logger.info("Hi! This is fades %s, automatically managing your dependencies", __version__)
+            logger.info(
+                "Hi! This is fades %s, automatically managing your dependencies", __version__)
             self.said_hi = True
 
         if not self.pip_installed:
