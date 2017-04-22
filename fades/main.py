@@ -260,9 +260,12 @@ def go(argv):
     # run forest run!!
     python_exe = 'ipython' if args.ipython else 'python'
     python_exe = os.path.join(venv_data['env_bin_path'], python_exe)
+
     # add the virtualenv /bin path to the child PATH.
-    os.environ['PATH'] = "{}:{}".format(venv_data['env_bin_path'], os.environ.get('PATH'))
-    logger.debug("child PATH: %s", os.environ)
+    environ_path = venv_data['env_bin_path']
+    if 'PATH' in os.environ:
+        environ_path += ':' + os.environ['PATH']
+    os.environ['PATH'] = environ_path
 
     # store usage information
     usage_manager.store_usage_stat(venv_data, venvscache)
