@@ -25,7 +25,7 @@ import subprocess
 
 import fades
 
-from fades import parsing, logger, cache, helpers, envbuilder, file_options
+from fades import parsing, logger as fades_logger, cache, helpers, envbuilder, file_options
 
 # the signals to redirect to the child process (note: only these are
 # allowed in Windows, see 'signal' doc).
@@ -153,18 +153,18 @@ def go(argv):
         sys.exit(0)
 
     # set up logger and dump basic version info
-    l = logger.set_up(args.verbose, args.quiet)
-    l.debug("Running Python %s on %r", sys.version_info, sys.platform)
-    l.debug("Starting fades v. %s", fades.__version__)
-    l.debug("Arguments: %s", args)
+    logger = fades_logger.set_up(args.verbose, args.quiet)
+    logger.debug("Running Python %s on %r", sys.version_info, sys.platform)
+    logger.debug("Starting fades v. %s", fades.__version__)
+    logger.debug("Arguments: %s", args)
 
     # verify that the module is NOT being used from a virtualenv
     if detect_inside_virtualenv(sys.prefix, getattr(sys, 'real_prefix', None),
                                 getattr(sys, 'base_prefix', None)):
-        l.warning("fades is running from a virtualenv (%r), which is not supported", sys.prefix)
+        logger.warning("fades is running from a virtualenv (%r), which is not supported", sys.prefix)
 
     if args.verbose and args.quiet:
-        l.warning("Overriding 'quiet' option ('verbose' also requested)")
+        logger.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
@@ -179,7 +179,7 @@ def go(argv):
             usage_manager.clean_unused_venvs(max_days_to_keep)
         except:
             rc = 1
-            l.debug("CLEAN_UNUSED_VENVS must be an integer.")
+            logger.debug("CLEAN_UNUSED_VENVS must be an integer.")
             raise
         finally:
             sys.exit(rc)
@@ -193,15 +193,15 @@ def go(argv):
             if env_path:
                 envbuilder.destroy_venv(env_path, venvscache)
             else:
-                l.warning("Invalid 'env_path' found in virtualenv metadata: %r. "
-                          "Not removing virtualenv.", env_path)
+                logger.warning("Invalid 'env_path' found in virtualenv metadata: %r. "
+                               "Not removing virtualenv.", env_path)
         else:
-            l.warning('No virtualenv found with uuid: %s.', uuid)
+            logger.warning('No virtualenv found with uuid: %s.', uuid)
         return
 
     # parse file and get deps
     if args.ipython:
-        l.debug("Adding ipython dependency because --ipython was detected")
+        logger.debug("Adding ipython dependency because --ipython was detected")
         ipython_dep = parsing.parse_manual(['ipython'])
     else:
         ipython_dep = {}
@@ -211,13 +211,13 @@ def go(argv):
         docstring_deps = {}
     else:
         indicated_deps = parsing.parse_srcfile(args.child_program)
-        l.debug("Dependencies from source file: %s", indicated_deps)
+        logger.debug("Dependencies from source file: %s", indicated_deps)
         docstring_deps = parsing.parse_docstring(args.child_program)
-        l.debug("Dependencies from docstrings: %s", docstring_deps)
+        logger.debug("Dependencies from docstrings: %s", docstring_deps)
     reqfile_deps = parsing.parse_reqfile(args.requirement)
-    l.debug("Dependencies from requirements file: %s", reqfile_deps)
+    logger.debug("Dependencies from requirements file: %s", reqfile_deps)
     manual_deps = parsing.parse_manual(args.dependency)
-    l.debug("Dependencies from parameters: %s", manual_deps)
+    logger.debug("Dependencies from parameters: %s", manual_deps)
     indicated_deps = _merge_deps(ipython_dep, indicated_deps, docstring_deps,
                                  reqfile_deps, manual_deps)
 
@@ -244,7 +244,7 @@ def go(argv):
         env_path = venv_data['env_path']
         # A venv was found in the cache check if its valid or re-generate it.
         if not os.path.exists(env_path):
-            l.warning("Missing directory (the virtualenv will be re-created): %r", env_path)
+            logger.warning("Missing directory (the virtualenv will be re-created): %r", env_path)
             venvscache.remove(env_path)
             create_venv = True
     else:
@@ -268,19 +268,21 @@ def go(argv):
     usage_manager.store_usage_stat(venv_data, venvscache)
     if args.child_program is None:
         interactive = True
-        l.debug("Calling the interactive Python interpreter with arguments %r", python_options)
+        logger.debug(
+            "Calling the interactive Python interpreter with arguments %r", python_options)
         cmd = [python_exe] + python_options
         p = subprocess.Popen(cmd)
     else:
         interactive = False
         if args.executable:
             cmd = [os.path.join(venv_data['env_bin_path'], args.child_program)]
-            l.debug("Calling child program %r with options %s",
-                    args.child_program, args.child_options)
+            logger.debug("Calling child program %r with options %s",
+                         args.child_program, args.child_options)
         else:
             cmd = [python_exe] + python_options + [args.child_program]
-            l.debug("Calling Python interpreter with arguments %s to execute the child program"
-                    " %r with options %s", python_options, args.child_program, args.child_options)
+            logger.debug(
+                "Calling Python interpreter with arguments %s to execute the child program"
+                " %r with options %s", python_options, args.child_program, args.child_options)
 
         p = subprocess.Popen(cmd + args.child_options)
 
@@ -292,9 +294,9 @@ def go(argv):
         interpreter to not see it twice.
         """
         if interactive and signum == signal.SIGINT:
-            l.debug("Swallowing signal %s", signum)
+            logger.debug("Swallowing signal %s", signum)
         else:
-            l.debug("Redirecting signal %s to child", signum)
+            logger.debug("Redirecting signal %s to child", signum)
             os.kill(p.pid, signum)
 
     # redirect the useful signals
@@ -304,5 +306,5 @@ def go(argv):
     # wait child to finish, end
     rc = p.wait()
     if rc:
-        l.debug("Child process not finished correctly: returncode=%d", rc)
+        logger.debug("Child process not finished correctly: returncode=%d", rc)
     sys.exit(rc)
