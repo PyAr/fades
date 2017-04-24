@@ -236,7 +236,8 @@ don't specify a version, it will install the latest one from PyPI.
 For example, you do ``fades -d foobar`` and it installs foobar in
 version 7. At some point, there is a new version of foobar in PyPI,
 version 8, but if do ``fades -d foobar`` it will just reuse previously
-created virtualenv, with version 7, not using the new one!
+created virtualenv, with version 7, not downloading the new version and
+creating a new virtualenv with it!
 
 You can tell fades to do otherwise, just do::
 
@@ -245,9 +246,13 @@ You can tell fades to do otherwise, just do::
 ...and *fades* will search updates for the package on PyPI, and as it will
 found version 8, will create a new virtualenv using the latest version.
 
-You can even use this parameter when specifying the package version. Say
-you call ``fades -d foobar==7``, *fades* will install version 7 no matter
-which one is the latest. But if you do::
+From this moment on, if you request ``fades -d foobar`` it will bring the
+virtualenv with the new version. If you want to get a virtualenv with
+not-the-latest version for any dependency, just specify the proper versions.
+
+You can even use the ``--check-updates`` parameter when specifying the package
+version. Say you call ``fades -d foobar==7``, *fades* will install version 7 no
+matter which one is the latest. But if you do::
 
     fades -d foobar==7 --check-updates
 
@@ -269,6 +274,7 @@ Examples:
 ``fades -d requests --pip-options="--index-url='http://example.com'"``
 
 ``fades --python-options=-B foo.py``
+
 
 Setting options using config files
 ----------------------------------
@@ -326,6 +332,7 @@ It is recommended to have some automatically way of run this option;
 ie, add a cron task that perform this command::
 
     fades --clean-unused-venvs=42
+
 
 Some command line examples
 --------------------------
