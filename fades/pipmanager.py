@@ -24,7 +24,6 @@ the created virtualenv.
 import os
 import logging
 import shutil
-import tempfile
 import contextlib
 
 from urllib import request
