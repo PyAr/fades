@@ -1,4 +1,4 @@
-# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2017 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -25,7 +25,7 @@ import uuid
 from threading import Thread
 from unittest.mock import patch
 
-from pkg_resources import parse_requirements
+from pkg_resources import parse_requirements, Distribution
 
 from fades import cache, helpers, parsing
 
@@ -33,6 +33,11 @@ from fades import cache, helpers, parsing
 def get_req(text):
     """Transform a text requirement into the pkg_resources object."""
     return list(parse_requirements(text))
+
+
+def get_distrib(*dep_ver_pairs):
+    """Build some Distributions with indicated info."""
+    return [Distribution(project_name=dep, version=ver) for dep, ver in dep_ver_pairs]
 
 
 class TempfileTestCase(unittest.TestCase):
@@ -361,12 +366,40 @@ class SelectionTestCase(TempfileTestCase):
         })
         venv3 = json.dumps({
             'metadata': 'venv3',
+            'installed': {'pypi': {'dep': '7'}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        resp = self.venvscache._select([venv1, venv2, venv3], reqs, interpreter, uuid='',
+                                       options=options)
+        self.assertEqual(resp, 'venv2')
+
+    def test_multiple_match_bigger_version(self):
+        reqs = {'pypi': get_req('dep')}
+        interpreter = 'pythonX.Y'
+        options = {'foo': 'bar'}
+        venv1 = json.dumps({
+            'metadata': 'venv1',
+            'installed': {'pypi': {'dep': '3'}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        venv2 = json.dumps({
+            'metadata': 'venv2',
+            'installed': {'pypi': {'dep': '7'}},
+            'interpreter': 'pythonX.Y',
+            'options': {'foo': 'bar'}
+        })
+        venv3 = json.dumps({
+            'metadata': 'venv3',
             'installed': {'pypi': {'dep': '5'}},
             'interpreter': 'pythonX.Y',
             'options': {'foo': 'bar'}
         })
         resp = self.venvscache._select([venv1, venv2, venv3], reqs, interpreter, uuid='',
                                        options=options)
+        # matches venv2 because it has the bigger version for 'dep' (even if it's not the
+        # latest virtualenv created)
         self.assertEqual(resp, 'venv2')
 
     def test_multiple_deps_ok(self):
@@ -582,3 +615,88 @@ class ComparisonsTestCase(TempfileTestCase):
         self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.6.7'), 'ok')
         self.assertEqual(self.check('>1.6,<1.9,!=1.8.6', '1.8.7'), 'ok')
         self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.9.6'), None)
+
+
+class BestFitTestCase(TempfileTestCase):
+    """Check the venv best fitting decissor."""
+
+    def setUp(self):
+        super().setUp()
+        self.venvscache = cache.VEnvsCache(self.tempfile)
+
+    def check(self, possible_venvs):
+        """Assert that the selected venv is the best fit one."""
+        self.assertEqual(self.venvscache._select_better_fit(possible_venvs), 'venv_best_fit')
+
+    def test_one_simple(self):
+        self.check([
+            (get_distrib(('dep', '3')), 'venv_best_fit'),
+        ])
+
+    def test_one_double(self):
+        self.check([
+            (get_distrib(('dep1', '3'), ('dep2', '3')), 'venv_best_fit'),
+        ])
+
+    def test_two_simple(self):
+        self.check([
+            (get_distrib(('dep', '5')), 'venv_best_fit'),
+            (get_distrib(('dep', '3')), 'venv_1'),
+        ])
+
+    def test_two_double_evident(self):
+        self.check([
+            (get_distrib(('dep1', '5'), ('dep2', '7')), 'venv_best_fit'),
+            (get_distrib(('dep1', '3'), ('dep2', '6')), 'venv_1'),
+        ])
+
+    def test_two_double_mixed_1(self):
+        # tie! the one chosen is the last one
+        self.check([
+            (get_distrib(('dep1', '3'), ('dep2', '9')), 'venv_1'),
+            (get_distrib(('dep1', '5'), ('dep2', '7')), 'venv_best_fit'),
+        ])
+
+    def test_two_double_mixed_2(self):
+        # tie! the one chosen is the last one
+        self.check([
+            (get_distrib(('dep1', '5'), ('dep2', '7')), 'venv_1'),
+            (get_distrib(('dep1', '3'), ('dep2', '9')), 'venv_best_fit'),
+        ])
+
+    def test_two_triple(self):
+        self.check([
+            (get_distrib(('dep1', '3'), ('dep2', '9'), ('dep3', '4')), 'venv_best_fit'),
+            (get_distrib(('dep1', '5'), ('dep2', '7'), ('dep3', '2')), 'venv_1'),
+        ])
+
+    def test_unordered(self):
+        # assert it compares each dependency with its equivalent
+        self.check([
+            (get_distrib(('dep2', '3'), ('dep1', '2'), ('dep3', '8')), 'venv_best_fit'),
+            (get_distrib(('dep1', '7'), ('dep3', '5'), ('dep2', '2')), 'venv_1'),
+        ])
+
+    def test_big(self):
+        self.check([
+            (get_distrib(('dep1', '3'), ('dep2', '2')), 'venv_1'),
+            (get_distrib(('dep1', '4'), ('dep2', '2')), 'venv_2'),
+            (get_distrib(('dep1', '5'), ('dep2', '7')), 'venv_best_fit'),
+            (get_distrib(('dep1', '5'), ('dep2', '6')), 'venv_3'),
+        ])
+
+    def test_vcs_alone(self):
+        self.check([
+            ([parsing.VCSDependency('someurl')], 'venv_best_fit'),
+        ])
+
+    def test_vcs_mixed_simple(self):
+        self.check([
+            ([parsing.VCSDependency('someurl')] + get_distrib(('dep', '3')), 'venv_best_fit'),
+        ])
+
+    def test_vcs_mixed_multiple(self):
+        self.check([
+            ([parsing.VCSDependency('someurl')] + get_distrib(('dep', '3')), 'venv_best_fit'),
+            ([parsing.VCSDependency('someurl')] + get_distrib(('dep', '1')), 'venv_1'),
+        ])
