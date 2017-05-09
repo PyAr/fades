@@ -51,13 +51,14 @@ class VEnvsCache:
         if not requirements:
             # special case for no requirements, where we can't actually
             # check anything: the venv is useful if nothing installed too
-            return not bool(installed)
+            return None if installed else []
 
+        satisfying_deps = []
         for repo, req_deps in requirements.items():
             useful_inst = set()
             if repo not in installed:
                 # the venv doesn't even have the repo
-                return False
+                return None
 
             if repo == REPO_VCS:
                 inst_deps = {VCSDependency(url) for url in installed[repo].keys()}
@@ -71,43 +72,96 @@ class VEnvsCache:
                         break
                 else:
                     # nothing installed satisfied that requirement
-                    return False
+                    return None
 
             # assure *all* that is installed is useful for the requirements
-            if useful_inst != inst_deps:
-                return False
+            if useful_inst == inst_deps:
+                satisfying_deps.extend(inst_deps)
+            else:
+                return None
 
         # it did it through!
-        return True
+        return satisfying_deps
+
+    def _match_by_uuid(self, current_venvs, uuid):
+        """Select a venv matching exactly by uuid."""
+        for venv_str in current_venvs:
+            venv = json.loads(venv_str)
+            env_path = venv.get('metadata', {}).get('env_path')
+            _, env_uuid = os.path.split(env_path)
+            if env_uuid == uuid:
+                return venv
+
+    def _select_better_fit(self, matching_venvs):
+        """Receive a list of matching venvs, and decide which one is the best fit."""
+        # keep the venvs in a separate array, to pick up the winner, and the (sorted, to compare
+        # each dependency with its equivalent) in other structure to later compare
+        venvs = []
+        to_compare = []
+        for matching, venv in matching_venvs:
+            to_compare.append(sorted(matching, key=lambda req: getattr(req, 'key', '')))
+            venvs.append(venv)
+
+        # compare each n-tuple of dependencies to see which one is bigger, and add score to the
+        # position of the winner
+        scores = [0] * len(venvs)
+        for dependencies in zip(*to_compare):
+            if not isinstance(dependencies[0], Distribution):
+                # only distribution URLs can be compared
+                continue
+
+            winner = dependencies.index(max(dependencies))
+            scores[winner] = scores[winner] + 1
+
+        # get the rightmost winner (in case of ties, to select the latest venv)
+        winner_pos = None
+        winner_score = -1
+        for i, score in enumerate(scores):
+            if score >= winner_score:
+                winner_score = score
+                winner_pos = i
+        return venvs[winner_pos]
+
+    def _match_by_requirements(self, current_venvs, requirements, interpreter, options):
+        """Select a venv matching interpreter and options, complying with requirements.
+
+        Several venvs can be found in this case, will return the better fit.
+        """
+        matching_venvs = []
+        for venv_str in current_venvs:
+            venv = json.loads(venv_str)
+
+            # simple filter, need to have exactly same options and interpreter
+            if venv.get('options') != options or venv.get('interpreter') != interpreter:
+                continue
+
+            # requirements complying: result can be None (no comply) or a score to later sort
+            matching = self._venv_match(venv['installed'], requirements)
+            if matching is not None:
+                matching_venvs.append((matching, venv))
+
+        if not matching_venvs:
+            logger.debug("No matching venv found :(")
+            return
+
+        return self._select_better_fit(matching_venvs)
 
     def _select(self, current_venvs, requirements=None, interpreter='', uuid='', options=None):
         """Select which venv satisfy the received requirements."""
-        def get_match_by_uuid(uuid):
-            def match_by_uuid(env):
-                env_path = env.get('metadata', {}).get('env_path')
-                _, env_uuid = os.path.split(env_path)
-                return env_uuid == uuid
-            return match_by_uuid
-
-        def match_by_req_and_interpreter(env):
-            return (env.get('options') == options and
-                    env.get('interpreter') == interpreter and
-                    self._venv_match(venv['installed'], requirements))
-
         if uuid:
             logger.debug("Searching a venv by uuid: %s", uuid)
-            match = get_match_by_uuid(uuid)
+            venv = self._match_by_uuid(current_venvs, uuid)
         else:
-            logger.debug("Searching a venv for reqs: %s and interpreter: %s",
-                         requirements, interpreter)
-            match = match_by_req_and_interpreter
+            logger.debug("Searching a venv for: reqs=%s interpreter=%s options=%s",
+                         requirements, interpreter, options)
+            venv = self._match_by_requirements(current_venvs, requirements, interpreter, options)
 
-        for venv_str in current_venvs:
-            venv = json.loads(venv_str)
-            if match(venv):
-                logger.debug("Found a matching venv! %s", venv)
-                return venv['metadata']
-        logger.debug("No matching venv found :(")
+        if venv is None:
+            logger.debug("No matching venv found :(")
+            return
+
+        logger.debug("Found a matching venv! %s", venv)
+        return venv['metadata']
 
     def get_venv(self, requirements=None, interpreter='', uuid='', options=None):
         """Find a venv that serves these requirements, if any."""
