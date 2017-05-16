@@ -48,7 +48,7 @@ Click in the following image to see a video/screencast that shows most of
 fades features in just 5', but please keep reading for more detailed
 information...
 
-.. image:: resources/video/screenshot.png
+.. image:: https://raw.githubusercontent.com/PyAr/fades/master/resources/video/screenshot.png
     :target: https://www.youtube.com/watch?v=BCTd_TyCm98
 
 
