@@ -1,6 +1,6 @@
 Hello all,
 
-We're glad to announce the release of fades 5.
+We're glad to announce the release of fades 6.
 
 fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and
@@ -18,34 +18,87 @@ also mark the required dependencies. More details here:
 
 What's new in this release?
 
-- Support for passing parameters through configuration files.
+- Install not only from PyPI but also from remote code repositories
+  (GitHub, Bitbucket, Launchpad, etc) and local directories
 
-- New option --check-updates to find new releases in PyPI of already
-  used dependencies (thanks Diego Duncan).
+    fades -d git+https://github.com/yandex/gixy.git@v0.1.3
 
-- fades now transmit back the error code from child process to
-  whoever called it
+    fades -d file://$PATH_TO_PROJECT
 
-- Fixed the extra parameter handling when fades was used in the shebang.
+- Created a video to showcase the most relevant fades features
 
-- Dependencies indicated in docstring now are properly utilized.
+    https://www.youtube.com/watch?v=BCTd_TyCm98
 
-- Updated the package names DB.
+- Select the best virtualenv from the stored ones in the case of multiple
+  matching
 
-- Improved logging information and error reporting.
+- Added a --clean-unused-venvs option to remove all virtualenvs not
+  used in the last indicated days
 
-- Better documentation (new IRC channel, help fixes, better links, etc)
+    fades --clean-unused-venvs=30
 
-- Other minor bugfixes and improvements
+- Added a --pip-options to pass any needed parameters to the
+  underlying pip call
+
+    fades -d requests --pip-options="--no-cache-dir"
+
+- Properly return a code != 0 if fades process failed in any way
+
+- Now the virtualenv /bin path is added to the child PATH before execution
+
+- Remove the just created virtualenv if its setup failed somehow (not
+  leaving unused/untracked directories)
+
+- Issue a WARNING if fades is executed from a virtualenv (it shouldn't)
+
+- Better behaviour when CTRL-C is sent to an interactive interpreter
+  running under fades
+
+- Support missing virtualenv directories: if a virtualenv was found in
+  the cache check if it is valid, otherwise re-create it
+
+- Added infrastructure for fades to be packaged and run as a Snap
+
+    snap install fades
+
+- Better multiplatformy locking to exclude two simultaneous fades runs
+  messing with internal files
+
+- Instructions to install using 'brew'
+
+- Alert the user that the one doing background stuff is fades
+
+- Better README and documentation in general
+
+- Improved version description to be more standards compliant
+
+- Other minor improvements and bug fixes
 
 
-To get it:
+Nicolás and I want to say a big thank you to the following collaborators
+that helped to improve and enhance fades in different ways for this
+version (in alphabetical order):
 
-- If you are in Ubuntu Xenial or Debian Sid (unstable), just do:
+    Ariel Rossanigo
+    David Litvak Bruno
+    FaQ
+    Filipe Ximenes
+    Gera
+    Juan Carizza
+    Lucio Torre
+    Manuel Kaufmann
+    Martin Alderete
+
+
+To install and enjoy fades...
+
+- If you are in Ubuntu or Debian, you can easily install like this
+  (but probably won't get *latest* fades:
 
     sudo apt-get install fades
 
-- For other debian/ubuntu you have a .deb here (with checksum and signature):
+- For not latest debian/ubuntu you have a .deb here (with checksum
+  and signature):
 
     http://taniquetil.com.ar/fades/fades-latest.deb
     http://taniquetil.com.ar/fades/fades-latest.deb.sha1
@@ -54,6 +107,10 @@ To get it:
 - Install it in Arch is very simple:
 
     yaourt -S fades
+
+- In any Linux if you have the Snap system:
+
+    snap install fades
 
 - Using pip if you want:
 
@@ -105,7 +162,7 @@ Thanks in advance for your time!
 
 Hola a todas y todos,
 
-Estamos encantados de anunciar la liberación de fades 5.
+Estamos encantados de anunciar la liberación de fades 6.
 
 fades es un sistema que maneja automáticamente los virtualenvs en los
 casos que uno normalmente encuentra al escribir scripts y programas
@@ -123,34 +180,93 @@ Python) y también marcar las dependencias necesarias. Más detalles acá:
 
 ¿Qué hay de nuevo en esta release?
 
-- Soporte para pasar argumentos a través de archivos de configuración.
+- Instala no solamente desde PyPI sino también de repositorios remotos
+  (GitHub, Bitbucket, Launchpad, etc) y directorios locales
 
-- Nueva opción --check-updates para revisar en PyPI si hay nuevas
-  versiones de dependencias que ya se están usando (gracias Diego Duncan).
+    fades -d git+https://github.com/yandex/gixy.git@v0.1.3
 
-- fades ahora transmite el código de error del proceso hijo a quien sea
-  que lo esté llamando.
+    fades -d file://$PATH_TO_PROJECT
 
-- Se corrigió el manejo de los parámetros extras cuando fades se usa desde el shebang.
+- Creamos un video para mostrar las características de fades más relevantes
 
-- Las dependencias indicadas en los docstrings ahora se utilizan correctamente.
+    https://www.youtube.com/watch?v=BCTd_TyCm98
 
-- Se actualizó la DB de nombres de paquetes.
+- Selecciona el mejor virtualenv de los almacenados en casos de
+  coincidencia múltiple
 
-- Se mejoró la información enviada a los logs y los reportes de error.
+- Agregamos una opción --clean-unused-venvs para borrar todos los
+  virtualenvs que no fueron usados en los últimos días
 
-- Hay mejor documentación (nuevo canal de IRC, correcciones en la ayuda, mejores enlaces, etc).
+    fades --clean-unused-venvs=30
 
-- Otras correcciones y mejoras menores.
+- Agregamos un --pip-options para pasarle los parámetros que sean
+  necesarios a la ejecución subyacente de pip
+
+    fades -d requests --pip-options="--no-cache-dir"
+
+- Ahora devuelve, como corresponde, un código distinto de cero si el
+  proceso de fades falló de alguna manera
+
+- Antes de la ejecución del proceso hijo, ahora se agrega a su PATH el
+  /bin del virtualenv
+
+- Si la configuración e instalación en el virtualenv creado falla de
+  alguna manera, se borra (para no dejar directorios sin usar)
+
+- Avisa al usuario con un WARNING si fades es ejecutado desde adentro de
+  un virtualenv (no debería)
+
+- Se comporta mejor cuando se envía un CTRL-C a un intérprete interactivo
+  de Python ejecutado bajo fades
+
+- Soporta que el directorio del virtualenv haya desaparecido; si se
+  encontró el virtualenv en el cache verifica que se válido, sino se lo
+  crea nuevamente
+
+- Agregamos infraestructura para que fades sea empaquetado y ejecutado
+  como Snap
+
+    snap install fades
+
+- Mejor lock multiplataforma para evitar que dos fades corriendo
+  simultáneamente rompan las estructuras internas
+
+- Instrucciones para instalar fades usando 'brew'
+
+- Se alerta al usuario de que el que está haciendo un trabajo de
+  fondo es fades
+
+- Mejor README y documentación en general
+
+- Se mejoró la descripción de la versión para ser más estándar
+
+- Otras correcciones y mejoras menores
 
 
-Para obtenerlo:
+Nicolás y yo queremos darles muchas gracias a los siguientes
+colaboradores que ayudaron a mejorar a fades de distintas maneras para
+esta versión (en orden alfabético):
 
-- Si estás en Ubuntu Xenial o Debian Sid (unstable), hacé:
+    Ariel Rossanigo
+    David Litvak Bruno
+    FaQ
+    Filipe Ximenes
+    Gera
+    Juan Carizza
+    Lucio Torre
+    Manuel Kaufmann
+    Martin Alderete
+
+
+Para instalar y disfrutar fades:
+
+- Si estás en Ubuntu o Debian, podés facilmente instalarlo así (aunque
+  probablemente no obtengas la *última* versión:
 
     sudo apt-get install fades
 
-- Para otros debian/ubuntu hay un .deb acá (con checksum y firma):
+- Para debian/ubuntu que no sea lo último, acá hay un .deb (con
+  checksum y firma):
 
     http://taniquetil.com.ar/fades/fades-latest.deb
     http://taniquetil.com.ar/fades/fades-latest.deb.sha1
@@ -159,6 +275,10 @@ Para obtenerlo:
 - Instalarlo en Arch es muy simple:
 
     yaourt -S fades
+
+- En cualquier Linux si tenés el sistema Snap:
+
+    snap install fades
 
 - Podés usar pip si querés:
 

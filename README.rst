@@ -408,13 +408,18 @@ Simplest way
 In some systems you can install ``fades`` directly, no needing to
 install previously any dependency.
 
-If you are in debian unstable or testing, just do:
+If you are in debian unstable or testing, just do (but probably you will not
+get the latest version, see below for alternative installation methods):
 
     sudo apt-get install fades
 
 For Arch linux:
 
     yaourt -S fades
+
+In systems with Snaps:
+
+    snap install fades
 
 For Mac OS X (and `Homebrew <http://brew.sh/>`_):
 
