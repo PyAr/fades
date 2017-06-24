@@ -54,7 +54,7 @@ Copy the project's debian dir and change changelog (be sure that this
 copyright year is current one and also that no new dependencies were
 introduced since last release).
 
-  cp -pr $DEVEL/fades/debian .
+  cp -pr $DEVEL/fades/pkg/debian .
   dch   # doing the following:
     - version should be   (X.Y-1) unstable
     - just leave one "* Initial release."
