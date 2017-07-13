@@ -1,31 +1,33 @@
-matrix:
-    # Pre-installed Python versions, which Appveyor may upgrade to
-    # a later point release.
-    # See: http://www.appveyor.com/docs/installed-software#python
+environment:
 
-    - PYTHON: "C:\\Python27"
-      PYTHON_VERSION: "2.7.x" 
-      PYTHON_ARCH: "32"
+    matrix:
+        # Pre-installed Python versions, which Appveyor may upgrade to
+        # a later point release.
+        # See: http://www.appveyor.com/docs/installed-software#python
 
-    - PYTHON: "C:\\Python27-x64"
-      PYTHON_VERSION: "2.7.x"
-      PYTHON_ARCH: "64"
+        - PYTHON: "C:\\Python27"
+          PYTHON_VERSION: "2.7.x" 
+          PYTHON_ARCH: "32"
 
-    - PYTHON: "C:\\Python33"
-      PYTHON_VERSION: "3.3.x" 
-      PYTHON_ARCH: "32"
+        - PYTHON: "C:\\Python27-x64"
+          PYTHON_VERSION: "2.7.x"
+          PYTHON_ARCH: "64"
 
-    - PYTHON: "C:\\Python33-x64"
-      PYTHON_VERSION: "3.3.x"
-      PYTHON_ARCH: "64"
+        - PYTHON: "C:\\Python33"
+          PYTHON_VERSION: "3.3.x" 
+          PYTHON_ARCH: "32"
 
-    - PYTHON: "C:\\Python34"
-      PYTHON_VERSION: "3.4.x"
-      PYTHON_ARCH: "32"
+        - PYTHON: "C:\\Python33-x64"
+          PYTHON_VERSION: "3.3.x"
+          PYTHON_ARCH: "64"
 
-    - PYTHON: "C:\\Python34-x64"
-      PYTHON_VERSION: "3.4.x"
-      PYTHON_ARCH: "64"
+        - PYTHON: "C:\\Python34"
+          PYTHON_VERSION: "3.4.x"
+          PYTHON_ARCH: "32"
+
+        - PYTHON: "C:\\Python34-x64"
+          PYTHON_VERSION: "3.4.x"
+          PYTHON_ARCH: "64"
 
 install:
     # Install Python (from the official .msi of http://python.org) and pip when
