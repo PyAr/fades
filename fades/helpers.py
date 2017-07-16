@@ -70,10 +70,11 @@ def logged_exec(cmd):
     """Execute a command, redirecting the output to the log."""
     logger = logging.getLogger('fades.exec')
     logger.debug("Executing external command: %r", cmd)
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
     stdout = []
     for line in p.stdout:
-        line = line[:-1].decode("utf8")
+        line = line[:-1]
         stdout.append(line)
         logger.debug(STDOUT_LOG_PREFIX + line)
     retcode = p.wait()
