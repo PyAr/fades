@@ -22,6 +22,7 @@ import json
 import logging
 import subprocess
 
+from http.server import HTTPStatus
 from urllib import request
 from urllib.error import HTTPError
 
@@ -209,3 +210,37 @@ def check_pypi_updates(dependencies):
 
     dependencies["pypi"] = dependencies_up_to_date
     return dependencies
+
+
+def _pypi_head_package(pkg_name):
+    """Hit pypi with a http HEAD to check if pkg_name exists."""
+    url = BASE_PYPI_URL.format(name=pkg_name)
+    req = request.Request(url, method='HEAD')
+    try:
+        response = request.urlopen(req)
+    except HTTPError as http_error:
+        if http_error.code == HTTPStatus.NOT_FOUND:
+            return False
+        else:
+            raise http_error
+    else:
+        if response.status == HTTPStatus.OK:
+            logger.debug("%s exists in Pypi.", pkg_name)
+            return True
+
+
+def check_pypi_exists(dependencies):
+    """Check if the indicated dependencies actually exists in pypi."""
+    for dependency in dependencies.get('pypi', []):
+        logger.debug("Checking if %s exists in PyPi", dependency)
+        try:
+            exists = _pypi_head_package(dependency.project_name)
+        except Exception as error:
+            logger.error("Error checking %s in pypi: %r", dependency, error)
+            sys.exit(1)
+        else:
+            if not exists:
+                logger.error("%s doesn't exists in PyPi.", dependency)
+                return False
+    logger.debug("All indicated dependencies exists in pypi=%s", dependencies)
+    return True
