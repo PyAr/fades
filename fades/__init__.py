@@ -21,3 +21,7 @@ from ._version import __version__, VERSION  # NOQA; provides module level versio
 
 REPO_PYPI = 'pypi'
 REPO_VCS = 'vcs'
+
+# Not using http.server.HTTPStatus to support python < 3.5
+HTTP_STATUS_NOT_FOUND = 404
+HTTP_STATUS_OK = 200

@@ -22,11 +22,12 @@ import json
 import logging
 import subprocess
 
-from http.server import HTTPStatus
 from urllib import request
 from urllib.error import HTTPError
 
 import pkg_resources
+
+from fades import HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK
 
 logger = logging.getLogger(__name__)
 
@@ -219,12 +220,12 @@ def _pypi_head_package(pkg_name):
     try:
         response = request.urlopen(req)
     except HTTPError as http_error:
-        if http_error.code == HTTPStatus.NOT_FOUND:
+        if http_error.code == HTTP_STATUS_NOT_FOUND:
             return False
         else:
             raise http_error
     else:
-        if response.status == HTTPStatus.OK:
+        if response.status == HTTP_STATUS_OK:
             logger.debug("%s exists in Pypi.", pkg_name)
             return True
 
