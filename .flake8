@@ -1,0 +1,5 @@
+[flake8]
+max-line-length=99
+exclude=.git
+select=E,W,F,C,N
+ignore=
