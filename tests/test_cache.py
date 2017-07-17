@@ -44,8 +44,13 @@ class TempfileTestCase(unittest.TestCase):
     """Basic functionality tests."""
 
     def setUp(self):
-        _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
-        self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
+        temp_file_descriptor, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
+
+        def clean():
+            os.close(temp_file_descriptor)
+            if os.path.exists(self.tempfile):
+                os.remove(self.tempfile)
+        self.addCleanup(clean)
 
 
 class GetTestCase(TempfileTestCase):
