@@ -165,9 +165,7 @@ class PipManagerTestCase(unittest.TestCase):
 
         # get a tempfile and remove it, so later the installer is downloaded there
         tempfile = get_tempfile(self)
-        print("========== test, tempfile created, exists?", os.path.exists(tempfile))
         os.remove(tempfile)
-        print("========== test, tempfile removed, exists?", os.path.exists(tempfile))
 
         mgr.pip_installer_fname = tempfile
         with patch('fades.pipmanager.request.urlopen') as urlopen:
