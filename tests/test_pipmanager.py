@@ -18,8 +18,8 @@
 
 import os
 import io
-import tempfile
 import unittest
+
 from unittest.mock import patch
 
 import logassert
@@ -27,6 +27,7 @@ import logassert
 from fades.pipmanager import PipManager
 from fades import pipmanager
 from fades import helpers
+from tests import get_tempfile
 
 BIN_PATH = "somepath"
 
@@ -133,14 +134,10 @@ class PipManagerTestCase(unittest.TestCase):
         python_path = os.path.join(BIN_PATH, 'python')
         with patch.object(helpers, 'logged_exec') as mocked_exec, \
                 patch.object(mgr, '_download_pip_installer') as download_installer:
-            # Create empty file
-            with tempfile.NamedTemporaryFile(delete=False) as f:
-                mgr.pip_installer_fname = f.name
 
-            try:
-                mgr._brute_force_install_pip()
-            finally:
-                os.remove(mgr.pip_installer_fname)
+            # get the tempfile but leave it there to be found
+            mgr.pip_installer_fname = get_tempfile(self)
+            mgr._brute_force_install_pip()
 
             self.assertEqual(download_installer.call_count, 0)
             mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, '-I'])
@@ -151,11 +148,13 @@ class PipManagerTestCase(unittest.TestCase):
         python_path = os.path.join(BIN_PATH, 'python')
         with patch.object(helpers, 'logged_exec') as mocked_exec, \
                 patch.object(mgr, '_download_pip_installer') as download_installer:
-            with tempfile.NamedTemporaryFile() as temp_file:
-                mgr.pip_installer_fname = temp_file.name
-                temp_file.close()   # Without this the file does not gets created
 
-                mgr._brute_force_install_pip()
+            # get the tempfile and remove it so then it's not found
+            tempfile = get_tempfile(self)
+            os.remove(tempfile)
+
+            mgr.pip_installer_fname = tempfile
+            mgr._brute_force_install_pip()
 
             download_installer.assert_called_once_with()
         mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, '-I'])
@@ -163,12 +162,14 @@ class PipManagerTestCase(unittest.TestCase):
 
     def test_download_pip_installer(self):
         mgr = PipManager(BIN_PATH, pip_installed=False)
-        with tempfile.NamedTemporaryFile() as temp_file:
-            test_file.close()
-            os.remove(temp_file.name)
-            mgr.pip_installer_fname = temp_file.name
-            with patch('fades.pipmanager.request.urlopen') as urlopen:
-                urlopen.return_value = io.BytesIO(b'hola')
-                mgr._download_pip_installer()
-            self.assertTrue(os.path.exists(mgr.pip_installer_fname))
+
+        # get a tempfile and remove it, so later the installer is downloaded there
+        tempfile = get_tempfile(self)
+        os.remove(tempfile)
+
+        mgr.pip_installer_fname = tempfile
+        with patch('fades.pipmanager.request.urlopen') as urlopen:
+            urlopen.return_value = io.BytesIO(b'hola')
+            mgr._download_pip_installer()
+        self.assertTrue(os.path.exists(mgr.pip_installer_fname))
         urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
