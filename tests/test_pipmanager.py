@@ -1,4 +1,4 @@
-# Copyright 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2017 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -28,6 +28,8 @@ from fades.pipmanager import PipManager
 from fades import pipmanager
 from fades import helpers
 
+BIN_PATH = "somepath"
+
 
 class PipManagerTestCase(unittest.TestCase):
     """Check parsing for `pip show`."""
@@ -40,7 +42,7 @@ class PipManagerTestCase(unittest.TestCase):
                          'Version: 2.0.0',
                          'Location: ~/.local/share/fades/86cc492/lib/python3.4/site-packages',
                          'Requires: ']
-        mgr = PipManager('/usr/bin', pip_installed=True)
+        mgr = PipManager(BIN_PATH, pip_installed=True)
         with patch.object(helpers, 'logged_exec') as mock:
             mock.return_value = mocked_stdout
             version = mgr.get_version('foo')
@@ -51,7 +53,7 @@ class PipManagerTestCase(unittest.TestCase):
                          'Release: 2.0.0',
                          'Location: ~/.local/share/fades/86cc492/lib/python3.4/site-packages',
                          'Requires: ']
-        mgr = PipManager('/usr/bin', pip_installed=True)
+        mgr = PipManager(BIN_PATH, pip_installed=True)
         with patch.object(helpers, 'logged_exec') as mock:
             version = mgr.get_version('foo')
             mock.return_value = mocked_stdout
@@ -66,38 +68,42 @@ class PipManagerTestCase(unittest.TestCase):
             'Version: 0.12.0',
             'License: GPL',
         ]
-        mgr = PipManager('/usr/bin', pip_installed=True)
+        mgr = PipManager(BIN_PATH, pip_installed=True)
         with patch.object(helpers, 'logged_exec') as mock:
             mock.return_value = mocked_stdout
             version = mgr.get_version('foo')
         self.assertEqual(version, '0.12.0')
 
     def test_install(self):
-        mgr = PipManager('/usr/bin', pip_installed=True)
+        mgr = PipManager(BIN_PATH, pip_installed=True)
+        pip_path = os.path.join(BIN_PATH, 'pip')
         with patch.object(helpers, 'logged_exec') as mock:
             mgr.install('foo')
-            mock.assert_called_with(['/usr/bin/pip', 'install', 'foo'])
+            mock.assert_called_with([pip_path, 'install', 'foo'])
 
     def test_install_multiword_dependency(self):
-        mgr = PipManager('/usr/bin', pip_installed=True)
+        mgr = PipManager(BIN_PATH, pip_installed=True)
+        pip_path = os.path.join(BIN_PATH, 'pip')
         with patch.object(helpers, 'logged_exec') as mock:
             mgr.install('foo bar')
-            mock.assert_called_with(['/usr/bin/pip', 'install', 'foo', 'bar'])
+            mock.assert_called_with([pip_path, 'install', 'foo', 'bar'])
 
     def test_install_with_options(self):
-        mgr = PipManager('/usr/bin', pip_installed=True, options=['--bar baz'])
+        mgr = PipManager(BIN_PATH, pip_installed=True, options=['--bar baz'])
+        pip_path = os.path.join(BIN_PATH, 'pip')
         with patch.object(helpers, 'logged_exec') as mock:
             mgr.install('foo')
-            mock.assert_called_with(['/usr/bin/pip', 'install', 'foo', '--bar', 'baz'])
+            mock.assert_called_with([pip_path, 'install', 'foo', '--bar', 'baz'])
 
     def test_install_with_options_using_equal(self):
-        mgr = PipManager('/usr/bin', pip_installed=True, options=['--bar=baz'])
+        mgr = PipManager(BIN_PATH, pip_installed=True, options=['--bar=baz'])
+        pip_path = os.path.join(BIN_PATH, 'pip')
         with patch.object(helpers, 'logged_exec') as mock:
             mgr.install('foo')
-            mock.assert_called_with(['/usr/bin/pip', 'install', 'foo', '--bar=baz'])
+            mock.assert_called_with([pip_path, 'install', 'foo', '--bar=baz'])
 
     def test_install_raise_error(self):
-        mgr = PipManager('/usr/bin', pip_installed=True)
+        mgr = PipManager(BIN_PATH, pip_installed=True)
         with patch.object(helpers, 'logged_exec') as mock:
             mock.side_effect = Exception("Kapow!")
             with self.assertRaises(Exception):
@@ -105,15 +111,16 @@ class PipManagerTestCase(unittest.TestCase):
         self.assertLoggedError("Error installing foo: Kapow!")
 
     def test_install_without_pip(self):
-        mgr = PipManager('/usr/bin', pip_installed=False)
+        mgr = PipManager(BIN_PATH, pip_installed=False)
+        pip_path = os.path.join(BIN_PATH, 'pip')
         with patch.object(helpers, 'logged_exec') as mocked_exec:
             with patch.object(mgr, '_brute_force_install_pip') as mocked_install_pip:
                 mgr.install('foo')
                 self.assertEqual(mocked_install_pip.call_count, 1)
-            mocked_exec.assert_called_with(['/usr/bin/pip', 'install', 'foo'])
+            mocked_exec.assert_called_with([pip_path, 'install', 'foo'])
 
     def test_say_hi_on_first_install(self):
-        mgr = PipManager('/usr/bin', pip_installed=True, options=['--bar=baz'])
+        mgr = PipManager(BIN_PATH, pip_installed=True, options=['--bar=baz'])
         with patch.object(helpers, 'logged_exec'):
             mgr.install('foo')
             self.assertLoggedInfo("Hi! This is fades")
@@ -122,7 +129,8 @@ class PipManagerTestCase(unittest.TestCase):
             self.assertNotLoggedInfo("Hi! This is fades")
 
     def test_brute_force_install_pip_installer_exists(self):
-        mgr = PipManager('/usr/bin', pip_installed=False)
+        mgr = PipManager(BIN_PATH, pip_installed=False)
+        python_path = os.path.join(BIN_PATH, 'python')
         with patch.object(helpers, 'logged_exec') as mocked_exec, \
                 patch.object(mgr, '_download_pip_installer') as download_installer:
             # Create empty file
@@ -135,11 +143,12 @@ class PipManagerTestCase(unittest.TestCase):
                 os.remove(mgr.pip_installer_fname)
 
             self.assertEqual(download_installer.call_count, 0)
-            mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
+            mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, '-I'])
         self.assertTrue(mgr.pip_installed)
 
     def test_brute_force_install_pip_no_installer(self):
-        mgr = PipManager('/usr/bin', pip_installed=False)
+        mgr = PipManager(BIN_PATH, pip_installed=False)
+        python_path = os.path.join(BIN_PATH, 'python')
         with patch.object(helpers, 'logged_exec') as mocked_exec, \
                 patch.object(mgr, '_download_pip_installer') as download_installer:
             with tempfile.NamedTemporaryFile() as temp_file:
@@ -149,12 +158,13 @@ class PipManagerTestCase(unittest.TestCase):
                 mgr._brute_force_install_pip()
 
             download_installer.assert_called_once_with()
-        mocked_exec.assert_called_with(['/usr/bin/python', mgr.pip_installer_fname, '-I'])
+        mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, '-I'])
         self.assertTrue(mgr.pip_installed)
 
     def test_download_pip_installer(self):
-        mgr = PipManager('/usr/bin', pip_installed=False)
+        mgr = PipManager(BIN_PATH, pip_installed=False)
         with tempfile.NamedTemporaryFile() as temp_file:
+            os.remove(temp_file.name)
             mgr.pip_installer_fname = temp_file.name
             with patch('fades.pipmanager.request.urlopen') as urlopen:
                 urlopen.return_value = io.BytesIO(b'hola')
