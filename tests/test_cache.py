@@ -45,9 +45,9 @@ class TempfileTestCase(unittest.TestCase):
 
     def setUp(self):
         temp_file_descriptor, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
+        os.close(temp_file_descriptor)
 
         def clean():
-            os.close(temp_file_descriptor)
             if os.path.exists(self.tempfile):
                 os.remove(self.tempfile)
         self.addCleanup(clean)
