@@ -164,6 +164,7 @@ class PipManagerTestCase(unittest.TestCase):
     def test_download_pip_installer(self):
         mgr = PipManager(BIN_PATH, pip_installed=False)
         with tempfile.NamedTemporaryFile() as temp_file:
+            test_file.close()
             os.remove(temp_file.name)
             mgr.pip_installer_fname = temp_file.name
             with patch('fades.pipmanager.request.urlopen') as urlopen:
