@@ -98,9 +98,14 @@ class PipManager():
     def _download_pip_installer(self):
         u = request.urlopen(PIP_INSTALLER)
         temp_location = self.pip_installer_fname + '.temp'
+        print("===== download 1, temp location exists", os.path.exists(temp_location))
         with contextlib.closing(u), open(temp_location, 'wb') as f:
             shutil.copyfileobj(u, f)
+        print("===== download 2, temp location exists", os.path.exists(temp_location))
+        print("===== download 2, final installer exists", os.path.exists(self.pip_installer_fname))
         os.rename(temp_location, self.pip_installer_fname)
+        print("===== download 3, temp location exists", os.path.exists(temp_location))
+        print("===== download 3, final installer exists", os.path.exists(self.pip_installer_fname))
 
     def _brute_force_install_pip(self):
         """A brute force install of pip itself."""
