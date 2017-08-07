@@ -19,3 +19,7 @@ after_script:
 # report coverage to coveralls.io
 after_success:
     - coveralls
+
+cache:
+  apt: true
+  pip: true
