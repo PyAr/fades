@@ -11,7 +11,9 @@ What is fades?
     :target: https://badge.fury.io/py/fades
 .. image:: https://coveralls.io/repos/PyAr/fades/badge.svg?branch=master&service=github
     :target: https://coveralls.io/github/PyAr/fades?branch=master
-
+.. image:: https://build.snapcraft.io/badge/PyAr/fades.svg
+    :target: https://build.snapcraft.io/user/PyAr/fades
+         :alt: Snap Status
 
 fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and

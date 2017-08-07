@@ -1,27 +1,15 @@
 #!/bin/bash
 #
-# Copyright 2014, 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2017 Facundo Batista, Nicolás Demarchi
 
 set -eu
 
 if [ $# -ne 0 ]; then
     TARGET_TESTS="$@"
-    TARGET_DOCSTRINGS="$@"
 else
     TARGET_TESTS="fades tests"
-    TARGET_DOCSTRINGS="fades"
 fi
 
 FADES='./bin/fades -r requirements.txt'
 
 $FADES -x nosetests --with-xcoverage --cover-package=fades -v -s $TARGET_TESTS
-$FADES -x flake8 -- $TARGET_TESTS --max-line-length=99 --select=E,W,F,C,N
-$FADES -x pep257 -- $TARGET_DOCSTRINGS
-
-# Check README.rst format.
-OUTPUT=$(python3 setup.py --long-description | $FADES -x rst2html5 2>&1 >/dev/null)
-if [ -n "$OUTPUT" ]; then
-    echo -e "README.rst format is incorrect\n"
-    echo -e "Errors: \n$OUTPUT"
-    exit 1
-fi

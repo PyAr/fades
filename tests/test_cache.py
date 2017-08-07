@@ -18,16 +18,17 @@
 
 import json
 import os
-import tempfile
 import time
 import unittest
 import uuid
+
 from threading import Thread
 from unittest.mock import patch
 
 from pkg_resources import parse_requirements, Distribution
 
 from fades import cache, helpers, parsing
+from tests import get_tempfile
 
 
 def get_req(text):
@@ -40,16 +41,12 @@ def get_distrib(*dep_ver_pairs):
     return [Distribution(project_name=dep, version=ver) for dep, ver in dep_ver_pairs]
 
 
-class TempfileTestCase(unittest.TestCase):
-    """Basic functionality tests."""
+class GetTestCase(unittest.TestCase):
+    """A shallow 'get'."""
 
     def setUp(self):
-        _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
-        self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
-
-
-class GetTestCase(TempfileTestCase):
-    """A shallow 'get'."""
+        super().setUp()
+        self.tempfile = get_tempfile(self)
 
     def test_missing_file(self):
         os.remove(self.tempfile)
@@ -91,8 +88,12 @@ class GetTestCase(TempfileTestCase):
         self.assertEqual(resp, 'resp')
 
 
-class StoreTestCase(TempfileTestCase):
+class StoreTestCase(unittest.TestCase):
     """Store what received."""
+
+    def setUp(self):
+        super().setUp()
+        self.tempfile = get_tempfile(self)
 
     def test_missing_file(self):
         venvscache = cache.VEnvsCache(self.tempfile)
@@ -125,8 +126,12 @@ class StoreTestCase(TempfileTestCase):
             self.assertEqual(data['options'], 'options')
 
 
-class RemoveTestCase(TempfileTestCase):
+class RemoveTestCase(unittest.TestCase):
     """Remove virtualenv from cache."""
+
+    def setUp(self):
+        super().setUp()
+        self.tempfile = get_tempfile(self)
 
     def test_missing_file(self):
         venvscache = cache.VEnvsCache(self.tempfile)
@@ -205,12 +210,13 @@ class RemoveTestCase(TempfileTestCase):
         self.assertFalse(os.path.exists(venvscache.filepath + '.lock'))
 
 
-class SelectionTestCase(TempfileTestCase):
+class SelectionTestCase(unittest.TestCase):
     """The venv selection."""
 
     def setUp(self):
         super().setUp()
-        self.venvscache = cache.VEnvsCache(self.tempfile)
+        tempfile = get_tempfile(self)
+        self.venvscache = cache.VEnvsCache(tempfile)
 
     def test_empty(self):
         resp = self.venvscache._select([], {}, 'pythonX.Y', 'options')
@@ -559,12 +565,13 @@ class SelectionTestCase(TempfileTestCase):
         self.assertEqual(resp, metadata)
 
 
-class ComparisonsTestCase(TempfileTestCase):
+class ComparisonsTestCase(unittest.TestCase):
     """The comparison in the selection."""
 
     def setUp(self):
         super().setUp()
-        self.venvscache = cache.VEnvsCache(self.tempfile)
+        tempfile = get_tempfile(self)
+        self.venvscache = cache.VEnvsCache(tempfile)
 
     def check(self, req, installed):
         """Check if the requirement is satisfied with what is installed."""
@@ -617,12 +624,13 @@ class ComparisonsTestCase(TempfileTestCase):
         self.assertEqual(self.check('>1.6,<1.9,!=1.9.6', '1.9.6'), None)
 
 
-class BestFitTestCase(TempfileTestCase):
+class BestFitTestCase(unittest.TestCase):
     """Check the venv best fitting decissor."""
 
     def setUp(self):
         super().setUp()
-        self.venvscache = cache.VEnvsCache(self.tempfile)
+        tempfile = get_tempfile(self)
+        self.venvscache = cache.VEnvsCache(tempfile)
 
     def check(self, possible_venvs):
         """Assert that the selected venv is the best fit one."""

@@ -273,7 +273,8 @@ class EnvDestructionTestCase(unittest.TestCase):
 class UsageManagerTestCase(unittest.TestCase):
 
     def setUp(self):
-        _, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
+        temp_file_descriptor, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
+        os.close(temp_file_descriptor)
         self.temp_folder = tempfile.mkdtemp()
         self.file_path = os.path.join(self.temp_folder, 'usage_stats')
         self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
