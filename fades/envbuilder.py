@@ -233,6 +233,7 @@ class UsageManager:
                         # usage_file wasn't updated.
                         continue
                     env_path = venv_meta['env_path']
+                    logger.info("Destroying virtualenv at: %s", env_path)  # #256
                     destroy_venv(env_path, self.venvscache)
 
             self._write_compacted_dict_usage_to_file(venvs_dict)

@@ -1,5 +1,5 @@
 language: python
-sudo: false
+
 python:
       - "3.3"
       - "3.4"
@@ -17,5 +17,9 @@ after_script:
     - "flake8 fades --max-line-length=99 --select=E,W,F,C,N"
 
 # report coverage to coveralls.io
-after_success: 
+after_success:
     - coveralls
+
+cache:
+  apt: true
+  pip: true
