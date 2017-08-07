@@ -100,17 +100,58 @@ setup(
         'even helps to administer big projects.'),
     long_description=open('README.rst').read(),
     url='https://github.com/PyAr/fades',
-
+    download_url="https://github.com/PyAr/fades/releases",  # Release download URL.
     packages=["fades"],
     scripts=["bin/fades"],
-
+    keywords="virtualenv utils utility scripts",  # Keywords to get found easily on PyPI results,etc.
     cmdclass={
         'install': CustomInstall,
     },
     install_requires=['setuptools'],
+    tests_require=['logassert', 'pyxdg', 'pyuca', 'nose', 'flake8', 'pep257', 'rst2html5'],  # What unittests require.
+    python_requires='>=3.3',  # Minimum Python version supported.
     extras_require={
         'pyxdg': 'pyxdg',
         'virtualenv': 'virtualenv',
         'setuptools': 'setuptools',
-    }
+    },
+
+    # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        # 'Development Status :: 6 - Mature',
+        # 'Development Status :: 7 - Inactive',
+
+        'Environment :: Console',
+
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+
+        'Natural Language :: English',
+        'Natural Language :: Spanish',
+
+        'Operating System :: MacOS',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Operating System :: POSIX :: Linux',
+
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: Implementation',
+        'Programming Language :: Python :: Implementation :: CPython',
+
+        'Topic :: Software Development',
+        'Topic :: Utilities',
+    ],
 )
