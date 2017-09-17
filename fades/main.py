@@ -258,7 +258,7 @@ def go(argv):
         # Check if the requested packages exists in pypi.
         if not args.no_precheck_availability:
             if not helpers.check_pypi_exists(indicated_deps):
-                logger.error("A indicated dependency doesn't exists. Exiting")
+                logger.info("A indicated dependency doesn't exists. Exiting")
                 sys.exit(1)
 
         # Create a new venv
