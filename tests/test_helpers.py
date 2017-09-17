@@ -29,8 +29,7 @@ import logassert
 
 from xdg import BaseDirectory
 
-from fades import HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK
-from fades import helpers
+from fades import HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK, helpers
 from fades import parsing
 
 
@@ -324,7 +323,7 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
             exists = helpers.check_pypi_exists(dependency)
 
         self.assertFalse(exists)
-        self.assertLoggedError("foo doesn't exists in PyPi.")
+        self.assertLoggedInfo("foo doesn't exists in PyPi.")
 
     def test_one_doesnt_exists(self):
         dependencies = parsing.parse_manual(["foo", "bar"])
@@ -338,7 +337,7 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
                 exists = helpers.check_pypi_exists(dependencies)
 
         self.assertFalse(exists)
-        self.assertLoggedError("bar doesn't exists in PyPi.")
+        self.assertLoggedInfo("bar doesn't exists in PyPi.")
 
     def test_error_hitting_pypi(self):
         dependency = parsing.parse_manual(["foo"])

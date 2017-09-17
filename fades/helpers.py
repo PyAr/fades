@@ -224,16 +224,15 @@ def _pypi_head_package(pkg_name):
             return False
         else:
             raise http_error
-    else:
-        if response.status == HTTP_STATUS_OK:
-            logger.debug("%s exists in Pypi.", pkg_name)
-            return True
+    if response.status == HTTP_STATUS_OK:
+        logger.debug("%s exists in Pypi.", pkg_name)
+        return True
 
 
 def check_pypi_exists(dependencies):
     """Check if the indicated dependencies actually exists in pypi."""
     for dependency in dependencies.get('pypi', []):
-        logger.debug("Checking if %s exists in PyPi", dependency)
+        logger.debug("Checking if %r exists in PyPi", dependency)
         try:
             exists = _pypi_head_package(dependency.project_name)
         except Exception as error:
@@ -241,7 +240,6 @@ def check_pypi_exists(dependencies):
             sys.exit(1)
         else:
             if not exists:
-                logger.error("%s doesn't exists in PyPi.", dependency)
+                logger.info("%s doesn't exists in PyPi.", dependency)
                 return False
-    logger.debug("All indicated dependencies exists in pypi=%s", dependencies)
     return True

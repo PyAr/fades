@@ -117,7 +117,7 @@ def go(argv):
     parser.add_argument('--check-updates', action='store_true',
                         help=("check for packages updates"))
     parser.add_argument('--no-precheck-availability', action='store_true',
-                        help=("Not check if the packages exists in pypi."))
+                        help=("Don't check if the packages exists in PyPI."))
     parser.add_argument('--pip-options', action='append', default=[],
                         help=("Extra options to be supplied to pip. (this option can be "
                               "used multiple times)"))
