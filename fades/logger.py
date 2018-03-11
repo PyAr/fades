@@ -18,6 +18,7 @@
 
 import logging
 import logging.handlers
+import os.path
 
 
 FMT_SIMPLE = "*** fades ***  %(asctime)s  %(levelname)-8s %(message)s"
@@ -50,15 +51,19 @@ def set_up(verbose, quiet):
     handler.setFormatter(formatter)
 
     # and to the syslog
-    try:
-        handler = logging.handlers.SysLogHandler(address='/dev/log')
-    except:
-        # silently ignore that the user doesn't have a syslog active; can
-        # see all the info with "-v" anyway
-        pass
-    else:
-        logger.addHandler(handler)
-        formatter = logging.Formatter(FMT_SYSLOG)
-        handler.setFormatter(formatter)
+    for syslog_path in ('/dev/log', '/var/run/syslog'):
+        if not os.path.exists(syslog_path):
+            continue
+        try:
+            handler = logging.handlers.SysLogHandler(address=syslog_path)
+        except:
+            # silently ignore that the user doesn't have a syslog active; can
+            # see all the info with "-v" anyway
+            pass
+        else:
+            logger.addHandler(handler)
+            formatter = logging.Formatter(FMT_SYSLOG)
+            handler.setFormatter(formatter)
+            break
 
     return logger
