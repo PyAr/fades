@@ -363,3 +363,15 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
 
         self.assertTrue(mocked_exit.called)
         mocked_exit.assert_called_once_with(1)
+
+    def test_redirect_response(self):
+        deps = parsing.parse_manual(["foo"])
+
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.status = 302  # redirect
+                mock_urlopen.return_value = mock_http_response
+
+                exists = helpers.check_pypi_exists(deps)
+        self.assertTrue(exists)
+        self.assertLoggedWarning("Got a (unexpected) HTTP_STATUS")

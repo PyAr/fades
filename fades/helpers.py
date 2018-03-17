@@ -233,6 +233,13 @@ def _pypi_head_package(dependency):
     if response.status == HTTP_STATUS_OK:
         logger.debug("%r exists in PyPI.", dependency)
         return True
+    else:
+        # Maybe we are getting somethink like a redirect. In this case we are only
+        # warning to the user and trying to install the dependency.
+        # In the worst scenery fades will fail to install it.
+        logger.warning("Got a (unexpected) HTTP_STATUS=%r and reason=%r checking if %r exists",
+                       response.status, response.reason, dependency)
+        return True
 
 
 def check_pypi_exists(dependencies):
