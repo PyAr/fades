@@ -221,7 +221,7 @@ def _pypi_head_package(dependency):
         url = BASE_PYPI_URL_WITH_VERSION.format(name=dependency.project_name, version=version)
     else:
         url = BASE_PYPI_URL.format(name=dependency.project_name)
-    logger.debug("Doing HEAD requests agains %s", url)
+    logger.debug("Doing HEAD requests against %s", url)
     req = request.Request(url, method='HEAD')
     try:
         response = request.urlopen(req)
@@ -229,23 +229,23 @@ def _pypi_head_package(dependency):
         if http_error.code == HTTP_STATUS_NOT_FOUND:
             return False
         else:
-            raise http_error
+            raise
     if response.status == HTTP_STATUS_OK:
-        logger.debug("%r exists in Pypi.", dependency)
+        logger.debug("%r exists in PyPI.", dependency)
         return True
 
 
 def check_pypi_exists(dependencies):
     """Check if the indicated dependencies actually exists in pypi."""
     for dependency in dependencies.get('pypi', []):
-        logger.debug("Checking if %r exists in PyPi", dependency)
+        logger.debug("Checking if %r exists in PyPI", dependency)
         try:
             exists = _pypi_head_package(dependency)
         except Exception as error:
-            logger.error("Error checking %s in pypi: %r", dependency, error)
+            logger.error("Error checking %s in PyPI: %r", dependency, error)
             sys.exit(1)
         else:
             if not exists:
-                logger.info("%s doesn't exists in PyPi.", dependency)
+                logger.info("%s doesn't exists in PyPI.", dependency)
                 return False
     return True
