@@ -323,7 +323,7 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
             exists = helpers.check_pypi_exists(dependency)
 
         self.assertFalse(exists)
-        self.assertLoggedInfo("foo doesn't exists in PyPI.")
+        self.assertLoggedError("foo doesn't exists in PyPI.")
 
     def test_one_doesnt_exists(self):
         dependencies = parsing.parse_manual(["foo", "bar"])
@@ -337,7 +337,7 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
                 exists = helpers.check_pypi_exists(dependencies)
 
         self.assertFalse(exists)
-        self.assertLoggedInfo("bar doesn't exists in PyPI.")
+        self.assertLoggedError("bar doesn't exists in PyPI.")
 
     def test_error_hitting_pypi(self):
         dependency = parsing.parse_manual(["foo"])

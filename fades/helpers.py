@@ -253,6 +253,6 @@ def check_pypi_exists(dependencies):
             sys.exit(1)
         else:
             if not exists:
-                logger.info("%s doesn't exists in PyPI.", dependency)
+                logger.error("%s doesn't exists in PyPI.", dependency)
                 return False
     return True
