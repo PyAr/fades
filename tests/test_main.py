@@ -76,3 +76,20 @@ class DepsMergingTestCase(unittest.TestCase):
             __version__,
             '.'.join([str(v) for v in VERSION]),
         )
+
+    def test_one_duplicated(self):
+        d1 = dict(foo=[2, 2])
+        d2 = {}
+        d = main._merge_deps(d1, d2)
+        self.assertDictEqual(d, {
+            'foo': [2],
+        })
+
+    def test_two_different_with_dups(self):
+        d1 = dict(foo=[1, 2, 2, 2])
+        d2 = dict(bar=[3, 4, 1, 2])
+        d = main._merge_deps(d1, d2)
+        self.assertDictEqual(d, {
+            'foo': [1, 2],
+            'bar': [1, 2, 3, 4],
+        })
