@@ -17,6 +17,7 @@
 """Tests for the venv builder module."""
 
 import os
+import shutil
 import tempfile
 import unittest
 from datetime import datetime, timedelta
@@ -278,6 +279,7 @@ class UsageManagerTestCase(unittest.TestCase):
         self.temp_folder = tempfile.mkdtemp()
         self.file_path = os.path.join(self.temp_folder, 'usage_stats')
         self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
+        self.addCleanup(shutil.rmtree, self.temp_folder, ignore_errors=True)
 
         self.uuids = ['env1', 'env2', 'env3']
 
