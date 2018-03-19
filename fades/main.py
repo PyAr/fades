@@ -258,7 +258,7 @@ def go(argv):
         # Check if the requested packages exists in pypi.
         if not args.no_precheck_availability:
             logger.info("Checking the availabilty of dependencies in PyPI. "
-                        "You can use '--no_precheck_availability' to avoid it.")
+                        "You can use '--no-precheck-availability' to avoid it.")
             if not helpers.check_pypi_exists(indicated_deps):
                 logger.error("An indicated dependency doesn't exists. Exiting")
                 sys.exit(1)
