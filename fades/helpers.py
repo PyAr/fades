@@ -27,6 +27,8 @@ from urllib.error import HTTPError
 
 import pkg_resources
 
+from fades import HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK
+
 logger = logging.getLogger(__name__)
 
 # command to retrieve the version from an external Python
@@ -40,6 +42,7 @@ print(json.dumps(d))
 
 # the url to query PyPI for project versions
 BASE_PYPI_URL = 'https://pypi.python.org/pypi/{name}/json'
+BASE_PYPI_URL_WITH_VERSION = 'https://pypi.python.org/pypi/{name}/{version}/json'
 
 # prefix for all stdout lines when running a command
 STDOUT_LOG_PREFIX = ":: "
@@ -209,3 +212,47 @@ def check_pypi_updates(dependencies):
 
     dependencies["pypi"] = dependencies_up_to_date
     return dependencies
+
+
+def _pypi_head_package(dependency):
+    """Hit pypi with a http HEAD to check if pkg_name exists."""
+    if dependency.specs:
+        _, version = dependency.specs[0]
+        url = BASE_PYPI_URL_WITH_VERSION.format(name=dependency.project_name, version=version)
+    else:
+        url = BASE_PYPI_URL.format(name=dependency.project_name)
+    logger.debug("Doing HEAD requests against %s", url)
+    req = request.Request(url, method='HEAD')
+    try:
+        response = request.urlopen(req)
+    except HTTPError as http_error:
+        if http_error.code == HTTP_STATUS_NOT_FOUND:
+            return False
+        else:
+            raise
+    if response.status == HTTP_STATUS_OK:
+        logger.debug("%r exists in PyPI.", dependency)
+        return True
+    else:
+        # Maybe we are getting somethink like a redirect. In this case we are only
+        # warning to the user and trying to install the dependency.
+        # In the worst scenery fades will fail to install it.
+        logger.warning("Got a (unexpected) HTTP_STATUS=%r and reason=%r checking if %r exists",
+                       response.status, response.reason, dependency)
+        return True
+
+
+def check_pypi_exists(dependencies):
+    """Check if the indicated dependencies actually exists in pypi."""
+    for dependency in dependencies.get('pypi', []):
+        logger.debug("Checking if %r exists in PyPI", dependency)
+        try:
+            exists = _pypi_head_package(dependency)
+        except Exception as error:
+            logger.error("Error checking %s in PyPI: %r", dependency, error)
+            sys.exit(1)
+        else:
+            if not exists:
+                logger.error("%s doesn't exists in PyPI.", dependency)
+                return False
+    return True

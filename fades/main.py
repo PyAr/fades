@@ -116,6 +116,8 @@ def go(argv):
                               "used multiple times)"))
     parser.add_argument('--check-updates', action='store_true',
                         help=("check for packages updates"))
+    parser.add_argument('--no-precheck-availability', action='store_true',
+                        help=("Don't check if the packages exists in PyPI."))
     parser.add_argument('--pip-options', action='append', default=[],
                         help=("Extra options to be supplied to pip. (this option can be "
                               "used multiple times)"))
@@ -253,6 +255,14 @@ def go(argv):
         create_venv = True
 
     if create_venv:
+        # Check if the requested packages exists in pypi.
+        if not args.no_precheck_availability:
+            logger.info("Checking the availabilty of dependencies in PyPI. "
+                        "You can use '--no-precheck-availability' to avoid it.")
+            if not helpers.check_pypi_exists(indicated_deps):
+                logger.error("An indicated dependency doesn't exists. Exiting")
+                sys.exit(1)
+
         # Create a new venv
         venv_data, installed = envbuilder.create_venv(indicated_deps, args.python, is_current,
                                                       options, pip_options)

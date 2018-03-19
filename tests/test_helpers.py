@@ -29,7 +29,7 @@ import logassert
 
 from xdg import BaseDirectory
 
-from fades import helpers
+from fades import HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK, helpers
 from fades import parsing
 
 
@@ -281,3 +281,97 @@ class GetDirsTestCase(unittest.TestCase):
             self._fake_snap_env_dir(dirname)
             direct = helpers.get_confdir()
             self.assertTrue(os.path.exists(direct))
+
+
+class CheckPackageExistenceTestCase(unittest.TestCase):
+    """Test for check_pypi_exists."""
+
+    def setUp(self):
+        logassert.setup(self, 'fades.helpers')
+
+    def test_exists(self):
+        deps = parsing.parse_manual(["foo"])
+
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.status = HTTP_STATUS_OK
+                mock_urlopen.return_value = mock_http_response
+
+                exists = helpers.check_pypi_exists(deps)
+        self.assertTrue(exists)
+        self.assertLogged("exists in PyPI")
+
+    def test_all_exists(self):
+        dependencies = parsing.parse_manual(['foo', 'bar', 'baz'])
+
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.status = HTTP_STATUS_OK
+                mock_urlopen.side_effect = [mock_http_response] * 3
+
+                exists = helpers.check_pypi_exists(dependencies)
+        self.assertTrue(exists)
+        self.assertLogged("exists in PyPI")
+
+    def test_doesnt_exists(self):
+        dependency = parsing.parse_manual(["foo"])
+
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            mock_http_error = HTTPError("url", HTTP_STATUS_NOT_FOUND, "mgs", {}, io.BytesIO())
+            mock_urlopen.side_effect = mock_http_error
+
+            exists = helpers.check_pypi_exists(dependency)
+
+        self.assertFalse(exists)
+        self.assertLoggedError("foo doesn't exists in PyPI.")
+
+    def test_one_doesnt_exists(self):
+        dependencies = parsing.parse_manual(["foo", "bar"])
+
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_error = HTTPError("url", HTTP_STATUS_NOT_FOUND, "mgs", {}, io.BytesIO())
+                mock_http_response.status = HTTP_STATUS_OK
+                mock_urlopen.side_effect = [mock_http_response, mock_http_error]
+
+                exists = helpers.check_pypi_exists(dependencies)
+
+        self.assertFalse(exists)
+        self.assertLoggedError("bar doesn't exists in PyPI.")
+
+    def test_error_hitting_pypi(self):
+        dependency = parsing.parse_manual(["foo"])
+
+        with patch('sys.exit') as mocked_exit:
+            with patch('urllib.request.urlopen') as mock_urlopen:
+                mock_urlopen.side_effect = ValueError("cabum!!")
+
+                helpers.check_pypi_exists(dependency)
+
+        self.assertTrue(mocked_exit.called)
+        mocked_exit.assert_called_once_with(1)
+
+    def test_status_code_error(self):
+        dependency = parsing.parse_manual(["foo"])
+
+        with patch('sys.exit') as mocked_exit:
+            with patch('urllib.request.urlopen') as mock_urlopen:
+                mock_http_error = HTTPError("url", 400, "mgs", {}, io.BytesIO())
+                mock_urlopen.side_effect = mock_http_error
+
+                helpers.check_pypi_exists(dependency)
+
+        self.assertTrue(mocked_exit.called)
+        mocked_exit.assert_called_once_with(1)
+
+    def test_redirect_response(self):
+        deps = parsing.parse_manual(["foo"])
+
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.status = 302  # redirect
+                mock_urlopen.return_value = mock_http_response
+
+                exists = helpers.check_pypi_exists(deps)
+        self.assertTrue(exists)
+        self.assertLoggedWarning("Got a (unexpected) HTTP_STATUS")
