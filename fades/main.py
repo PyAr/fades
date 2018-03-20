@@ -60,7 +60,7 @@ def _merge_deps(*deps):
     final = {}
     for dep in deps:
         for repo, info in dep.items():
-            final.setdefault(repo, []).extend(set(info))
+            final.setdefault(repo, set()).update(info)
     return final
 
 
