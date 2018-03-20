@@ -49,8 +49,8 @@ class DepsMergingTestCase(unittest.TestCase):
         d2 = dict(bar=[3, 4])
         d = main._merge_deps(d1, d2)
         self.assertDictEqual(d, {
-            'foo': [1, 2],
-            'bar': [3, 4],
+            'foo': {1, 2},
+            'bar': {3, 4},
         })
 
     def test_two_same_repo(self):
@@ -58,7 +58,7 @@ class DepsMergingTestCase(unittest.TestCase):
         d2 = dict(foo=[3, 4])
         d = main._merge_deps(d1, d2)
         self.assertDictEqual(d, {
-            'foo': [1, 2, 3, 4],
+            'foo': {1, 2, 3, 4},
         })
 
     def test_complex_case(self):
@@ -67,8 +67,8 @@ class DepsMergingTestCase(unittest.TestCase):
         d3 = dict(bar=[4, 6])
         d = main._merge_deps(d1, d2, d3)
         self.assertDictEqual(d, {
-            'foo': [1, 2, 3],
-            'bar': [5, 4, 6],
+            'foo': {1, 2, 3},
+            'bar': {5, 4, 6},
         })
 
     def test_version_show(self):
@@ -76,3 +76,20 @@ class DepsMergingTestCase(unittest.TestCase):
             __version__,
             '.'.join([str(v) for v in VERSION]),
         )
+
+    def test_one_duplicated(self):
+        d1 = dict(foo=[2, 2])
+        d2 = {}
+        d = main._merge_deps(d1, d2)
+        self.assertDictEqual(d, {
+            'foo': {2},
+        })
+
+    def test_two_different_with_dups(self):
+        d1 = dict(foo=[1, 2, 2, 2])
+        d2 = dict(bar=[3, 4, 1, 2])
+        d = main._merge_deps(d1, d2)
+        self.assertDictEqual(d, {
+            'foo': {1, 2},
+            'bar': {1, 2, 3, 4},
+        })
