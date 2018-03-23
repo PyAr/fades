@@ -6,14 +6,18 @@ What is fades?
     :target: https://travis-ci.org/PyAr/fades
 .. image:: https://readthedocs.org/projects/fades/badge/?version=latest
     :target: http://fades.readthedocs.org/en/latest/?badge=latest
-         :alt: Documentation Status
+    :alt: Documentation Status
 .. image:: https://badge.fury.io/py/fades.svg
     :target: https://badge.fury.io/py/fades
 .. image:: https://coveralls.io/repos/PyAr/fades/badge.svg?branch=master&service=github
     :target: https://coveralls.io/github/PyAr/fades?branch=master
 .. image:: https://build.snapcraft.io/badge/PyAr/fades.svg
     :target: https://build.snapcraft.io/user/PyAr/fades
-         :alt: Snap Status
+    :alt: Snap Status
+.. image:: https://ci.appveyor.com/api/projects/status/crkqv82t1l731fms/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/facundobatista/fades
+    :alt: Appveyor Status
+
 
 fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and
