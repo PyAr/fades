@@ -26,7 +26,11 @@ from fades.multiplatform import filelock
 
 
 class LockChecker(threading.Thread):
-    """Helper to check the lock in other thread."""
+    """Helper to check the lock in other thread.
+
+    The time.sleep() in the middle of the process is for time.time()
+    granularity in different platforms to not mess our tests.
+    """
 
     def __init__(self, filepath):
         self.filepath = filepath
@@ -36,9 +40,11 @@ class LockChecker(threading.Thread):
 
     def run(self):
         self.pre_lock = time.time()
+        time.sleep(.01)
         with filelock(self.filepath):
             self.in_lock = time.time()
             self.middle_work.wait()
+            time.sleep(.01)
             self.post_work = time.time()
 
 
