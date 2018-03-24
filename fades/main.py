@@ -181,7 +181,7 @@ def go(argv):
         try:
             max_days_to_keep = int(args.clean_unused_venvs)
             usage_manager.clean_unused_venvs(max_days_to_keep)
-        except:
+        except Exception:
             rc = 1
             logger.debug("CLEAN_UNUSED_VENVS must be an integer.")
             raise

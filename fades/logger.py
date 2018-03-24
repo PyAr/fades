@@ -56,7 +56,7 @@ def set_up(verbose, quiet):
             continue
         try:
             handler = logging.handlers.SysLogHandler(address=syslog_path)
-        except:
+        except Exception:
             # silently ignore that the user doesn't have a syslog active; can
             # see all the info with "-v" anyway
             pass
