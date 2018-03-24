@@ -164,8 +164,9 @@ def go(argv):
     # verify that the module is NOT being used from a virtualenv
     if detect_inside_virtualenv(sys.prefix, getattr(sys, 'real_prefix', None),
                                 getattr(sys, 'base_prefix', None)):
-        logger.warning(
-            "fades is running from a virtualenv (%r), which is not supported", sys.prefix)
+        logger.error(
+            "fades is running from inside a virtualenv (%r), which is not supported", sys.prefix)
+        sys.exit(-1)
 
     if args.verbose and args.quiet:
         logger.warning("Overriding 'quiet' option ('verbose' also requested)")
@@ -181,7 +182,7 @@ def go(argv):
         try:
             max_days_to_keep = int(args.clean_unused_venvs)
             usage_manager.clean_unused_venvs(max_days_to_keep)
-        except:
+        except Exception:
             rc = 1
             logger.debug("CLEAN_UNUSED_VENVS must be an integer.")
             raise
