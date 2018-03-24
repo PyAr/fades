@@ -84,7 +84,7 @@ def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
     return prefix != base_prefix
 
 
-def go(argv):
+def go():
     """Make the magic happen."""
     parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog, usage=help_usage,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -181,7 +181,7 @@ def go(argv):
         try:
             max_days_to_keep = int(args.clean_unused_venvs)
             usage_manager.clean_unused_venvs(max_days_to_keep)
-        except:
+        except Exception:
             rc = 1
             logger.debug("CLEAN_UNUSED_VENVS must be an integer.")
             raise

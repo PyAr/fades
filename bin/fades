@@ -30,4 +30,4 @@ if os.path.basename(parent_dir).startswith('fades'):
     sys.path.insert(0, parent_dir)
 
 from fades import main
-main.go(sys.argv)
+main.go()
