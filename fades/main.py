@@ -84,7 +84,7 @@ def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
     return prefix != base_prefix
 
 
-def go(argv):
+def go():
     """Make the magic happen."""
     parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog, usage=help_usage,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)

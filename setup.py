@@ -59,8 +59,21 @@ def get_version():
     return m.groups()[0].replace(', ', '.')
 
 
+# the different scripts according to the platform
+SCRIPT_WIN = 'bin/fades.cmd'
+SCRIPT_REST = 'bin/fades'
+
+
 class CustomInstall(install):
     """Custom installation to fix script info and install man."""
+
+    def initialize_options(self):
+        """Run parent initialization and then fix the scripts var."""
+        install.initialize_options(self)
+
+        # leave the proper script according to the platform
+        script = SCRIPT_WIN if sys.platform == "win32" else SCRIPT_REST
+        self.distribution.scripts = [script]
 
     def run(self):
         """Run parent install, and then save the man file."""
@@ -102,13 +115,14 @@ setup(
     url='https://github.com/PyAr/fades',
     download_url="https://github.com/PyAr/fades/releases",  # Release download URL.
     packages=["fades"],
-    scripts=["bin/fades"],
-    keywords="virtualenv utils utility scripts",  # Keywords to get found easily on PyPI results,etc.
+    scripts=[SCRIPT_WIN, SCRIPT_REST],
+    keywords="virtualenv utils utility scripts",  # to get found easily on PyPI results, etc.
     cmdclass={
         'install': CustomInstall,
     },
     install_requires=['setuptools'],
-    tests_require=['logassert', 'pyxdg', 'pyuca', 'nose', 'flake8', 'pep257', 'rst2html5'],  # What unittests require.
+    tests_require=['logassert', 'pyxdg', 'pyuca', 'nose', 'flake8',
+                   'pep257', 'rst2html5'],  # what unittests require
     python_requires='>=3.3',  # Minimum Python version supported.
     extras_require={
         'pyxdg': 'pyxdg',
