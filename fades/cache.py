@@ -141,7 +141,6 @@ class VEnvsCache:
                 matching_venvs.append((matching, venv))
 
         if not matching_venvs:
-            logger.debug("No matching venv found :(")
             return
 
         return self._select_better_fit(matching_venvs)
