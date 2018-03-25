@@ -27,7 +27,7 @@ import docutils.core
 import pep257
 import rst2html5_
 
-from flake8.engine import get_style_guide
+from flake8.api.legacy import get_style_guide
 from pyuca import Collator
 
 FLAKE8_ROOTS = ['fades', 'tests']
@@ -36,6 +36,8 @@ PEP257_ROOTS = ['fades']
 
 # avoid seeing all DEBUG logs if the test fails
 pep257.log.setLevel(logging.WARNING)
+for logger_name in ('flake8.plugins', 'flake8.api', 'flake8.checker', 'flake8.main'):
+    logging.getLogger(logger_name).setLevel(logging.CRITICAL)
 
 
 class InfrastructureTestCase(unittest.TestCase):

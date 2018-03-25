@@ -143,7 +143,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
         for dependency in repo_requested:
             try:
                 mgr.install(dependency)
-            except:
+            except Exception:
                 logger.debug("Installation Step failed, removing virtualenv")
                 destroy_venv(env_path)
                 sys.exit(4)
