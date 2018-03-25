@@ -164,8 +164,9 @@ def go(argv):
     # verify that the module is NOT being used from a virtualenv
     if detect_inside_virtualenv(sys.prefix, getattr(sys, 'real_prefix', None),
                                 getattr(sys, 'base_prefix', None)):
-        logger.warning(
-            "fades is running from a virtualenv (%r), which is not supported", sys.prefix)
+        logger.error(
+            "fades is running from inside a virtualenv (%r), which is not supported", sys.prefix)
+        sys.exit(-1)
 
     if args.verbose and args.quiet:
         logger.warning("Overriding 'quiet' option ('verbose' also requested)")
