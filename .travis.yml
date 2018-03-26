@@ -9,7 +9,7 @@ python:
       - "3.6-dev"
 install:
     - "pip install -r requirements.txt"
-    - "pip install python-coveralls"
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then pip install python-coveralls ; fi
 script:
     - "nosetests --with-xcoverage --cover-package=fades -v fades tests"
 after_script:
@@ -17,7 +17,7 @@ after_script:
 
 # report coverage to coveralls.io
 after_success:
-    - coveralls
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then coveralls; fi
 
 cache:
   apt: true
