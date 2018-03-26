@@ -207,7 +207,7 @@ def check_pypi_updates(dependencies):
         else:
             project_name_plus = "{}=={}".format(dependency.project_name, latest_version)
             dependencies_up_to_date.append(pkg_resources.Requirement.parse(project_name_plus))
-            logger.info("There is a new version of %s: %s and will use it.",
+            logger.info("The latest version of %r is %s and will use it.",
                         dependency.project_name, latest_version)
 
     dependencies["pypi"] = dependencies_up_to_date
