@@ -3,6 +3,7 @@ Steps before a release is done
 
 Check all is crispy
 
+  rm -rf build dist
   ./setup.py clean build
   ./setup.py clean sdist
 
@@ -19,7 +20,9 @@ How to release it to PyPI
 
 Dead simple:
 
-    ./setup.py sdist upload
+  rm -rf build dist
+  ./setup.py clean sdist
+  fades -d twine -x twine upload dist/fades-*
 
 
 How to create a .deb
@@ -27,6 +30,7 @@ How to create a .deb
 
 Create the tarball:
 
+  rm -rf build dist
   ./setup.py clean sdist
 
 
@@ -70,12 +74,12 @@ Continue with preparations:
 
 Build the .deb
 
-    debuild -us -uc -I -i
+  debuild -us -uc -I -i
 
 
 To test the .deb you just created:
 
-    sudo dpkg i *.deb
+  sudo dpkg -i *.deb
 
 
 If you want to uninstall it do:
@@ -143,4 +147,8 @@ Final steps
 
 - Remember to update the .deb and .tar.gz in www.taniquetil.com.ar/fades
 
-- Create a change log and send press release, announces, tweets, etc...
+- Create a change log and send press releases:
+    - a tweet,
+    - PyAr mail list, IRC and Telegram group
+    - fades' Telegram group and mail list
+    - python-announces
