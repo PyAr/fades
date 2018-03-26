@@ -300,7 +300,11 @@ def go():
                 "Calling Python interpreter with arguments %s to execute the child program"
                 " %r with options %s", python_options, args.child_program, args.child_options)
 
-        p = subprocess.Popen(cmd + args.child_options)
+        try:
+            p = subprocess.Popen(cmd + args.child_options)
+        except FileNotFoundError:
+            logger.error("Command not found: %s", args.child_program)
+            sys.exit(1)
 
     def _signal_handler(signum, _):
         """Handle signals received by parent process, send them to child.
