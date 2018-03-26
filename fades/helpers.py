@@ -135,7 +135,7 @@ def _get_interpreter_info(interpreter=None):
             requested_interpreter_info = logged_exec(args)
         except Exception as error:
             logger.error("Error getting requested interpreter version: %s", error)
-            exit()
+            sys.exit(1)
         requested_interpreter_info = json.loads(requested_interpreter_info[0])
         executable = requested_interpreter_info['path']
         major = requested_interpreter_info['major']
