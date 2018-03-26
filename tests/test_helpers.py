@@ -193,7 +193,7 @@ class CheckPyPIUpdatesTestCase(unittest.TestCase):
                 self.assertLoggedInfo('There is a new version of django: 1.9')
                 self.assertEquals(dep_request.specs, [('==', '2.1')])
                 self.assertEquals(dep_django.specs, [('==', '1.7.5')])
-                self.assertLoggedInfo('There is a new version of requests: 2.1 and will use it.')
+                self.assertLoggedInfo("The latest version of 'requests' is 2.1 and will use it.")
 
     def test_check_pypi_updates_with_a_higher_version_of_a_package(self):
         with patch('urllib.request.urlopen') as mock_urlopen:
