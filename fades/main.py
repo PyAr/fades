@@ -125,13 +125,14 @@ def go():
                         help=("Extra options to be supplied to python. (this option can be "
                               "used multiple times)"))
     parser.add_argument('--rm', dest='remove', metavar='UUID',
-                        help=("Remove a virtualenv by UUID."))
+                        help=("Remove a virtualenv by UUID (see --list-venvs)."))
     parser.add_argument('--clean-unused-venvs', action='store',
                         help=("This option remove venvs that haven't been used for more than "
                               "CLEAN_UNUSED_VENVS days. Appart from that, will compact usage "
                               "stats file.\n"
                               "When this option is present, the cleaning takes place at the "
                               "beginning of the execution."))
+    parser.add_argument('--list-venvs', action='store_true', help=("List all venvs"))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -160,6 +161,10 @@ def go():
     logger.debug("Running Python %s on %r", sys.version_info, platform.platform())
     logger.debug("Starting fades v. %s", fades.__version__)
     logger.debug("Arguments: %s", args)
+
+    if args.list_venvs:
+        helpers.list_venvs(os.path.join(helpers.get_basedir(), 'venvs.idx'), logger=logger)
+        sys.exit(0)
 
     # verify that the module is NOT being used from a virtualenv
     if detect_inside_virtualenv(sys.prefix, getattr(sys, 'real_prefix', None),
