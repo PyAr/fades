@@ -22,6 +22,7 @@ import json
 import logging
 import subprocess
 
+from datetime import datetime
 from urllib import request
 from urllib.error import HTTPError
 
@@ -256,3 +257,22 @@ def check_pypi_exists(dependencies):
                 logger.error("%s doesn't exists in PyPI.", dependency)
                 return False
     return True
+
+
+def list_venvs(index_path, logger=None):
+    if os.path.isfile(index_path):
+        log = logger.info if logger else print
+        tmplt = ("\nVENV_UUID:\t{uid}\nDATE_TIME:\t{dat}\nFULL_PATH:\t{pat}"
+                 "\nPACKAGES:\t{pac}\nINTERPRETER:\t{pyv}\nOPTIONS:\t{opt}\n")
+        with open(index_path) as jotason:
+            for jotason_line in jotason:
+                v_dct_get = json.loads(jotason_line).get
+                venv_info = tmplt.format(
+                    uid=v_dct_get("metadata")["env_path"].split("/fades/")[-1],
+                    pat=v_dct_get("metadata")["env_path"],
+                    pac=v_dct_get("installed"),
+                    pyv=v_dct_get("interpreter"),
+                    opt=v_dct_get("options"),
+                    dat=datetime.fromtimestamp(v_dct_get("timestamp")).replace(
+                        microsecond=0).astimezone().isoformat())
+                log(venv_info)
