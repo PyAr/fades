@@ -260,6 +260,7 @@ def check_pypi_exists(dependencies):
 
 
 def list_venvs(index_path, logger=None):
+    """List all venvs from an index file path and print info to stdout."""
     if os.path.isfile(index_path):
         log = logger.info if logger else print
         tmplt = ("\nVENV_UUID:\t{uid}\nDATE_TIME:\t{dat}\nFULL_PATH:\t{pat}"
