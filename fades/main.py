@@ -163,7 +163,7 @@ def go():
     logger.debug("Arguments: %s", args)
 
     if args.list_venvs:
-        helpers.list_venvs(os.path.join(helpers.get_basedir(), 'venvs.idx'), logger=logger)
+        helpers.list_venvs(os.path.join(helpers.get_basedir(), 'venvs.idx'))
         sys.exit(0)
 
     # verify that the module is NOT being used from a virtualenv
