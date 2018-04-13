@@ -375,3 +375,19 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
                 exists = helpers.check_pypi_exists(deps)
         self.assertTrue(exists)
         self.assertLoggedWarning("Got a (unexpected) HTTP_STATUS")
+
+
+class ListVenvsTestCase(unittest.TestCase):
+    """Utilities to list venvs."""
+
+    # def test_list_venvs(self):
+    #     with patch('os.path.isfile') as mock_isfile:
+    #         mock_isfile.return_value = True
+    #         with patch('builtins.open') as mock_open:
+    #             mock_open.return_value = io.StringIO()
+
+    def test_index_path_empty(self):
+        self.assertEqual(helpers.list_venvs(""), None)
+
+    def test_index_path_not_found(self):
+        self.assertEqual(helpers.list_venvs("directory_does_not_exist"), None)
