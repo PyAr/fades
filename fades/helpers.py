@@ -259,21 +259,22 @@ def check_pypi_exists(dependencies):
     return True
 
 
-def list_venvs(index_path, logger=None):
+def list_venvs(index_path):
     """List all venvs from an index file path and print info to stdout."""
     if os.path.isfile(index_path):
-        log = logger.info if logger else print
-        tmplt = ("\nVENV_UUID:\t{uid}\nDATE_TIME:\t{dat}\nFULL_PATH:\t{pat}"
-                 "\nPACKAGES:\t{pac}\nINTERPRETER:\t{pyv}\nOPTIONS:\t{opt}\n")
+        tmplt = ("\nVirtualenv uuid:\t{uid}\n\ttimestamp:\t{dat}\n\tfull path:\t{pat}\n"
+                 "\tdependencies:\t{pac}\n\tinterpreter:\t{pyv}\n\toptions:\t{opt}\n")
+        venv_info = ""
         with open(index_path) as jotason:
             for jotason_line in jotason:
                 v_dct_get = json.loads(jotason_line).get
-                venv_info = tmplt.format(
-                    uid=v_dct_get("metadata")["env_path"].split("/fades/")[-1],
+                venv_info += tmplt.format(
+                    uid=v_dct_get("metadata")["env_path"][18:],
                     pat=v_dct_get("metadata")["env_path"],
                     pac=v_dct_get("installed"),
                     pyv=v_dct_get("interpreter"),
                     opt=v_dct_get("options"),
                     dat=datetime.fromtimestamp(v_dct_get("timestamp")).replace(
-                        microsecond=0).astimezone().isoformat())
-                log(venv_info)
+                        microsecond=0).astimezone().isoformat(" "))
+        print(venv_info)
+        return venv_info
