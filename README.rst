@@ -371,6 +371,10 @@ Uses the ``django-admin.py`` script to start a new project named ``foo``, withou
 
 Removes a virtualenv matching the given uuid from disk and cache index.
 
+``fades --list-venvs``
+
+List all virtualenvs, showing the information (UUID, timestamp, dependencies, interpreter, etc).
+
 
 What if Python is updated in my system?
 ---------------------------------------
