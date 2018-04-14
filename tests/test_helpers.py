@@ -383,8 +383,8 @@ class ListVenvsTestCase(unittest.TestCase):
 
     maxDiff, __slots__ = None, ()
 
-    @unittest.skipIf('TRAVIS' in os.environ,
-                     "Travis weird scaping https://travis-ci.org/PyAr/fades/jobs/366371756#L764")
+    @unittest.skipIf('TRAVIS' in os.environ or 'APPVEYOR' in os.environ,
+                     "Travis/AppVeyor weird scaping https://travis-ci.org/PyAr/fades/jobs/366371756#L764")
     def test_list_venvs(self):
         venvs_idx = os.path.join(PATH_TO_EXAMPLES, 'venvs.idx')
         venvs_info = os.path.join(PATH_TO_EXAMPLES, 'output.txt')
