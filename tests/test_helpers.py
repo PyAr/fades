@@ -378,13 +378,18 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
 
 
 class ListVenvsTestCase(unittest.TestCase):
+
     """Utilities to list venvs."""
 
-    # def test_list_venvs(self):
-    #     with patch('os.path.isfile') as mock_isfile:
-    #         mock_isfile.return_value = True
-    #         with patch('builtins.open') as mock_open:
-    #             mock_open.return_value = io.StringIO()
+    maxDiff, __slots__ = None, ()
+
+    def test_list_venvs(self):
+        venvs_idx = os.path.join(PATH_TO_EXAMPLES, 'venvs.idx')
+        venvs_info = os.path.join(PATH_TO_EXAMPLES, 'output.txt')
+        str_list_venv = helpers.list_venvs(venvs_idx)
+        self.assertIsInstance(str_list_venv, str)
+        with open(venvs_info) as venvs_info_file:
+            self.assertEqual(str_list_venv, venvs_info_file.read())
 
     def test_index_path_empty(self):
         self.assertEqual(helpers.list_venvs(""), None)
