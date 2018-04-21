@@ -106,11 +106,14 @@ class _FadesEnvBuilder(EnvBuilder):
             logger.debug("Creating virtualenv with virtualenv")
             self.create_with_virtualenv(interpreter, virtualenv_options)
         logger.debug("env_bin_path: %s", self.env_bin_path)
-        # Re check if pip was installed.
-        pip_exe = os.path.join(self.env_bin_path, "pip")
-        if not os.path.exists(pip_exe):
+
+        # Re check if pip was installed (supporting both binary and .exe for Windows)
+        pip_bin = os.path.join(self.env_bin_path, "pip")
+        pip_exe = os.path.join(self.env_bin_path, "pip.exe")
+        if not (os.path.exists(pip_bin) or os.path.exists(pip_exe)):
             logger.debug("pip isn't installed in the venv, setting pip_installed=False")
             self.pip_installed = False
+
         return self.env_path, self.env_bin_path, self.pip_installed
 
     def post_setup(self, context):
