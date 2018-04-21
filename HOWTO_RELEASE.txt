@@ -116,14 +116,33 @@ Edit the snapcraft yaml and change the "version" number
 
     vi pkg/snap/snapcraft.yaml
 
-Build the snap:
+Build the snap (no need to specify the YAML, there is a hidden symlink to it):
 
     snapcraft
 
 Push it to the store and release:
 
     snapcraft push fades_6.0_amd64.snap
-    snapcraft release fades 9 stable
+    snapcraft release fades <revno just pushed> edge beta
+
+Test it:
+
+    sudo snap install fades --channel=beta --classic
+    /snap/fades/current/bin/fades -V
+
+If all is fine, release it to candidate:
+
+    snapcraft release fades <revno just pushed> candidate
+
+Announce internally: telegram, fades mail list.
+
+Wait 3 days or so, and release to stable:
+
+    snapcraft release fades <revno just pushed> stable
+
+Announce in the snapcraft forum, something similar to:
+
+    https://forum.snapcraft.io/t/call-for-testing-fades-7/5070
 
 
 How to sign the files

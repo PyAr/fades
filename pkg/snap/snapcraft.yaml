@@ -1,5 +1,5 @@
 name: fades
-version: 6.1
+version: 7.0
 summary: system for automatically handling virtual environments
 description: >
     fades is a system that automatically handles the virtualenvs in the cases
