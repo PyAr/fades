@@ -1,10 +1,23 @@
 name: fades
 version: 7.0
 summary: system for automatically handling virtual environments
-description: >
+description: |
     fades is a system that automatically handles the virtualenvs in the cases
     normally found when writing scripts and simple programs, and even helps
     to administer big projects.
+
+    fades will automagically create a new virtualenv (or reuse a previous
+    created one), installing the necessary dependencies, and execute your
+    script inside that virtualenv, with the only requirement of executing
+    the script with fades and also marking the required dependencies.
+
+    (If you don’t have a clue why this is necessary or useful, I'd recommend
+    you to read this small text about Python and the Management of Dependencies:
+    https://github.com/PyAr/fades/blob/master/docs/pydepmanag.rst)
+
+    Check the full documentation here: https://fades.readthedocs.io/
+
+    For developers, the project is here: https://github.com/PyAr/fades
 icon: resources/logo256.png
 confinement: classic
 grade: stable
