@@ -375,6 +375,10 @@ Removes a virtualenv matching the given uuid from disk and cache index.
 
 List all virtualenvs, showing the information (UUID, timestamp, dependencies, interpreter, etc).
 
+``fades --list-venvs ipython,prospector``
+
+Optionally filter the list using FILTER, FILTER can be a word string or comma separated words.
+
 
 What if Python is updated in my system?
 ---------------------------------------
