@@ -132,7 +132,8 @@ def go():
                               "stats file.\n"
                               "When this option is present, the cleaning takes place at the "
                               "beginning of the execution."))
-    parser.add_argument('--list-venvs', action='store_true', help=("List all venvs"))
+    parser.add_argument('-l', '--list-venvs', metavar='FILTER', nargs='?', const=' ',
+                        help=("List all venvs. Optionally filter the list by FILTER."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -163,7 +164,8 @@ def go():
     logger.debug("Arguments: %s", args)
 
     if args.list_venvs:
-        helpers.list_venvs(os.path.join(helpers.get_basedir(), 'venvs.idx'))
+        print(f"args.list_venvs:{args.list_venvs}.")
+        helpers.list_venvs(os.path.join(helpers.get_basedir(), 'venvs.idx'), args.list_venvs)
         sys.exit(0)
 
     # verify that the module is NOT being used from a virtualenv
