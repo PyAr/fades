@@ -1,56 +1,56 @@
 
-Virtualenv uuid:	d1cf2e61-4ac5-467d-9b65-1a3c0e913bf3
-	timestamp:	2011-06-16 00:00:00-03:00
-	full path:	/home/juan/.fades/d1cf2e61-4ac5-467d-9b65-1a3c0e913bf3
-	dependencies:	{}
-	interpreter:	/usr/bin/python3
-	options:	{'pyvenv_options': [], 'virtualenv_options': []}
+Virtualenv UUID:  d1cf2e61-4ac5-467d-9b65-1a3c0e913bf3
+    timestamp:    2011-06-16 00:00:00
+    full path:    /home/juan/.fades/d1cf2e61-4ac5-467d-9b65-1a3c0e913bf3
+    dependencies: {}
+    interpreter:  /usr/bin/python3
+    options:      {'pyvenv_options': [], 'virtualenv_options': []}
 
-Virtualenv uuid:	032e6e2c-bc7e-4a7f-ad1d-66ecb9106884
-	timestamp:	2009-02-09 00:00:00-02:00
-	full path:	/home/juan/.fades/032e6e2c-bc7e-4a7f-ad1d-66ecb9106884
-	dependencies:	{}
-	interpreter:	/usr/bin/python3
-	options:	{'pyvenv_options': [], 'virtualenv_options': []}
+Virtualenv UUID:  032e6e2c-bc7e-4a7f-ad1d-66ecb9106884
+    timestamp:    2009-02-09 00:00:00
+    full path:    /home/juan/.fades/032e6e2c-bc7e-4a7f-ad1d-66ecb9106884
+    dependencies: {}
+    interpreter:  /usr/bin/python3
+    options:      {'pyvenv_options': [], 'virtualenv_options': []}
 
-Virtualenv uuid:	53c8f169-b105-4ed1-a7fc-25792b18fc4c
-	timestamp:	2001-06-17 00:00:00-03:00
-	full path:	/home/juan/.fades/53c8f169-b105-4ed1-a7fc-25792b18fc4c
-	dependencies:	{}
-	interpreter:	/usr/bin/python3
-	options:	{'pyvenv_options': [], 'virtualenv_options': []}
+Virtualenv UUID:  53c8f169-b105-4ed1-a7fc-25792b18fc4c
+    timestamp:    2001-06-17 00:00:00
+    full path:    /home/juan/.fades/53c8f169-b105-4ed1-a7fc-25792b18fc4c
+    dependencies: {}
+    interpreter:  /usr/bin/python3
+    options:      {'pyvenv_options': [], 'virtualenv_options': []}
 
-Virtualenv uuid:	8cc6666c-fb5e-474b-a8a7-217c9558d5e2
-	timestamp:	2017-08-05 00:00:00-03:00
-	full path:	/home/juan/.fades/8cc6666c-fb5e-474b-a8a7-217c9558d5e2
-	dependencies:	{}
-	interpreter:	/usr/bin/python3
-	options:	{'pyvenv_options': [], 'virtualenv_options': []}
+Virtualenv UUID:  8cc6666c-fb5e-474b-a8a7-217c9558d5e2
+    timestamp:    2017-08-05 00:00:00
+    full path:    /home/juan/.fades/8cc6666c-fb5e-474b-a8a7-217c9558d5e2
+    dependencies: {}
+    interpreter:  /usr/bin/python3
+    options:      {'pyvenv_options': [], 'virtualenv_options': []}
 
-Virtualenv uuid:	7a4a4eb8-b0d2-4d88-a890-4830278e0eb9
-	timestamp:	2015-09-06 00:00:00-03:00
-	full path:	/home/juan/.fades/7a4a4eb8-b0d2-4d88-a890-4830278e0eb9
-	dependencies:	{}
-	interpreter:	/usr/bin/python3
-	options:	{'pyvenv_options': [], 'virtualenv_options': []}
+Virtualenv UUID:  7a4a4eb8-b0d2-4d88-a890-4830278e0eb9
+    timestamp:    2015-09-06 00:00:00
+    full path:    /home/juan/.fades/7a4a4eb8-b0d2-4d88-a890-4830278e0eb9
+    dependencies: {}
+    interpreter:  /usr/bin/python3
+    options:      {'pyvenv_options': [], 'virtualenv_options': []}
 
-Virtualenv uuid:	7c10fa5f-037e-49b1-a9dd-3462c739e239
-	timestamp:	2007-01-15 00:00:00-03:00
-	full path:	/home/juan/.fades/7c10fa5f-037e-49b1-a9dd-3462c739e239
-	dependencies:	{}
-	interpreter:	/usr/bin/python3
-	options:	{'pyvenv_options': [], 'virtualenv_options': []}
+Virtualenv UUID:  7c10fa5f-037e-49b1-a9dd-3462c739e239
+    timestamp:    2007-01-15 00:00:00
+    full path:    /home/juan/.fades/7c10fa5f-037e-49b1-a9dd-3462c739e239
+    dependencies: {}
+    interpreter:  /usr/bin/python3
+    options:      {'pyvenv_options': [], 'virtualenv_options': []}
 
-Virtualenv uuid:	37de0f88-3db7-434a-a692-048aa35fbfe7
-	timestamp:	2002-07-08 00:00:00-03:00
-	full path:	/home/juan/.fades/37de0f88-3db7-434a-a692-048aa35fbfe7
-	dependencies:	{}
-	interpreter:	/usr/bin/python3
-	options:	{'pyvenv_options': [], 'virtualenv_options': []}
+Virtualenv UUID:  37de0f88-3db7-434a-a692-048aa35fbfe7
+    timestamp:    2002-07-08 00:00:00
+    full path:    /home/juan/.fades/37de0f88-3db7-434a-a692-048aa35fbfe7
+    dependencies: {}
+    interpreter:  /usr/bin/python3
+    options:      {'pyvenv_options': [], 'virtualenv_options': []}
 
-Virtualenv uuid:	000236c6-5ddb-4422-b210-93e09fab603f
-	timestamp:	2017-12-06 00:00:00-03:00
-	full path:	/home/juan/.fades/000236c6-5ddb-4422-b210-93e09fab603f
-	dependencies:	{}
-	interpreter:	/usr/bin/python3
-	options:	{'pyvenv_options': [], 'virtualenv_options': []}
+Virtualenv UUID:  000236c6-5ddb-4422-b210-93e09fab603f
+    timestamp:    2017-12-06 00:00:00
+    full path:    /home/juan/.fades/000236c6-5ddb-4422-b210-93e09fab603f
+    dependencies: {}
+    interpreter:  /usr/bin/python3
+    options:      {'pyvenv_options': [], 'virtualenv_options': []}
