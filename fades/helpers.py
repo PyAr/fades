@@ -16,11 +16,13 @@
 
 """A collection of utilities for fades."""
 
-import os
-import sys
+
 import json
 import logging
+import os
+import re
 import subprocess
+import sys
 
 from datetime import datetime
 from urllib import request
@@ -40,6 +42,24 @@ d.update(zip('major minor micro releaselevel serial'.split(), sys.version_info))
 print(json.dumps(d))
 """
 
+LIST_VENVS_TEMPLATE = """
+Virtualenv UUID:  {uid}
+    timestamp:    {dat}
+    full path:    {pat}
+    dependencies: {pac}
+    interpreter:  {pyv}
+    options:      {opt}
+"""
+
+# UUID Regex, for v1 to v5.
+UUID_REGEX = re.compile((
+    '[a-f0-9]{8}-'
+    '[a-f0-9]{4}-'
+    '[1-5]'  # Versions.
+    '[a-f0-9]{3}-'
+    '[89ab][a-f0-9]{3}-'
+    '[a-f0-9]{12}$'
+), re.IGNORECASE)
 
 # the url to query PyPI for project versions
 BASE_PYPI_URL = 'https://pypi.python.org/pypi/{name}/json'
@@ -259,22 +279,23 @@ def check_pypi_exists(dependencies):
     return True
 
 
-def list_venvs(index_path):
+def list_venvs(index_path, query=None, template=LIST_VENVS_TEMPLATE):
     """List all venvs from an index file path and print info to stdout."""
     if os.path.isfile(index_path):
-        tmplt = ("\nVirtualenv uuid:\t{uid}\n\ttimestamp:\t{dat}\n\tfull path:\t{pat}\n"
-                 "\tdependencies:\t{pac}\n\tinterpreter:\t{pyv}\n\toptions:\t{opt}\n")
+        if query:
+            query = tuple(set(query.lower().strip().split(",")))
         venv_info = ""
         with open(index_path) as jotason:
             for jotason_line in jotason:
+                if query and not any([qry in jotason_line.lower() for qry in query]):
+                    continue
                 v_dct_get = json.loads(jotason_line).get
-                venv_info += tmplt.format(
-                    uid=v_dct_get("metadata")["env_path"][18:],
+                venv_info += template.format(
+                    uid=UUID_REGEX.search(v_dct_get("metadata")["env_path"]).group(0),
                     pat=v_dct_get("metadata")["env_path"],
                     pac=v_dct_get("installed"),
                     pyv=v_dct_get("interpreter"),
                     opt=v_dct_get("options"),
-                    dat=datetime.fromtimestamp(v_dct_get("timestamp")).replace(
-                        microsecond=0).astimezone().isoformat(" "))
+                    dat=datetime.fromtimestamp(v_dct_get("timestamp")))
         print(venv_info)
         return venv_info
