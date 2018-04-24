@@ -164,7 +164,6 @@ def go():
     logger.debug("Arguments: %s", args)
 
     if args.list_venvs:
-        print(f"args.list_venvs:{args.list_venvs}.")
         helpers.list_venvs(os.path.join(helpers.get_basedir(), 'venvs.idx'), args.list_venvs)
         sys.exit(0)
 
