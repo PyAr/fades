@@ -459,6 +459,15 @@ class FileParsingTestCase(unittest.TestCase):
         self.assertDictEqual(parsed, {})
         self.assertLoggedDebug('fades and # found but in a code line skipped.')
 
+    def test_fades_and_hashtag_mentioned_in_code_with_imports(self):
+        parsed = parsing._parse_content(io.StringIO("""import requests  # fades
+
+          'http://fades.readthedocs.io/en/release-7-0/readme.html#how-to-use-it'
+        """))
+        self.assertEqual(len(parsed), 1)
+        self.assertIn('pypi', parsed.keys())
+        self.assertLoggedDebug('fades and # found but in a code line skipped.')
+
 
 class ManualParsingTestCase(unittest.TestCase):
     """Check the manual parsing."""
