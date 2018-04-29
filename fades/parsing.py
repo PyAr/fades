@@ -108,7 +108,13 @@ def _parse_content(fh):
 
         # discard other comments in the same line that aren't for fades
         if "fades" not in fades_part:
-            import_part, fades_part = import_part.rsplit("#", 1)
+            try:
+                import_part, fades_part = import_part.rsplit("#", 1)
+            except Exception:
+                # We have a corner case here, the line contains
+                # 'fades' and a '#' but it is NOT an import line.
+                # example: url = 'http://fades.com/#how-to-use-it'
+                logger.debug('fades and # found but in a code line skipped.')
 
         fades_part = fades_part.strip()
         if not fades_part.startswith("fades"):

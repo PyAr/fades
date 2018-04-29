@@ -452,6 +452,13 @@ class FileParsingTestCase(unittest.TestCase):
             REPO_PYPI: [get_req('bar')],
         })
 
+    def test_fades_and_hashtag_mentioned_in_code(self):
+        parsed = parsing._parse_content(io.StringIO("""
+          'http://fades.readthedocs.io/en/release-7-0/readme.html#how-to-use-it'
+        """))
+        self.assertDictEqual(parsed, {})
+        self.assertLoggedDebug('fades and # found but in a code line skipped.')
+
 
 class ManualParsingTestCase(unittest.TestCase):
     """Check the manual parsing."""
