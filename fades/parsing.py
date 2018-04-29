@@ -110,7 +110,7 @@ def _parse_content(fh):
         if "fades" not in fades_part:
             try:
                 import_part, fades_part = import_part.rsplit("#", 1)
-            except Exception:
+            except ValueError:
                 # We have a corner case here, the line contains
                 # 'fades' and a '#' but it is NOT an import line.
                 # example: url = 'http://fades.com/#how-to-use-it'
