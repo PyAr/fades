@@ -153,7 +153,7 @@ def go():
         print("Running 'fades' version", fades.__version__)
         print("    Python:", sys.version_info)
         print("    System:", platform.platform())
-        sys.exit(0)
+        return 0
 
     # set up logger and dump basic version info
     logger = fades_logger.set_up(args.verbose, args.quiet)
@@ -166,7 +166,7 @@ def go():
                                 getattr(sys, 'base_prefix', None)):
         logger.error(
             "fades is running from inside a virtualenv (%r), which is not supported", sys.prefix)
-        sys.exit(-1)
+        raise Exception
 
     if args.verbose and args.quiet:
         logger.warning("Overriding 'quiet' option ('verbose' also requested)")
@@ -181,13 +181,11 @@ def go():
     if args.clean_unused_venvs:
         try:
             max_days_to_keep = int(args.clean_unused_venvs)
-            usage_manager.clean_unused_venvs(max_days_to_keep)
-        except Exception:
-            rc = 1
-            logger.debug("CLEAN_UNUSED_VENVS must be an integer.")
+        except Exception.ValueError:
+            logger.debug("clean_unused_venvs must be an integer.")
             raise
-        finally:
-            sys.exit(rc)
+
+        usage_manager.clean_unused_venvs(max_days_to_keep)
 
     uuid = args.remove
     if uuid:
@@ -202,7 +200,7 @@ def go():
                                "Not removing virtualenv.", env_path)
         else:
             logger.warning('No virtualenv found with uuid: %s.', uuid)
-        return
+        return 0
 
     # parse file and get deps
     if args.ipython:
@@ -262,7 +260,7 @@ def go():
                         "You can use '--no-precheck-availability' to avoid it.")
             if not helpers.check_pypi_exists(indicated_deps):
                 logger.error("An indicated dependency doesn't exists. Exiting")
-                sys.exit(1)
+                raise Exception
 
         # Create a new venv
         venv_data, installed = envbuilder.create_venv(indicated_deps, args.python, is_current,
@@ -304,7 +302,7 @@ def go():
             p = subprocess.Popen(cmd + args.child_options)
         except FileNotFoundError:
             logger.error("Command not found: %s", args.child_program)
-            sys.exit(1)
+            raise
 
     def _signal_handler(signum, _):
         """Handle signals received by parent process, send them to child.
@@ -327,4 +325,4 @@ def go():
     rc = p.wait()
     if rc:
         logger.debug("Child process not finished correctly: returncode=%d", rc)
-    sys.exit(rc)
+    return rc

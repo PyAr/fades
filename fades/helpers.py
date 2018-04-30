@@ -135,7 +135,7 @@ def _get_interpreter_info(interpreter=None):
             requested_interpreter_info = logged_exec(args)
         except Exception as error:
             logger.error("Error getting requested interpreter version: %s", error)
-            sys.exit(1)
+            raise
         requested_interpreter_info = json.loads(requested_interpreter_info[0])
         executable = requested_interpreter_info['path']
         major = requested_interpreter_info['major']
@@ -250,7 +250,7 @@ def check_pypi_exists(dependencies):
             exists = _pypi_head_package(dependency)
         except Exception as error:
             logger.error("Error checking %s in PyPI: %r", dependency, error)
-            sys.exit(1)
+            raise
         else:
             if not exists:
                 logger.error("%s doesn't exists in PyPI.", dependency)
