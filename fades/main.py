@@ -26,6 +26,7 @@ import subprocess
 
 import fades
 
+from fades import FadesError
 from fades import parsing, logger as fades_logger, cache, helpers, envbuilder, file_options
 
 # the signals to redirect to the child process (note: only these are
@@ -166,7 +167,7 @@ def go():
                                 getattr(sys, 'base_prefix', None)):
         logger.error(
             "fades is running from inside a virtualenv (%r), which is not supported", sys.prefix)
-        raise Exception
+        raise FadesError("Cannot run from a virtualenv")
 
     if args.verbose and args.quiet:
         logger.warning("Overriding 'quiet' option ('verbose' also requested)")
@@ -181,8 +182,8 @@ def go():
     if args.clean_unused_venvs:
         try:
             max_days_to_keep = int(args.clean_unused_venvs)
-        except Exception.ValueError:
-            logger.debug("clean_unused_venvs must be an integer.")
+        except ValueError:
+            logger.error("clean_unused_venvs must be an integer.")
             raise
 
         usage_manager.clean_unused_venvs(max_days_to_keep)
@@ -259,8 +260,8 @@ def go():
             logger.info("Checking the availabilty of dependencies in PyPI. "
                         "You can use '--no-precheck-availability' to avoid it.")
             if not helpers.check_pypi_exists(indicated_deps):
-                logger.error("An indicated dependency doesn't exists. Exiting")
-                raise Exception
+                logger.error("An indicated dependency doesn't exist. Exiting")
+                raise FadesError("Required dependency does not exist")
 
         # Create a new venv
         venv_data, installed = envbuilder.create_venv(indicated_deps, args.python, is_current,
@@ -302,7 +303,7 @@ def go():
             p = subprocess.Popen(cmd + args.child_options)
         except FileNotFoundError:
             logger.error("Command not found: %s", args.child_program)
-            raise
+            raise FadesError("Command not found")
 
     def _signal_handler(signum, _):
         """Handle signals received by parent process, send them to child.

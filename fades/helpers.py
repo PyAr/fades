@@ -27,7 +27,7 @@ from urllib.error import HTTPError
 
 import pkg_resources
 
-from fades import HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK
+from fades import FadesError, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ def _get_interpreter_info(interpreter=None):
             requested_interpreter_info = logged_exec(args)
         except Exception as error:
             logger.error("Error getting requested interpreter version: %s", error)
-            raise
+            raise FadesError("Could not get interpreter version")
         requested_interpreter_info = json.loads(requested_interpreter_info[0])
         executable = requested_interpreter_info['path']
         major = requested_interpreter_info['major']
@@ -250,7 +250,7 @@ def check_pypi_exists(dependencies):
             exists = _pypi_head_package(dependency)
         except Exception as error:
             logger.error("Error checking %s in PyPI: %r", dependency, error)
-            raise
+            raise FadesError("Could not check if dependency exists in PyPI")
         else:
             if not exists:
                 logger.error("%s doesn't exists in PyPI.", dependency)

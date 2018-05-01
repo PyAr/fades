@@ -19,6 +19,11 @@
 
 from ._version import __version__, VERSION  # NOQA; provides module level version attr
 
+
+class FadesError(Exception):
+    """Provides a Fades exception."""
+
+
 REPO_PYPI = 'pypi'
 REPO_VCS = 'vcs'
 

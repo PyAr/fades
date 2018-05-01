@@ -30,20 +30,12 @@ from datetime import datetime
 from venv import EnvBuilder
 from uuid import uuid4
 
-from fades import REPO_PYPI, REPO_VCS
+from fades import FadesError, REPO_PYPI, REPO_VCS
 from fades import helpers
 from fades.pipmanager import PipManager
 from fades.multiplatform import filelock
 
 logger = logging.getLogger(__name__)
-
-
-class FadesError(Exception):
-    """Provides a Fades exception."""
-
-    def __init__(self, reason):
-        """Init."""
-        self.reason = reason
 
 
 class _FadesEnvBuilder(EnvBuilder):
