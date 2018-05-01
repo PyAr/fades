@@ -104,6 +104,13 @@ def _parse_content(fh):
 
         # assure that it's a well commented line and no other stuff
         line = line.strip()
+        index_of_last_fades = line.rfind('fades')
+        index_of_first_hash = line.index('#')
+
+        # discard when fades does not appear after #
+        if index_of_first_hash > index_of_last_fades:
+            continue
+
         import_part, fades_part = line.rsplit("#", 1)
 
         # discard other comments in the same line that aren't for fades
@@ -129,7 +136,7 @@ def _parse_content(fh):
         elif import_tokens[0] == 'from' and import_tokens[2] == 'import':
             module_path = import_tokens[1]
         else:
-            logger.warning("Not understood import info: %s", import_tokens)
+            logger.debug("Not understood import info: %s", import_tokens)
             continue
         module = module_path.split(".")[0]
         # If fades know the real name of the pkg. Replace it!
