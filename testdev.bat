@@ -1,6 +1,6 @@
 @echo off
 
-rem Copyright 2014-2016 Facundo Batista, Nicolás Demarchi
+rem Copyright 2018 Facundo Batista, Nicolás Demarchi
 
 if not [%*] == [] (
     set TARGET_TESTS="%*"

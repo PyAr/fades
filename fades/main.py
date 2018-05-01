@@ -178,15 +178,15 @@ def go():
     usage_manager = envbuilder.UsageManager(os.path.join(helpers.get_basedir(), 'usage_stats'),
                                             venvscache)
 
-    rc = 0
     if args.clean_unused_venvs:
         try:
             max_days_to_keep = int(args.clean_unused_venvs)
         except ValueError:
             logger.error("clean_unused_venvs must be an integer.")
-            raise
+            raise FadesError('clean_unused_venvs not an integer')
 
         usage_manager.clean_unused_venvs(max_days_to_keep)
+        return 0
 
     uuid = args.remove
     if uuid:
