@@ -277,7 +277,7 @@ def go():
     # add the virtualenv /bin path to the child PATH.
     environ_path = venv_data['env_bin_path']
     if 'PATH' in os.environ:
-        environ_path += ':' + os.environ['PATH']
+        environ_path += os.pathsep + os.environ['PATH']
     os.environ['PATH'] = environ_path
 
     # store usage information

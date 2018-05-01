@@ -292,8 +292,8 @@ class FileParsingTestCase(unittest.TestCase):
         parsed = parsing._parse_content(io.StringIO("""
             from foo bar import :(   # fades
         """))
-        self.assertLoggedWarning("Not understood import info",
-                                 "['from', 'foo', 'bar', 'import', ':(']")
+        self.assertLoggedDebug("Not understood import info",
+                               "['from', 'foo', 'bar', 'import', ':(']")
         self.assertDictEqual(parsed, {})
 
     def test_strange_fadesinfo(self):
@@ -451,6 +451,30 @@ class FileParsingTestCase(unittest.TestCase):
             REPO_VCS: [parsing.VCSDependency('superurl')],
             REPO_PYPI: [get_req('bar')],
         })
+
+    def test_fades_and_hashtag_mentioned_in_code(self):
+        """Test the case where a string contains both: fades and hashtag (#)
+        but is not an import.
+        """
+        parsed = parsing._parse_content(io.StringIO("""
+          'http://fades.readthedocs.io/en/release-7-0/readme.html#how-to-use-it'
+        """))
+        self.assertDictEqual(parsed, {})
+
+    def test_fades_and_hashtag_mentioned_in_code_mixed_with_imports(self):
+        parsed = parsing._parse_content(io.StringIO("""import requests  # fades
+
+          'http://fades.readthedocs.io/en/release-7-0/readme.html#how-to-use-it'
+        """))
+        self.assertDictEqual(parsed, {
+            REPO_PYPI: [get_req('requests')]
+        })
+
+    def test_fades_user_strange_comment_with_hashtag_ignored(self):
+        parsed = parsing._parse_content(io.StringIO("""
+          import foo # fades==2 # Some comment with #hashtash
+        """))  # noqa
+        self.assertDictEqual(parsed, {})
 
 
 class ManualParsingTestCase(unittest.TestCase):
