@@ -31,4 +31,4 @@ build: off
 
 test_script:
   # Run the project tests
-  - "%CMD_IN_ENV% python bin/fades -r requirements.txt -x nosetests -v -s tests"
+  - "%CMD_IN_ENV% python bin/fades -v -r requirements.txt -x nosetests -v -s tests"

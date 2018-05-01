@@ -34,17 +34,15 @@ class LockChecker(threading.Thread):
 
     def __init__(self, filepath):
         self.filepath = filepath
-        self.pre_lock = self.in_lock = self.post_work = None
+        self.in_lock = self.post_work = None
         self.middle_work = threading.Event()
         super().__init__()
 
     def run(self):
-        self.pre_lock = time.time()
-        time.sleep(.01)
         with filelock(self.filepath):
+            time.sleep(.01)
             self.in_lock = time.time()
             self.middle_work.wait()
-            time.sleep(.01)
             self.post_work = time.time()
 
 
