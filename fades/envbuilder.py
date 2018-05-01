@@ -30,7 +30,7 @@ from datetime import datetime
 from venv import EnvBuilder
 from uuid import uuid4
 
-from fades import REPO_PYPI, REPO_VCS
+from fades import FadesError, REPO_PYPI, REPO_VCS
 from fades import helpers
 from fades.pipmanager import PipManager
 from fades.multiplatform import filelock
@@ -84,13 +84,13 @@ class _FadesEnvBuilder(EnvBuilder):
         except FileNotFoundError as error:
             logger.error('Virtualenv is not installed. It is needed to create a virtualenv with '
                          'a different python version than fades (got {})'.format(error))
-            sys.exit(1)
+            raise FadesError('virtualenv not found')
         except helpers.ExecutionError as error:
             error.dump_to_log(logger)
-            sys.exit(2)
+            raise FadesError('virtualenv could not be run')
         except Exception as error:
             logger.exception("Error creating virtualenv:  %s", error)
-            sys.exit(3)
+            raise FadesError('General error while running virtualenv')
 
     def create_env(self, interpreter, is_current, options):
         """Create the virtualenv and return its info."""
@@ -149,7 +149,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
             except Exception:
                 logger.debug("Installation Step failed, removing virtualenv")
                 destroy_venv(env_path)
-                sys.exit(4)
+                raise FadesError('Dependency installation failed')
 
             if repo == REPO_VCS:
                 # no need to request the installed version, as we'll always compare

@@ -131,9 +131,13 @@ class GetInterpreterInfoTestCase(unittest.TestCase):
 
     def test_requested_not_exists(self):
         side_effect = IOError("[Errno 2] No such file or directory: 'pythonME'")
-        with patch.object(helpers, 'logged_exec',
-                          side_effect=side_effect), self.assertRaises(SystemExit):
-            helpers._get_interpreter_info('pythonME')
+
+        with patch('fades.helpers.logged_exec') as mock_lexec:
+            mock_lexec.side_effect = side_effect
+
+            with self.assertRaises(Exception):
+                helpers._get_interpreter_info('pythonME')
+
         self.assertLoggedError("Error getting requested interpreter version:"
                                " [Errno 2] No such file or directory: 'pythonME'")
 
@@ -150,7 +154,7 @@ class GetLatestVersionNumberTestCase(unittest.TestCase):
                 mock_urlopen.return_value = fh
                 last_version = helpers.get_latest_version_number("some_package")
         mock_urlopen.assert_called_once_with(helpers.BASE_PYPI_URL.format(name="some_package"))
-        self.assertEquals(last_version, '2.8.1')
+        self.assertEqual(last_version, '2.8.1')
 
     def test_get_version_wrong(self):
         with patch('urllib.request.urlopen') as mock_urlopen:
@@ -191,8 +195,8 @@ class CheckPyPIUpdatesTestCase(unittest.TestCase):
                 dep_django = dependencies['pypi'][0]
                 dep_request = dependencies['pypi'][1]
                 self.assertLoggedInfo('There is a new version of django: 1.9')
-                self.assertEquals(dep_request.specs, [('==', '2.1')])
-                self.assertEquals(dep_django.specs, [('==', '1.7.5')])
+                self.assertEqual(dep_request.specs, [('==', '2.1')])
+                self.assertEqual(dep_django.specs, [('==', '1.7.5')])
                 self.assertLoggedInfo("The latest version of 'requests' is 2.1 and will use it.")
 
     def test_check_pypi_updates_with_a_higher_version_of_a_package(self):
@@ -342,27 +346,21 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
     def test_error_hitting_pypi(self):
         dependency = parsing.parse_manual(["foo"])
 
-        with patch('sys.exit') as mocked_exit:
+        with self.assertRaises(Exception):
             with patch('urllib.request.urlopen') as mock_urlopen:
                 mock_urlopen.side_effect = ValueError("cabum!!")
 
                 helpers.check_pypi_exists(dependency)
 
-        self.assertTrue(mocked_exit.called)
-        mocked_exit.assert_called_once_with(1)
-
     def test_status_code_error(self):
         dependency = parsing.parse_manual(["foo"])
 
-        with patch('sys.exit') as mocked_exit:
+        with self.assertRaises(Exception):
             with patch('urllib.request.urlopen') as mock_urlopen:
                 mock_http_error = HTTPError("url", 400, "mgs", {}, io.BytesIO())
                 mock_urlopen.side_effect = mock_http_error
 
                 helpers.check_pypi_exists(dependency)
-
-        self.assertTrue(mocked_exit.called)
-        mocked_exit.assert_called_once_with(1)
 
     def test_redirect_response(self):
         deps = parsing.parse_manual(["foo"])

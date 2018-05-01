@@ -27,7 +27,8 @@ from pkg_resources import parse_requirements
 
 import logassert
 
-from fades import REPO_PYPI, REPO_VCS, cache, envbuilder, parsing
+from fades import FadesError, REPO_PYPI, REPO_VCS
+from fades import cache, envbuilder, parsing
 from venv import EnvBuilder
 
 
@@ -144,14 +145,14 @@ class EnvCreationTestCase(unittest.TestCase):
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FailInstallManager()
                 with patch.object(envbuilder, 'destroy_venv', spec=True) as mock_destroy:
-                    with self.assertRaises(SystemExit) as cm:
+                    with self.assertRaises(FadesError) as cm:
                         envbuilder.create_venv(
                             requested,
                             interpreter,
                             is_current,
                             options,
                             pip_options)
-                    self.assertEqual(cm.exception.code, 4)
+                    self.assertEqual(str(cm.exception), 'Dependency installation failed')
                     mock_destroy.assert_called_once_with('env_path')
 
         self.assertLoggedDebug("Installation Step failed, removing virtualenv")
@@ -352,7 +353,7 @@ class UsageManagerTestCase(unittest.TestCase):
                 else:
                     self.assertEqual(old_date, d, msg="Others envs have old date")
 
-    def test_exit_1_on_FileNotFound(self):
+    def test_filenotfound_exception(self):
         env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'python3'
         is_current = False
@@ -362,11 +363,11 @@ class UsageManagerTestCase(unittest.TestCase):
         with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
                 # mock_lexec.side_effect = envbuilder.helpers.ExecutionError('matanga!')
                 mock_lexec.side_effect = FileNotFoundError('matanga!')
-                with self.assertRaises(SystemExit) as cm:
+                with self.assertRaises(FadesError) as cm:
                     env_builder.create_env(interpreter, is_current, options)
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(str(cm.exception), 'virtualenv not found')
 
-    def test_exit_2_on_ExecutionError(self):
+    def test_executionerror_exception(self):
         env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'python3'
         is_current = False
@@ -374,12 +375,12 @@ class UsageManagerTestCase(unittest.TestCase):
                    "pyvenv_options": ['--system-site-packages'],
                    }
         with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
-                mock_lexec.side_effect = envbuilder.helpers.ExecutionError(1, 'cmd', 'stdout')
-                with self.assertRaises(SystemExit) as cm:
+                mock_lexec.side_effect = envbuilder.helpers.ExecutionError(1, 'cmd', ['stdout'])
+                with self.assertRaises(FadesError) as cm:
                     env_builder.create_env(interpreter, is_current, options)
-                self.assertEqual(cm.exception.code, 2)
+                self.assertEqual(str(cm.exception), 'virtualenv could not be run')
 
-    def test_exit_3_on_any_Exception(self):
+    def test_general_error_exception(self):
         env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'python3'
         is_current = False
@@ -388,9 +389,9 @@ class UsageManagerTestCase(unittest.TestCase):
                    }
         with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
                 mock_lexec.side_effect = Exception()
-                with self.assertRaises(SystemExit) as cm:
+                with self.assertRaises(FadesError) as cm:
                     env_builder.create_env(interpreter, is_current, options)
-                self.assertEqual(cm.exception.code, 3)
+                self.assertEqual(str(cm.exception), 'General error while running virtualenv')
 
     def test_when_a_venv_is_removed_it_is_removed_from_everywhere(self):
         old_date = datetime.utcnow()
