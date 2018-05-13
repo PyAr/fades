@@ -100,8 +100,9 @@ def go():
     parser.add_argument('-d', '--dependency', action='append',
                         help="specify dependencies through command line (this option can be "
                              "used multiple times)")
-    parser.add_argument('-r', '--requirement',
-                        help="indicate from which file read the dependencies")
+    parser.add_argument('-r', '--requirement', action='append',
+                        help="indicate files to read dependencies from (this option can be "
+                             "used multiple times)")
     parser.add_argument('-p', '--python', action='store',
                         help=("Specify the Python interpreter to use.\n"
                               " Default is: %s") % (sys.executable,))
@@ -218,8 +219,11 @@ def go():
         logger.debug("Dependencies from source file: %s", indicated_deps)
         docstring_deps = parsing.parse_docstring(args.child_program)
         logger.debug("Dependencies from docstrings: %s", docstring_deps)
-    reqfile_deps = parsing.parse_reqfile(args.requirement)
-    logger.debug("Dependencies from requirements file: %s", reqfile_deps)
+    reqfile_deps = {}
+    for rfpath in args.requirement:
+        rfdeps = parsing.parse_reqfile(rfpath)
+        logger.debug('Dependencies from requirements file "%s": %s', rfpath, rfdeps)
+        reqfile_deps.update(rfdeps)
     manual_deps = parsing.parse_manual(args.dependency)
     logger.debug("Dependencies from parameters: %s", manual_deps)
     indicated_deps = _merge_deps(ipython_dep, indicated_deps, docstring_deps,
