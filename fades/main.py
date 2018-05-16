@@ -56,7 +56,7 @@ help_usage = """
 """
 
 
-def _merge_deps(*deps):
+def _merge_deps(deps):
     """Merge all the dependencies; latest dicts overwrite first ones."""
     final = {}
     for dep in deps:
@@ -219,15 +219,19 @@ def go():
         logger.debug("Dependencies from source file: %s", indicated_deps)
         docstring_deps = parsing.parse_docstring(args.child_program)
         logger.debug("Dependencies from docstrings: %s", docstring_deps)
-    reqfile_deps = []
-    for rfpath in args.requirement:
-        rfdeps = parsing.parse_reqfile(rfpath)
-        logger.debug('Dependencies from requirements file "%s": %s', rfpath, rfdeps)
-        reqfile_deps.append(rfdeps)
+
+    unmerged_deps = [ipython_dep, indicated_deps, docstring_deps]
+
+    for rf_path in args.requirement:
+        rf_deps = parsing.parse_reqfile(rf_path)
+        logger.debug('Dependencies from requirements file "%s": %s', rf_path, rf_deps)
+        unmerged_deps.append(rf_deps)
+
     manual_deps = parsing.parse_manual(args.dependency)
     logger.debug("Dependencies from parameters: %s", manual_deps)
-    indicated_deps = _merge_deps(ipython_dep, indicated_deps, docstring_deps,
-                                 *reqfile_deps, manual_deps)
+    unmerged_deps.append(manual_deps)
+
+    indicated_deps = _merge_deps(unmerged_deps)
 
     # Check for packages updates
     if args.check_updates:
