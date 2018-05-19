@@ -70,7 +70,7 @@ See more examples below for real command line usage explanations.
 
 .TP
 .BR -r ", " --requirement
-Read the dependencies from a file. Format in each line is the same than dependencies specified with \fI--dependency\fR.
+Read the dependencies from a file. Format in each line is the same than dependencies specified with \fI--dependency\fR. This option can be specified multiple times.
 
 .TP
 .BR -p " " \fIversion\fR ", " --python=\fIversion\fR
@@ -138,6 +138,11 @@ Executes the Python interactive interpreter in a virtualenv with dependency1 ins
 fades -r requirements.txt
 
 Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the requirements.txt file.
+
+.TP
+fades -r requirements.txt -r requirements_devel.txt
+
+Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from files requirements.txt and requirements_devel.txt.
 
 .SH USING CONFIGURATION FILES
 

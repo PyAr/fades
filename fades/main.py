@@ -220,18 +220,18 @@ def go():
         docstring_deps = parsing.parse_docstring(args.child_program)
         logger.debug("Dependencies from docstrings: %s", docstring_deps)
 
-    unmerged_deps = [ipython_dep, indicated_deps, docstring_deps]
+    all_dependencies = [ipython_dep, indicated_deps, docstring_deps]
 
     for rf_path in args.requirement:
         rf_deps = parsing.parse_reqfile(rf_path)
-        logger.debug('Dependencies from requirements file "%s": %s', rf_path, rf_deps)
-        unmerged_deps.append(rf_deps)
+        logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
+        all_dependencies.append(rf_deps)
 
     manual_deps = parsing.parse_manual(args.dependency)
     logger.debug("Dependencies from parameters: %s", manual_deps)
-    unmerged_deps.append(manual_deps)
+    all_dependencies.append(manual_deps)
 
-    indicated_deps = _merge_deps(unmerged_deps)
+    indicated_deps = _merge_deps(all_dependencies)
 
     # Check for packages updates
     if args.check_updates:
