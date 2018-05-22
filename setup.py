@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # Copyright 2014-2017 Facundo Batista, Nicolás Demarchi
 #
