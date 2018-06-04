@@ -138,10 +138,11 @@ each time the format is ``repository::dependency``. The dependency may
 have versions specifications, and the repository is optional (defaults
 to 'pypi').
 
-Other way is to specify the dependencies in a text file, one dependency
+Another way is to specify the dependencies in a text file, one dependency
 per line, with each line having the format previously described for
 the ``--dependency`` parameter. This file is then indicated to fades
-through the ``--requirement`` parameter.
+through the ``--requirement`` parameter. This option can be specified
+multiple times.
 
 In case of multiple definitions of the same dependency, command line
 overrides everything else, and requirements file overrides what is
@@ -362,6 +363,10 @@ Executes the Python interactive interpreter in a virtualenv with ``dependency1``
 ``fades -r requirements.txt``
 
 Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the ``requirements.txt`` file.
+
+``fades -r requirements.txt -r requirements_devel.txt``
+
+Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from files ``requirements.txt`` and ``requirements_devel.txt``.
 
 ``fades -d django -x django-admin.py startproject foo``
 

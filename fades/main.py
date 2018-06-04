@@ -56,7 +56,7 @@ help_usage = """
 """
 
 
-def _merge_deps(*deps):
+def _merge_deps(deps):
     """Merge all the dependencies; latest dicts overwrite first ones."""
     final = {}
     for dep in deps:
@@ -100,8 +100,9 @@ def go():
     parser.add_argument('-d', '--dependency', action='append',
                         help="specify dependencies through command line (this option can be "
                              "used multiple times)")
-    parser.add_argument('-r', '--requirement',
-                        help="indicate from which file read the dependencies")
+    parser.add_argument('-r', '--requirement', action='append',
+                        help="indicate files to read dependencies from (this option can be "
+                             "used multiple times)")
     parser.add_argument('-p', '--python', action='store',
                         help=("Specify the Python interpreter to use.\n"
                               " Default is: %s") % (sys.executable,))
@@ -218,12 +219,19 @@ def go():
         logger.debug("Dependencies from source file: %s", indicated_deps)
         docstring_deps = parsing.parse_docstring(args.child_program)
         logger.debug("Dependencies from docstrings: %s", docstring_deps)
-    reqfile_deps = parsing.parse_reqfile(args.requirement)
-    logger.debug("Dependencies from requirements file: %s", reqfile_deps)
+
+    all_dependencies = [ipython_dep, indicated_deps, docstring_deps]
+
+    for rf_path in args.requirement:
+        rf_deps = parsing.parse_reqfile(rf_path)
+        logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
+        all_dependencies.append(rf_deps)
+
     manual_deps = parsing.parse_manual(args.dependency)
     logger.debug("Dependencies from parameters: %s", manual_deps)
-    indicated_deps = _merge_deps(ipython_dep, indicated_deps, docstring_deps,
-                                 reqfile_deps, manual_deps)
+    all_dependencies.append(manual_deps)
+
+    indicated_deps = _merge_deps(all_dependencies)
 
     # Check for packages updates
     if args.check_updates:
