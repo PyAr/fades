@@ -18,6 +18,7 @@
 """Main 'fades' modules."""
 
 import argparse
+import logging
 import os
 import platform
 import signal
@@ -54,6 +55,39 @@ help_usage = """
   fades [-h] [-V] [-v] [-q] [-i] [-d DEPENDENCY] [-r REQUIREMENT] [-p PYTHON]
         [child_program [child_options]]
 """
+
+
+def _get_deps(ipython, executable, child_program, requirement, dependencies):
+    """Parse files and get deps."""
+    logger = logging.getLogger('fades')
+
+    if ipython:
+        logger.debug("Adding ipython dependency because --ipython was detected")
+        ipython_dep = parsing.parse_manual(['ipython'])
+    else:
+        ipython_dep = {}
+
+    if executable:
+        indicated_deps = {}
+        docstring_deps = {}
+    else:
+        indicated_deps = parsing.parse_srcfile(child_program)
+        logger.debug("Dependencies from source file: %s", indicated_deps)
+        docstring_deps = parsing.parse_docstring(child_program)
+        logger.debug("Dependencies from docstrings: %s", docstring_deps)
+
+    all_dependencies = [ipython_dep, indicated_deps, docstring_deps]
+
+    for rf_path in requirement:
+        rf_deps = parsing.parse_reqfile(rf_path)
+        logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
+        all_dependencies.append(rf_deps)
+
+    manual_deps = parsing.parse_manual(dependencies)
+    logger.debug("Dependencies from parameters: %s", manual_deps)
+    all_dependencies.append(manual_deps)
+
+    return all_dependencies
 
 
 def _merge_deps(deps):
@@ -204,33 +238,12 @@ def go():
             logger.warning('No virtualenv found with uuid: %s.', uuid)
         return 0
 
-    # parse file and get deps
-    if args.ipython:
-        logger.debug("Adding ipython dependency because --ipython was detected")
-        ipython_dep = parsing.parse_manual(['ipython'])
-    else:
-        ipython_dep = {}
+    # Get dependencies
+    all_dependencies = _get_deps(args.ipython, args.executable,
+                                 args.child_program, args.requirement,
+                                 args.dependency)
 
-    if args.executable:
-        indicated_deps = {}
-        docstring_deps = {}
-    else:
-        indicated_deps = parsing.parse_srcfile(args.child_program)
-        logger.debug("Dependencies from source file: %s", indicated_deps)
-        docstring_deps = parsing.parse_docstring(args.child_program)
-        logger.debug("Dependencies from docstrings: %s", docstring_deps)
-
-    all_dependencies = [ipython_dep, indicated_deps, docstring_deps]
-
-    for rf_path in args.requirement:
-        rf_deps = parsing.parse_reqfile(rf_path)
-        logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
-        all_dependencies.append(rf_deps)
-
-    manual_deps = parsing.parse_manual(args.dependency)
-    logger.debug("Dependencies from parameters: %s", manual_deps)
-    all_dependencies.append(manual_deps)
-
+    # Merge dependencies
     indicated_deps = _merge_deps(all_dependencies)
 
     # Check for packages updates
