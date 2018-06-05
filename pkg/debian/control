@@ -16,7 +16,7 @@ X-Python3-Version: >= 3.4
 
 Package: fades
 Architecture: all
-Depends: python3-pkg-resources, ${misc:Depends}, ${python3:Depends}
+Depends: ca-certificates, python3-pkg-resources, ${misc:Depends}, ${python3:Depends}, python3-pip
 Description: system for automatically handling virtual environments
  fades is a system that automatically handles the virtualenvs in the cases
  normally found when writing scripts and simple programs, and even helps to
