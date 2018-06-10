@@ -222,10 +222,11 @@ def go():
 
     all_dependencies = [ipython_dep, indicated_deps, docstring_deps]
 
-    for rf_path in args.requirement:
-        rf_deps = parsing.parse_reqfile(rf_path)
-        logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
-        all_dependencies.append(rf_deps)
+    if args.requirement is not None:
+        for rf_path in args.requirement:
+            rf_deps = parsing.parse_reqfile(rf_path)
+            logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
+            all_dependencies.append(rf_deps)
 
     manual_deps = parsing.parse_manual(args.dependency)
     logger.debug("Dependencies from parameters: %s", manual_deps)
