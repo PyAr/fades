@@ -69,16 +69,16 @@ def consolidate_dependencies(needs_ipython, execute_from_venv, child_program,
     else:
         ipython_dep = {}
 
-    if not execute_from_venv:
-        indicated_deps = parsing.parse_srcfile(child_program)
-        logger.debug("Dependencies from source file: %s", indicated_deps)
+    if execute_from_venv:
+        srcfile_deps = {}
+        docstring_deps = {}
+    else:
+        srcfile_deps = parsing.parse_srcfile(child_program)
+        logger.debug("Dependencies from source file: %s", srcfile_deps)
         docstring_deps = parsing.parse_docstring(child_program)
         logger.debug("Dependencies from docstrings: %s", docstring_deps)
-    else:
-        indicated_deps = {}
-        docstring_deps = {}
 
-    all_dependencies = [ipython_dep, indicated_deps, docstring_deps]
+    all_dependencies = [ipython_dep, srcfile_deps, docstring_deps]
 
     for rf_path in requirement_files:
         rf_deps = parsing.parse_reqfile(rf_path)
