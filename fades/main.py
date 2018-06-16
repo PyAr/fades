@@ -60,7 +60,6 @@ help_usage = """
 def consolidate_dependencies(needs_ipython, execute_from_venv, child_program,
                              requirement_files, manual_dependencies):
     """Parse files and get deps."""
-
     logger = logging.getLogger('fades')
 
     if needs_ipython:
@@ -239,8 +238,8 @@ def go():
 
     # Group and merge dependencies
     indicated_deps = consolidate_dependencies(args.ipython, args.executable,
-                                          args.child_program, args.requirement,
-                                          args.dependency)
+                                              args.child_program, args.requirement,
+                                              args.dependency)
 
     # Check for packages updates
     if args.check_updates:
