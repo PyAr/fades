@@ -57,46 +57,45 @@ help_usage = """
 """
 
 
-def _get_deps(ipython, executable, child_program, requirement, dependencies):
+def consolidate_dependencies(needs_ipython, execute_from_venv, child_program,
+                             requirement_files, manual_dependencies):
     """Parse files and get deps."""
+
     logger = logging.getLogger('fades')
 
-    if ipython:
+    if needs_ipython:
         logger.debug("Adding ipython dependency because --ipython was detected")
         ipython_dep = parsing.parse_manual(['ipython'])
     else:
         ipython_dep = {}
 
-    if executable:
-        indicated_deps = {}
-        docstring_deps = {}
-    else:
+    if not execute_from_venv:
         indicated_deps = parsing.parse_srcfile(child_program)
         logger.debug("Dependencies from source file: %s", indicated_deps)
         docstring_deps = parsing.parse_docstring(child_program)
         logger.debug("Dependencies from docstrings: %s", docstring_deps)
+    else:
+        indicated_deps = {}
+        docstring_deps = {}
 
     all_dependencies = [ipython_dep, indicated_deps, docstring_deps]
 
-    for rf_path in requirement:
+    for rf_path in requirement_files:
         rf_deps = parsing.parse_reqfile(rf_path)
         logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
         all_dependencies.append(rf_deps)
 
-    manual_deps = parsing.parse_manual(dependencies)
+    manual_deps = parsing.parse_manual(manual_dependencies)
     logger.debug("Dependencies from parameters: %s", manual_deps)
     all_dependencies.append(manual_deps)
 
-    return all_dependencies
-
-
-def _merge_deps(deps):
-    """Merge all the dependencies; latest dicts overwrite first ones."""
-    final = {}
-    for dep in deps:
+    # Merge dependencies
+    indicated_deps = {}
+    for dep in all_dependencies:
         for repo, info in dep.items():
-            final.setdefault(repo, set()).update(info)
-    return final
+            indicated_deps.setdefault(repo, set()).update(info)
+
+    return indicated_deps
 
 
 def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
@@ -238,13 +237,10 @@ def go():
             logger.warning('No virtualenv found with uuid: %s.', uuid)
         return 0
 
-    # Get dependencies
-    all_dependencies = _get_deps(args.ipython, args.executable,
-                                 args.child_program, args.requirement,
-                                 args.dependency)
-
-    # Merge dependencies
-    indicated_deps = _merge_deps(all_dependencies)
+    # Group and merge dependencies
+    indicated_deps = consolidate_dependencies(args.ipython, args.executable,
+                                          args.child_program, args.requirement,
+                                          args.dependency)
 
     # Check for packages updates
     if args.check_updates:
