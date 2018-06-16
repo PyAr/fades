@@ -57,9 +57,10 @@ help_usage = """
 """
 
 
-def consolidate_dependencies(needs_ipython, execute_from_venv, child_program,
+def consolidate_dependencies(needs_ipython, is_child_from_venv, child_program,
                              requirement_files, manual_dependencies):
     """Parse files and get deps."""
+    # We get the logger here because it's not defined at module level
     logger = logging.getLogger('fades')
 
     if needs_ipython:
@@ -68,7 +69,7 @@ def consolidate_dependencies(needs_ipython, execute_from_venv, child_program,
     else:
         ipython_dep = {}
 
-    if execute_from_venv:
+    if is_child_from_venv:
         srcfile_deps = {}
         docstring_deps = {}
     else:
