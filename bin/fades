@@ -22,18 +22,18 @@
 import os
 import sys
 
-# small hack to allow fades to be run directly from the project, using code 
+# small hack to allow fades to be run directly from the project, using code
 # from project itself, not anything already installed in the system
 parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0])))
 if os.path.basename(parent_dir).startswith('fades'):
     # inside the project or an opened tarball!!
     sys.path.insert(0, parent_dir)
 
-from fades import main
+from fades import main, FadesError  # noqa (imports after fixing the path, not at the top)
 
 try:
     rc = main.go()
-except Exception:
+except FadesError:
     sys.exit(-1)
 
 sys.exit(rc)

@@ -2,11 +2,11 @@
 
 import sys
 
-from fades import main
+from fades import main, FadesError
 
 try:
     rc = main.go()
-except Exception:
+except FadesError:
     sys.exit(-1)
 
 sys.exit(rc)
