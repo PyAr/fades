@@ -57,7 +57,7 @@ help_usage = """
 """
 
 
-def consolidate_dependencies(needs_ipython, is_child_from_venv, child_program,
+def consolidate_dependencies(needs_ipython, child_program,
                              requirement_files, manual_dependencies):
     """Parse files and get deps."""
     # We get the logger here because it's not defined at module level
@@ -69,14 +69,14 @@ def consolidate_dependencies(needs_ipython, is_child_from_venv, child_program,
     else:
         ipython_dep = {}
 
-    if is_child_from_venv:
-        srcfile_deps = {}
-        docstring_deps = {}
-    else:
+    if child_program:
         srcfile_deps = parsing.parse_srcfile(child_program)
         logger.debug("Dependencies from source file: %s", srcfile_deps)
         docstring_deps = parsing.parse_docstring(child_program)
         logger.debug("Dependencies from docstrings: %s", docstring_deps)
+    else:
+        srcfile_deps = {}
+        docstring_deps = {}
 
     all_dependencies = [ipython_dep, srcfile_deps, docstring_deps]
 
@@ -238,8 +238,9 @@ def go():
         return 0
 
     # Group and merge dependencies
-    indicated_deps = consolidate_dependencies(args.ipython, args.executable,
-                                              args.child_program, args.requirement,
+    indicated_deps = consolidate_dependencies(args.ipython,
+                                              args.child_program if not args.executable else None,
+                                              args.requirement,
                                               args.dependency)
 
     # Check for packages updates

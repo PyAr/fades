@@ -19,6 +19,7 @@
 import unittest
 
 from fades import main, __version__, VERSION
+from pkg_resources import Requirement
 
 
 class VirtualenvCheckingTestCase(unittest.TestCase):
@@ -44,32 +45,42 @@ class VirtualenvCheckingTestCase(unittest.TestCase):
 class DepsMergingTestCase(unittest.TestCase):
     """Some tests for the dependency merger."""
 
-    def test_two_different(self):
-        d1 = dict(foo=[1, 2])
-        d2 = dict(bar=[3, 4])
-        d = main._merge_deps([d1, d2])
-        self.assertDictEqual(d, {
-            'foo': {1, 2},
-            'bar': {3, 4},
-        })
+    def test_ipython(self):
+        d = main.consolidate_dependencies(needs_ipython=True,
+                                          child_program=None,
+                                          requirement_files=[],
+                                          manual_dependencies=[])
 
-    def test_two_same_repo(self):
-        d1 = dict(foo=[1, 2])
-        d2 = dict(foo=[3, 4])
-        d = main._merge_deps([d1, d2])
-        self.assertDictEqual(d, {
-            'foo': {1, 2, 3, 4},
-        })
+        self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
 
-    def test_complex_case(self):
-        d1 = dict(foo=[1, 2])
-        d2 = dict(foo=[3], bar=[5])
-        d3 = dict(bar=[4, 6])
-        d = main._merge_deps([d1, d2, d3])
-        self.assertDictEqual(d, {
-            'foo': {1, 2, 3},
-            'bar': {5, 4, 6},
-        })
+    def test_child_program(self):
+        m = unittest.mock.mock_open(read_data='import bs4   # fades beautifulsoup4 == 4.2')
+
+        with unittest.mock.patch('__main__.open', m):
+            d = main.consolidate_dependencies(needs_ipython=False,
+                                              child_program='test2.py',
+                                              requirement_files=[],
+                                              manual_dependencies=[])
+
+        self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
+
+    # def test_two_same_repo(self):
+    #     d1 = dict(foo=[1, 2])
+    #     d2 = dict(foo=[3, 4])
+    #     d = main.consolidate_dependencies([d1, d2])
+    #     self.assertDictEqual(d, {
+    #         'foo': {1, 2, 3, 4},
+    #     })
+
+    # def test_complex_case(self):
+    #     d1 = dict(foo=[1, 2])
+    #     d2 = dict(foo=[3], bar=[5])
+    #     d3 = dict(bar=[4, 6])
+    #     d = main.consolidate_dependencies([d1, d2, d3])
+    #     self.assertDictEqual(d, {
+    #         'foo': {1, 2, 3},
+    #         'bar': {5, 4, 6},
+    #     })
 
     def test_version_show(self):
         self.assertEqual(
@@ -77,19 +88,19 @@ class DepsMergingTestCase(unittest.TestCase):
             '.'.join([str(v) for v in VERSION]),
         )
 
-    def test_one_duplicated(self):
-        d1 = dict(foo=[2, 2])
-        d2 = {}
-        d = main._merge_deps([d1, d2])
-        self.assertDictEqual(d, {
-            'foo': {2},
-        })
+    # def test_one_duplicated(self):
+    #     d1 = dict(foo=[2, 2])
+    #     d2 = {}
+    #     d = main.consolidate_dependencies([d1, d2])
+    #     self.assertDictEqual(d, {
+    #         'foo': {2},
+    #     })
 
-    def test_two_different_with_dups(self):
-        d1 = dict(foo=[1, 2, 2, 2])
-        d2 = dict(bar=[3, 4, 1, 2])
-        d = main._merge_deps([d1, d2])
-        self.assertDictEqual(d, {
-            'foo': {1, 2},
-            'bar': {1, 2, 3, 4},
-        })
+    # def test_two_different_with_dups(self):
+    #     d1 = dict(foo=[1, 2, 2, 2])
+    #     d2 = dict(bar=[3, 4, 1, 2])
+    #     d = main.consolidate_dependencies([d1, d2])
+    #     self.assertDictEqual(d, {
+    #         'foo': {1, 2},
+    #         'bar': {1, 2, 3, 4},
+    #     })

@@ -226,7 +226,7 @@ def _parse_requirement(iterable):
 
 
 def parse_manual(dependencies):
-    """Parse a string and return specified dependencies."""
+    """Parse an iterable and return specified dependencies."""
     if dependencies is None:
         return {}
     return _parse_requirement(dependencies)
