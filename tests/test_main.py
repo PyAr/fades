@@ -65,7 +65,9 @@ class DepsMergingTestCase(unittest.TestCase):
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
     def test_manual_dependencies(self):
-        d = main.consolidate_dependencies(manual_dependencies=['dep'])
+        manual_deps = ['dep']
+
+        d = main.consolidate_dependencies(manual_dependencies=manual_deps)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
@@ -83,7 +85,7 @@ class DepsMergingTestCase(unittest.TestCase):
 
     def test_two_same_repo(self):
         req_path = 'tests/test_files/main_test_two_same_repo.txt'
-        manual_deps = ['pypi::3', 'pypi::4']
+        manual_deps = ['3', '4']
 
         d = main.consolidate_dependencies(requirement_files=[req_path],
                                           manual_dependencies=manual_deps)
