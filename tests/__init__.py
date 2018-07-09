@@ -16,7 +16,9 @@
 
 """Common code for the tests."""
 
+import contextlib
 import os
+import tempfile
 
 from tempfile import mkstemp
 
@@ -34,3 +36,14 @@ def get_tempfile(testcase):
     testcase.addCleanup(clean)
 
     return tempfile
+
+
+@contextlib.contextmanager
+def generate_test_file(lines):
+    with tempfile.NamedTemporaryFile(mode='wt', delete=False) as f:
+        for line in lines:
+            f.write(line + '\n')
+
+    yield f.name
+
+    os.remove(f.name)

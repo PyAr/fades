@@ -16,13 +16,12 @@
 
 """Tests for some code in main."""
 
-import contextlib
-import tempfile
 import unittest
-import os
+
+from pkg_resources import Requirement
 
 from fades import main, __version__, VERSION, parsing
-from pkg_resources import Requirement
+from tests import generate_test_file
 
 
 class VirtualenvCheckingTestCase(unittest.TestCase):
@@ -45,19 +44,8 @@ class VirtualenvCheckingTestCase(unittest.TestCase):
         self.assertTrue(resp)
 
 
-@contextlib.contextmanager
-def generate_test_file(lines):
-    with tempfile.NamedTemporaryFile(mode='wt', delete=False) as f:
-        for line in lines:
-            f.write(line + '\n')
-
-    yield f.name
-
-    os.unlink(f.name)
-
-
-class DepsMergingTestCase(unittest.TestCase):
-    """Some tests for the dependency merger."""
+class DepsGatheringTestCase(unittest.TestCase):
+    """Tests for the gathering stage of consolidate_dependencies."""
 
     def test_needs_ipython(self):
         d = main.consolidate_dependencies(needs_ipython=True, child_program=None,
@@ -89,6 +77,10 @@ class DepsMergingTestCase(unittest.TestCase):
                                           manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
+
+
+class DepsMergingTestCase(unittest.TestCase):
+    """Tests for the merging stage of consolidate_dependencies."""
 
     def test_two_different(self):
         requirement_files = ['tests/test_files/main_test_two_different.txt']
@@ -156,6 +148,10 @@ class DepsMergingTestCase(unittest.TestCase):
             'vcs': {parsing.VCSDependency('1'), parsing.VCSDependency('2'),
                     parsing.VCSDependency('3'), parsing.VCSDependency('4')}
         })
+
+
+class MiscTestCase(unittest.TestCase):
+    """Miscellaneous tests."""
 
     def test_version_show(self):
         self.assertEqual(
