@@ -18,7 +18,7 @@
 
 import unittest
 
-from fades import main, __version__, VERSION
+from fades import main, __version__, VERSION, parsing
 from pkg_resources import Requirement
 
 
@@ -45,62 +45,95 @@ class VirtualenvCheckingTestCase(unittest.TestCase):
 class DepsMergingTestCase(unittest.TestCase):
     """Some tests for the dependency merger."""
 
-    def test_ipython(self):
-        d = main.consolidate_dependencies(needs_ipython=True,
-                                          child_program=None,
-                                          requirement_files=[],
-                                          manual_dependencies=[])
+    def test_needs_ipython(self):
+        d = main.consolidate_dependencies(needs_ipython=True)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
 
     def test_child_program(self):
-        m = unittest.mock.mock_open(read_data='import bs4   # fades beautifulsoup4 == 4.2')
+        child_path = 'tests/test_files/main_test_child_program.py'
 
-        with unittest.mock.patch('__main__.open', m):
-            d = main.consolidate_dependencies(needs_ipython=False,
-                                              child_program='test2.py',
-                                              requirement_files=[],
-                                              manual_dependencies=[])
+        d = main.consolidate_dependencies(child_program=child_path)
 
-        self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
+        self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
-    # def test_two_same_repo(self):
-    #     d1 = dict(foo=[1, 2])
-    #     d2 = dict(foo=[3, 4])
-    #     d = main.consolidate_dependencies([d1, d2])
-    #     self.assertDictEqual(d, {
-    #         'foo': {1, 2, 3, 4},
-    #     })
+    def test_requirement_files(self):
+        req_path = 'tests/test_files/main_test_requirement_files.txt'
 
-    # def test_complex_case(self):
-    #     d1 = dict(foo=[1, 2])
-    #     d2 = dict(foo=[3], bar=[5])
-    #     d3 = dict(bar=[4, 6])
-    #     d = main.consolidate_dependencies([d1, d2, d3])
-    #     self.assertDictEqual(d, {
-    #         'foo': {1, 2, 3},
-    #         'bar': {5, 4, 6},
-    #     })
+        d = main.consolidate_dependencies(requirement_files=[req_path])
+
+        self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
+
+    def test_manual_dependencies(self):
+        d = main.consolidate_dependencies(manual_dependencies=['dep'])
+
+        self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
+
+    def test_two_different(self):
+        req_path = 'tests/test_files/main_test_two_different.txt'
+        manual_deps = ['vcs::3', 'vcs::4']
+
+        d = main.consolidate_dependencies(manual_dependencies=manual_deps,
+                                          requirement_files=[req_path])
+
+        self.assertEqual(d, {
+            'pypi': {Requirement.parse('1'), Requirement.parse('2')},
+            'vcs': {parsing.VCSDependency('3'), parsing.VCSDependency('4')}
+        })
+
+    def test_two_same_repo(self):
+        req_path = 'tests/test_files/main_test_two_same_repo.txt'
+        manual_deps = ['pypi::3', 'pypi::4']
+
+        d = main.consolidate_dependencies(manual_dependencies=manual_deps,
+                                          requirement_files=[req_path])
+
+        self.assertDictEqual(d, {
+            'pypi': {Requirement.parse('1'), Requirement.parse('2'), Requirement.parse('3'),
+                     Requirement.parse('4')}
+        })
+
+    def test_complex_case(self):
+        child_path = 'tests/test_files/main_test_complex_case.py'
+        req_path = 'tests/test_files/main_test_complex_case.txt'
+        manual_deps = ['vcs::4', 'vcs::6']
+
+        d = main.consolidate_dependencies(child_program=child_path,
+                                          manual_dependencies=manual_deps,
+                                          requirement_files=[req_path])
+
+        self.assertEqual(d, {
+            'pypi': {Requirement.parse('1'), Requirement.parse('2'), Requirement.parse('3')},
+            'vcs': {parsing.VCSDependency('5'), parsing.VCSDependency('4'),
+                    parsing.VCSDependency('6')}
+        })
+
+    def test_one_duplicated(self):
+        req_path = 'tests/test_files/main_test_one_duplicated.txt'
+        manual_deps = []
+
+        d = main.consolidate_dependencies(manual_dependencies=manual_deps,
+                                          requirement_files=[req_path])
+
+        self.assertDictEqual(d, {
+            'pypi': {Requirement.parse('2')}
+        })
+
+    def test_two_different_with_dups(self):
+        req_path = 'tests/test_files/main_test_two_different_with_dups.txt'
+        manual_deps = ['vcs::3', 'vcs::4', 'vcs::1', 'vcs::2']
+
+        d = main.consolidate_dependencies(manual_dependencies=manual_deps,
+                                          requirement_files=[req_path])
+
+        self.assertEqual(d, {
+            'pypi': {Requirement.parse('1'), Requirement.parse('2')},
+            'vcs': {parsing.VCSDependency('1'), parsing.VCSDependency('2'),
+                    parsing.VCSDependency('3'), parsing.VCSDependency('4')}
+        })
 
     def test_version_show(self):
         self.assertEqual(
             __version__,
             '.'.join([str(v) for v in VERSION]),
         )
-
-    # def test_one_duplicated(self):
-    #     d1 = dict(foo=[2, 2])
-    #     d2 = {}
-    #     d = main.consolidate_dependencies([d1, d2])
-    #     self.assertDictEqual(d, {
-    #         'foo': {2},
-    #     })
-
-    # def test_two_different_with_dups(self):
-    #     d1 = dict(foo=[1, 2, 2, 2])
-    #     d2 = dict(bar=[3, 4, 1, 2])
-    #     d = main.consolidate_dependencies([d1, d2])
-    #     self.assertDictEqual(d, {
-    #         'foo': {1, 2},
-    #         'bar': {1, 2, 3, 4},
-    #     })
