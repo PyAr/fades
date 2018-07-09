@@ -51,32 +51,32 @@ class DepsMergingTestCase(unittest.TestCase):
         self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
 
     def test_child_program(self):
-        child_path = 'tests/test_files/main_test_child_program.py'
+        child_program = 'tests/test_files/main_test_child_program.py'
 
-        d = main.consolidate_dependencies(child_program=child_path)
+        d = main.consolidate_dependencies(child_program=child_program)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
     def test_requirement_files(self):
-        req_path = 'tests/test_files/main_test_requirement_files.txt'
+        requirement_files = ['tests/test_files/main_test_requirement_files.txt']
 
-        d = main.consolidate_dependencies(requirement_files=[req_path])
+        d = main.consolidate_dependencies(requirement_files=requirement_files)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
     def test_manual_dependencies(self):
-        manual_deps = ['dep']
+        manual_dependencies = ['dep']
 
-        d = main.consolidate_dependencies(manual_dependencies=manual_deps)
+        d = main.consolidate_dependencies(manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
     def test_two_different(self):
-        req_path = 'tests/test_files/main_test_two_different.txt'
-        manual_deps = ['vcs::3', 'vcs::4']
+        requirement_files = ['tests/test_files/main_test_two_different.txt']
+        manual_dependencies = ['vcs::3', 'vcs::4']
 
-        d = main.consolidate_dependencies(requirement_files=[req_path],
-                                          manual_dependencies=manual_deps)
+        d = main.consolidate_dependencies(requirement_files=requirement_files,
+                                          manual_dependencies=manual_dependencies)
 
         self.assertEqual(d, {
             'pypi': {Requirement.parse('1'), Requirement.parse('2')},
@@ -84,11 +84,11 @@ class DepsMergingTestCase(unittest.TestCase):
         })
 
     def test_two_same_repo(self):
-        req_path = 'tests/test_files/main_test_two_same_repo.txt'
-        manual_deps = ['3', '4']
+        requirement_files = ['tests/test_files/main_test_two_same_repo.txt']
+        manual_dependencies = ['3', '4']
 
-        d = main.consolidate_dependencies(requirement_files=[req_path],
-                                          manual_dependencies=manual_deps)
+        d = main.consolidate_dependencies(requirement_files=requirement_files,
+                                          manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {
             'pypi': {Requirement.parse('1'), Requirement.parse('2'), Requirement.parse('3'),
@@ -96,13 +96,13 @@ class DepsMergingTestCase(unittest.TestCase):
         })
 
     def test_complex_case(self):
-        child_path = 'tests/test_files/main_test_complex_case.py'
-        req_path = 'tests/test_files/main_test_complex_case.txt'
-        manual_deps = ['vcs::4', 'vcs::6']
+        child_program = 'tests/test_files/main_test_complex_case.py'
+        requirement_files = ['tests/test_files/main_test_complex_case.txt']
+        manual_dependencies = ['vcs::4', 'vcs::6']
 
-        d = main.consolidate_dependencies(child_program=child_path,
-                                          requirement_files=[req_path],
-                                          manual_dependencies=manual_deps)
+        d = main.consolidate_dependencies(child_program=child_program,
+                                          requirement_files=requirement_files,
+                                          manual_dependencies=manual_dependencies)
 
         self.assertEqual(d, {
             'pypi': {Requirement.parse('1'), Requirement.parse('2'), Requirement.parse('3')},
@@ -111,22 +111,22 @@ class DepsMergingTestCase(unittest.TestCase):
         })
 
     def test_one_duplicated(self):
-        req_path = 'tests/test_files/main_test_one_duplicated.txt'
-        manual_deps = []
+        requirement_files = ['tests/test_files/main_test_one_duplicated.txt']
+        manual_dependencies = []
 
-        d = main.consolidate_dependencies(requirement_files=[req_path],
-                                          manual_dependencies=manual_deps)
+        d = main.consolidate_dependencies(requirement_files=requirement_files,
+                                          manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {
             'pypi': {Requirement.parse('2')}
         })
 
     def test_two_different_with_dups(self):
-        req_path = 'tests/test_files/main_test_two_different_with_dups.txt'
-        manual_deps = ['vcs::3', 'vcs::4', 'vcs::1', 'vcs::2']
+        requirement_files = ['tests/test_files/main_test_two_different_with_dups.txt']
+        manual_dependencies = ['vcs::3', 'vcs::4', 'vcs::1', 'vcs::2']
 
-        d = main.consolidate_dependencies(requirement_files=[req_path],
-                                          manual_dependencies=manual_deps)
+        d = main.consolidate_dependencies(requirement_files=requirement_files,
+                                          manual_dependencies=manual_dependencies)
 
         self.assertEqual(d, {
             'pypi': {Requirement.parse('1'), Requirement.parse('2')},
