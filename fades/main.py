@@ -57,17 +57,11 @@ help_usage = """
 """
 
 
-def consolidate_dependencies(needs_ipython=False, child_program=None,
-                             requirement_files=None, manual_dependencies=None):
+def consolidate_dependencies(needs_ipython, child_program,
+                             requirement_files, manual_dependencies):
     """Parse files and get deps."""
     # We get the logger here because it's not defined at module level
     logger = logging.getLogger('fades')
-
-    if requirement_files is None:
-        requirement_files = []
-
-    if manual_dependencies is None:
-        manual_dependencies = []
 
     if needs_ipython:
         logger.debug("Adding ipython dependency because --ipython was detected")
@@ -244,8 +238,10 @@ def go():
         return 0
 
     # Group and merge dependencies
+    external_child_program = args.child_program if not args.executable else None
+
     indicated_deps = consolidate_dependencies(args.ipython,
-                                              args.child_program if not args.executable else None,
+                                              external_child_program,
                                               args.requirement,
                                               args.dependency)
 

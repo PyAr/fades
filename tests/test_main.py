@@ -16,7 +16,10 @@
 
 """Tests for some code in main."""
 
+import contextlib
+import tempfile
 import unittest
+import os
 
 from fades import main, __version__, VERSION, parsing
 from pkg_resources import Requirement
@@ -42,32 +45,48 @@ class VirtualenvCheckingTestCase(unittest.TestCase):
         self.assertTrue(resp)
 
 
+@contextlib.contextmanager
+def generate_test_file(lines):
+    with tempfile.NamedTemporaryFile(mode='wt', delete=False) as f:
+        for line in lines:
+            f.write(line + '\n')
+
+    yield f.name
+
+    os.unlink(f.name)
+
+
 class DepsMergingTestCase(unittest.TestCase):
     """Some tests for the dependency merger."""
 
     def test_needs_ipython(self):
-        d = main.consolidate_dependencies(needs_ipython=True)
+        d = main.consolidate_dependencies(needs_ipython=True, child_program=None,
+                                          requirement_files=[], manual_dependencies=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
 
     def test_child_program(self):
-        child_program = 'tests/test_files/main_test_child_program.py'
-
-        d = main.consolidate_dependencies(child_program=child_program)
+        with generate_test_file(['"""fades:', 'dep', '"""']) as child_program:
+            d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
+                                              requirement_files=[], manual_dependencies=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
     def test_requirement_files(self):
         requirement_files = ['tests/test_files/main_test_requirement_files.txt']
 
-        d = main.consolidate_dependencies(requirement_files=requirement_files)
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
+                                          requirement_files=requirement_files,
+                                          manual_dependencies=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
     def test_manual_dependencies(self):
         manual_dependencies = ['dep']
 
-        d = main.consolidate_dependencies(manual_dependencies=manual_dependencies)
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
+                                          requirement_files=[],
+                                          manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
@@ -75,7 +94,8 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = ['tests/test_files/main_test_two_different.txt']
         manual_dependencies = ['vcs::3', 'vcs::4']
 
-        d = main.consolidate_dependencies(requirement_files=requirement_files,
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
+                                          requirement_files=requirement_files,
                                           manual_dependencies=manual_dependencies)
 
         self.assertEqual(d, {
@@ -87,7 +107,8 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = ['tests/test_files/main_test_two_same_repo.txt']
         manual_dependencies = ['3', '4']
 
-        d = main.consolidate_dependencies(requirement_files=requirement_files,
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
+                                          requirement_files=requirement_files,
                                           manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {
@@ -100,7 +121,7 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = ['tests/test_files/main_test_complex_case.txt']
         manual_dependencies = ['vcs::4', 'vcs::6']
 
-        d = main.consolidate_dependencies(child_program=child_program,
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
                                           requirement_files=requirement_files,
                                           manual_dependencies=manual_dependencies)
 
@@ -114,7 +135,8 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = ['tests/test_files/main_test_one_duplicated.txt']
         manual_dependencies = []
 
-        d = main.consolidate_dependencies(requirement_files=requirement_files,
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
+                                          requirement_files=requirement_files,
                                           manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {
@@ -125,7 +147,8 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = ['tests/test_files/main_test_two_different_with_dups.txt']
         manual_dependencies = ['vcs::3', 'vcs::4', 'vcs::1', 'vcs::2']
 
-        d = main.consolidate_dependencies(requirement_files=requirement_files,
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
+                                          requirement_files=requirement_files,
                                           manual_dependencies=manual_dependencies)
 
         self.assertEqual(d, {
