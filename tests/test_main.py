@@ -20,7 +20,7 @@ import unittest
 
 from pkg_resources import Requirement
 
-from fades import main, __version__, VERSION, parsing
+from fades import main, parsing, __version__, VERSION
 from tests import generate_test_file
 
 
@@ -54,9 +54,7 @@ class DepsGatheringTestCase(unittest.TestCase):
         self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
 
     def test_child_program(self):
-        child_program_lines = ['"""fades:', 'dep', '"""']
-        tempfile = generate_test_file(self, child_program_lines)
-        child_program = tempfile
+        child_program = generate_test_file(self, ['"""fades:', 'dep', '"""'])
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
                                           requirement_files=None, manual_dependencies=None)
@@ -64,9 +62,7 @@ class DepsGatheringTestCase(unittest.TestCase):
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
     def test_requirement_files(self):
-        requirement_file_lines = ['dep']
-        tempfile = generate_test_file(self, requirement_file_lines)
-        requirement_files = [tempfile]
+        requirement_files = [generate_test_file(self, ['dep'])]
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
                                           requirement_files=requirement_files,
