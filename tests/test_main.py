@@ -49,23 +49,28 @@ class DepsGatheringTestCase(unittest.TestCase):
 
     def test_needs_ipython(self):
         d = main.consolidate_dependencies(needs_ipython=True, child_program=None,
-                                          requirement_files=[], manual_dependencies=[])
+                                          requirement_files=None, manual_dependencies=None)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
 
     def test_child_program(self):
-        with generate_test_file(['"""fades:', 'dep', '"""']) as child_program:
-            d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                              requirement_files=[], manual_dependencies=[])
+        child_program_lines = ['"""fades:', 'dep', '"""']
+        tempfile = generate_test_file(self, child_program_lines)
+        child_program = tempfile
+
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
+                                          requirement_files=None, manual_dependencies=None)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
     def test_requirement_files(self):
-        requirement_files = ['tests/test_files/main_test_requirement_files.txt']
+        requirement_file_lines = ['dep']
+        tempfile = generate_test_file(self, requirement_file_lines)
+        requirement_files = [tempfile]
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
                                           requirement_files=requirement_files,
-                                          manual_dependencies=[])
+                                          manual_dependencies=None)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
 
@@ -73,7 +78,7 @@ class DepsGatheringTestCase(unittest.TestCase):
         manual_dependencies = ['dep']
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
-                                          requirement_files=[],
+                                          requirement_files=None,
                                           manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
