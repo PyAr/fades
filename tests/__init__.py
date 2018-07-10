@@ -39,8 +39,8 @@ def get_tempfile(testcase):
 
 
 @nottest
-def generate_test_file(self, lines):
-    tempfile = get_tempfile(self)
+def generate_test_file(testcase, lines):
+    tempfile = get_tempfile(testcase)
 
     with open(tempfile, 'w') as f:
         for line in lines:
