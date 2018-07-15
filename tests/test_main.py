@@ -21,7 +21,7 @@ import unittest
 from pkg_resources import Requirement
 
 from fades import main, parsing, __version__, VERSION
-from tests import generate_test_file
+from tests import create_tempfile
 
 
 class VirtualenvCheckingTestCase(unittest.TestCase):
@@ -54,15 +54,15 @@ class DepsGatheringTestCase(unittest.TestCase):
         self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
 
     def test_child_program(self):
-        child_program = generate_test_file(self, ['"""fades:', 'dep', '"""'])
+        child_program = 'tests/test_files/req_module.py'
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
                                           requirement_files=None, manual_dependencies=None)
 
-        self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
+        self.assertDictEqual(d, {'pypi': {Requirement.parse('foo'), Requirement.parse('bar')}})
 
     def test_requirement_files(self):
-        requirement_files = [generate_test_file(self, ['dep'])]
+        requirement_files = [create_tempfile(self, ['dep'])]
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
                                           requirement_files=requirement_files,
@@ -84,7 +84,7 @@ class DepsMergingTestCase(unittest.TestCase):
     """Tests for the merging stage of consolidate_dependencies."""
 
     def test_two_different(self):
-        requirement_files = [generate_test_file(self, ['1', '2'])]
+        requirement_files = [create_tempfile(self, ['1', '2'])]
         manual_dependencies = ['vcs::3', 'vcs::4']
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
@@ -97,7 +97,7 @@ class DepsMergingTestCase(unittest.TestCase):
         })
 
     def test_two_same_repo(self):
-        requirement_files = [generate_test_file(self, ['1', '2'])]
+        requirement_files = [create_tempfile(self, ['1', '2'])]
         manual_dependencies = ['3', '4']
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
@@ -110,8 +110,8 @@ class DepsMergingTestCase(unittest.TestCase):
         })
 
     def test_complex_case(self):
-        child_program = generate_test_file(self, ['"""fades:', '1', '2', '"""'])
-        requirement_files = [generate_test_file(self, ['3', 'vcs::5'])]
+        child_program = create_tempfile(self, ['"""fades:', '1', '2', '"""'])
+        requirement_files = [create_tempfile(self, ['3', 'vcs::5'])]
         manual_dependencies = ['vcs::4', 'vcs::6']
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
@@ -125,7 +125,7 @@ class DepsMergingTestCase(unittest.TestCase):
         })
 
     def test_one_duplicated(self):
-        requirement_files = [generate_test_file(self, ['2', '2'])]
+        requirement_files = [create_tempfile(self, ['2', '2'])]
         manual_dependencies = None
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
@@ -137,7 +137,7 @@ class DepsMergingTestCase(unittest.TestCase):
         })
 
     def test_two_different_with_dups(self):
-        requirement_files = [generate_test_file(self, ['1', '2', '2', '2'])]
+        requirement_files = [create_tempfile(self, ['1', '2', '2', '2'])]
         manual_dependencies = ['vcs::3', 'vcs::4', 'vcs::1', 'vcs::2']
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,

@@ -59,9 +59,7 @@ help_usage = """
 
 def consolidate_dependencies(needs_ipython, child_program,
                              requirement_files, manual_dependencies):
-    """Parse files, get deps and merge them."""
-    # Deps specified first are overwritten by those specified last
-
+    """Parse files, get deps and merge them. Deps read later overwrite those read earlier."""
     # We get the logger here because it's not defined at module level
     logger = logging.getLogger('fades')
 

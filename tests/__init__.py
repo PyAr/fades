@@ -20,8 +20,6 @@ import os
 
 from tempfile import mkstemp
 
-from nose.tools import nottest
-
 
 def get_tempfile(testcase):
     """Return the name of a temp file that will be removed when the test finishes."""
@@ -38,11 +36,10 @@ def get_tempfile(testcase):
     return tempfile
 
 
-@nottest
-def generate_test_file(testcase, lines):
+def create_tempfile(testcase, lines):
     tempfile = get_tempfile(testcase)
 
-    with open(tempfile, 'w') as f:
+    with open(tempfile, 'w', encoding='utf-8') as f:
         for line in lines:
             f.write(line + '\n')
 
