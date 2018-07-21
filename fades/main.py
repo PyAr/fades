@@ -18,6 +18,7 @@
 """Main 'fades' modules."""
 
 import argparse
+import logging
 import os
 import platform
 import signal
@@ -56,13 +57,46 @@ help_usage = """
 """
 
 
-def _merge_deps(deps):
-    """Merge all the dependencies; latest dicts overwrite first ones."""
-    final = {}
-    for dep in deps:
+def consolidate_dependencies(needs_ipython, child_program,
+                             requirement_files, manual_dependencies):
+    """Parse files, get deps and merge them. Deps read later overwrite those read earlier."""
+    # We get the logger here because it's not defined at module level
+    logger = logging.getLogger('fades')
+
+    if needs_ipython:
+        logger.debug("Adding ipython dependency because --ipython was detected")
+        ipython_dep = parsing.parse_manual(['ipython'])
+    else:
+        ipython_dep = {}
+
+    if child_program:
+        srcfile_deps = parsing.parse_srcfile(child_program)
+        logger.debug("Dependencies from source file: %s", srcfile_deps)
+        docstring_deps = parsing.parse_docstring(child_program)
+        logger.debug("Dependencies from docstrings: %s", docstring_deps)
+    else:
+        srcfile_deps = {}
+        docstring_deps = {}
+
+    all_dependencies = [ipython_dep, srcfile_deps, docstring_deps]
+
+    if requirement_files is not None:
+        for rf_path in requirement_files:
+            rf_deps = parsing.parse_reqfile(rf_path)
+            logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
+            all_dependencies.append(rf_deps)
+
+    manual_deps = parsing.parse_manual(manual_dependencies)
+    logger.debug("Dependencies from parameters: %s", manual_deps)
+    all_dependencies.append(manual_deps)
+
+    # Merge dependencies
+    indicated_deps = {}
+    for dep in all_dependencies:
         for repo, info in dep.items():
-            final.setdefault(repo, set()).update(info)
-    return final
+            indicated_deps.setdefault(repo, set()).update(info)
+
+    return indicated_deps
 
 
 def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
@@ -204,35 +238,13 @@ def go():
             logger.warning('No virtualenv found with uuid: %s.', uuid)
         return 0
 
-    # parse file and get deps
-    if args.ipython:
-        logger.debug("Adding ipython dependency because --ipython was detected")
-        ipython_dep = parsing.parse_manual(['ipython'])
-    else:
-        ipython_dep = {}
+    # Group and merge dependencies
+    external_child_program = args.child_program if not args.executable else None
 
-    if args.executable:
-        indicated_deps = {}
-        docstring_deps = {}
-    else:
-        indicated_deps = parsing.parse_srcfile(args.child_program)
-        logger.debug("Dependencies from source file: %s", indicated_deps)
-        docstring_deps = parsing.parse_docstring(args.child_program)
-        logger.debug("Dependencies from docstrings: %s", docstring_deps)
-
-    all_dependencies = [ipython_dep, indicated_deps, docstring_deps]
-
-    if args.requirement is not None:
-        for rf_path in args.requirement:
-            rf_deps = parsing.parse_reqfile(rf_path)
-            logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
-            all_dependencies.append(rf_deps)
-
-    manual_deps = parsing.parse_manual(args.dependency)
-    logger.debug("Dependencies from parameters: %s", manual_deps)
-    all_dependencies.append(manual_deps)
-
-    indicated_deps = _merge_deps(all_dependencies)
+    indicated_deps = consolidate_dependencies(args.ipython,
+                                              external_child_program,
+                                              args.requirement,
+                                              args.dependency)
 
     # Check for packages updates
     if args.check_updates:

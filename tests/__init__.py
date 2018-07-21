@@ -34,3 +34,13 @@ def get_tempfile(testcase):
     testcase.addCleanup(clean)
 
     return tempfile
+
+
+def create_tempfile(testcase, lines):
+    tempfile = get_tempfile(testcase)
+
+    with open(tempfile, 'w', encoding='utf-8') as f:
+        for line in lines:
+            f.write(line + '\n')
+
+    return tempfile
