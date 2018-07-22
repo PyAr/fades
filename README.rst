@@ -23,7 +23,7 @@ fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and
 even helps to administer big projects.
 
-.. image:: https://raw.githubusercontent.com/PyAr/fades/master/resources/logo256.png
+.. image:: resources/logo256.png
 
 *fades* will automagically create a new virtualenv (or reuse a previous
 created one), installing the necessary dependencies, and execute
@@ -51,11 +51,14 @@ How to use it?
 ==============
 
 Click in the following image to see a video/screencast that shows most of
-fades features in just 5', but please keep reading for more detailed
-information...
+fades features in just 5'...
 
-.. image:: https://raw.githubusercontent.com/PyAr/fades/master/resources/video/screenshot.png
+.. image:: resources/video/screenshot.png
     :target: https://www.youtube.com/watch?v=BCTd_TyCm98
+
+...or inspect `these several small GIFs <resources/gifs/gifs.rst>`_ that
+show each a particular `fades` functionality, but please keep also reading
+for more detailed information...
 
 
 Yes, please, I want to read
