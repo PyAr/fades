@@ -21,13 +21,14 @@ import sys
 import json
 import logging
 import subprocess
+import tempfile
 
 from urllib import request
 from urllib.error import HTTPError
 
 import pkg_resources
 
-from fades import FadesError, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK
+from fades import FadesError, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK, _version
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,9 @@ d = dict(path=sys.executable)
 d.update(zip('major minor micro releaselevel serial'.split(), sys.version_info))
 print(json.dumps(d))
 """
+
+# a user-agent for hitting the network
+USER_AGENT = "fades/{} (https://github.com/PyAr/fades/)".format(_version.__version__)
 
 
 # the url to query PyPI for project versions
@@ -256,3 +260,17 @@ def check_pypi_exists(dependencies):
                 logger.error("%s doesn't exists in PyPI.", dependency)
                 return False
     return True
+
+
+def download_remote_script(url):
+    """Download the content of a remote script to a local temp file."""
+    temp_fh = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
+    logger.info("Downloading remote script from %r to %r", url, temp_fh.name)
+    req = request.Request(url, headers={
+        'Accept': 'text/plain',
+        'User-Agent': USER_AGENT,
+    })
+    content = request.urlopen(req).read()
+    temp_fh.write(content)
+    temp_fh.close()
+    return temp_fh.name

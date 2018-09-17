@@ -1,4 +1,4 @@
-# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2018 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -17,6 +17,7 @@
 """Tests for some code in main."""
 
 import unittest
+from unittest.mock import patch
 
 from pkg_resources import Requirement
 
@@ -159,3 +160,42 @@ class MiscTestCase(unittest.TestCase):
             __version__,
             '.'.join([str(v) for v in VERSION]),
         )
+
+
+class ChildProgramDeciderTestCase(unittest.TestCase):
+    """Check how the child program is decided."""
+
+    def test_indicated_with_executable_flag(self):
+        analyzable, child = main.decide_child_program(True, "foobar.py")
+        self.assertIsNone(analyzable)
+        self.assertEqual(child, "foobar.py")
+
+    def test_no_child_at_all(self):
+        analyzable, child = main.decide_child_program(False, None)
+        self.assertIsNone(analyzable)
+        self.assertIsNone(child)
+
+    def test_normal_child_program(self):
+        analyzable, child = main.decide_child_program(False, "foobar.py")
+        self.assertEqual(analyzable, "foobar.py")
+        self.assertEqual(child, "foobar.py")
+
+    def test_remote_child_program_simple(self):
+        with patch('fades.helpers.download_remote_script') as mock:
+            mock.return_value = "new_path_script"
+            analyzable, child = main.decide_child_program(False, "http://scripts.com/foobar.py")
+            mock.assert_called_with("http://scripts.com/foobar.py")
+
+        # check that analyzable and child are the same, and that its content is the remote one
+        self.assertEqual(analyzable, "new_path_script")
+        self.assertEqual(child, "new_path_script")
+
+    def test_remote_child_program_ssl(self):
+        with patch('fades.helpers.download_remote_script') as mock:
+            mock.return_value = "new_path_script"
+            analyzable, child = main.decide_child_program(False, "https://scripts.com/foobar.py")
+            mock.assert_called_with("https://scripts.com/foobar.py")
+
+        # check that analyzable and child are the same, and that its content is the remote one
+        self.assertEqual(analyzable, "new_path_script")
+        self.assertEqual(child, "new_path_script")

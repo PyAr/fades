@@ -99,6 +99,26 @@ def consolidate_dependencies(needs_ipython, child_program,
     return indicated_deps
 
 
+def decide_child_program(args_executable, args_child_program):
+    """Decide which the child program really is (if any)."""
+    if args_executable:
+        # inidcated --execute, local and not analyzable for dependencies
+        analyzable_child_program = None
+        child_program = args_child_program
+    elif args_child_program is not None:
+        # normal case, the child program is to be analyzed (being it local or remote)
+        if args_child_program.startswith(("http://", "https://")):
+            args_child_program = helpers.download_remote_script(args_child_program)
+        analyzable_child_program = args_child_program
+        child_program = args_child_program
+    else:
+        # not indicated executable, not child program, "interpreter" mode
+        analyzable_child_program = None
+        child_program = None
+
+    return analyzable_child_program, child_program
+
+
 def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
     """Tell if fades is running inside a virtualenv.
 
@@ -238,11 +258,13 @@ def go():
             logger.warning('No virtualenv found with uuid: %s.', uuid)
         return 0
 
-    # Group and merge dependencies
-    external_child_program = args.child_program if not args.executable else None
+    # decided which the child program really is
+    analyzable_child_program, child_program = decide_child_program(
+        args.executable, args.child_program)
 
+    # Group and merge dependencies
     indicated_deps = consolidate_dependencies(args.ipython,
-                                              external_child_program,
+                                              analyzable_child_program,
                                               args.requirement,
                                               args.dependency)
 
@@ -302,7 +324,7 @@ def go():
 
     # store usage information
     usage_manager.store_usage_stat(venv_data, venvscache)
-    if args.child_program is None:
+    if child_program is None:
         interactive = True
         logger.debug(
             "Calling the interactive Python interpreter with arguments %r", python_options)
@@ -311,19 +333,19 @@ def go():
     else:
         interactive = False
         if args.executable:
-            cmd = [os.path.join(venv_data['env_bin_path'], args.child_program)]
+            cmd = [os.path.join(venv_data['env_bin_path'], child_program)]
             logger.debug("Calling child program %r with options %s",
-                         args.child_program, args.child_options)
+                         child_program, args.child_options)
         else:
-            cmd = [python_exe] + python_options + [args.child_program]
+            cmd = [python_exe] + python_options + [child_program]
             logger.debug(
                 "Calling Python interpreter with arguments %s to execute the child program"
-                " %r with options %s", python_options, args.child_program, args.child_options)
+                " %r with options %s", python_options, child_program, args.child_options)
 
         try:
             p = subprocess.Popen(cmd + args.child_options)
         except FileNotFoundError:
-            logger.error("Command not found: %s", args.child_program)
+            logger.error("Command not found: %s", child_program)
             raise FadesError("Command not found")
 
     def _signal_handler(signum, _):
