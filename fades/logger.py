@@ -1,4 +1,4 @@
-# Copyright 2014 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2018 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -20,10 +20,34 @@ import logging
 import logging.handlers
 import os.path
 
+from fades._version import __version__
+
 
 FMT_SIMPLE = "*** fades ***  %(asctime)s  %(levelname)-8s %(message)s"
 FMT_DETAILED = "*** fades ***  %(asctime)s  %(name)-18s %(levelname)-8s %(message)s"
 FMT_SYSLOG = "[%(process)d] %(name)-18s %(levelname)-8s %(message)s"
+
+SALUTATION = "Hi! This is fades {}, automatically managing your dependencies".format(__version__)
+
+
+class SalutingStreamHandler(logging.StreamHandler):
+    """A handler that salutes once before polluting user screen.
+
+    Note that the salutation is done in INFO level, to respect "verbose" modifiers.
+    """
+
+    def __init__(self, logger):
+        """Init."""
+        super().__init__()
+        self._already_saluted = False
+        self._logger = logger
+
+    def emit(self, record):
+        """Call father's emit, but salute first (just once)."""
+        if not self._already_saluted:
+            self._already_saluted = True
+            self._logger.info(SALUTATION)
+        super().emit(record)
 
 
 def set_up(verbose, quiet):
@@ -44,7 +68,7 @@ def set_up(verbose, quiet):
         log_format = FMT_SIMPLE
 
     # all to the stdout
-    handler = logging.StreamHandler()
+    handler = SalutingStreamHandler(logger)
     handler.setLevel(log_level)
     logger.addHandler(handler)
     formatter = logging.Formatter(log_format)

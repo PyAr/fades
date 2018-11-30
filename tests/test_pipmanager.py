@@ -1,4 +1,4 @@
-# Copyright 2015-2017 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2018 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -119,15 +119,6 @@ class PipManagerTestCase(unittest.TestCase):
                 mgr.install('foo')
                 self.assertEqual(mocked_install_pip.call_count, 1)
             mocked_exec.assert_called_with([pip_path, 'install', 'foo'])
-
-    def test_say_hi_on_first_install(self):
-        mgr = PipManager(BIN_PATH, pip_installed=True, options=['--bar=baz'])
-        with patch.object(helpers, 'logged_exec'):
-            mgr.install('foo')
-            self.assertLoggedInfo("Hi! This is fades")
-            logassert.setup(self, 'fades.pipmanager')
-            mgr.install('bar')
-            self.assertNotLoggedInfo("Hi! This is fades")
 
     def test_brute_force_install_pip_installer_exists(self):
         mgr = PipManager(BIN_PATH, pip_installed=False)
