@@ -24,6 +24,7 @@ import unittest
 
 from unittest.mock import patch
 from urllib.error import HTTPError
+from urllib.request import Request
 
 import logassert
 
@@ -373,3 +374,34 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
                 exists = helpers.check_pypi_exists(deps)
         self.assertTrue(exists)
         self.assertLoggedWarning("Got a (unexpected) HTTP_STATUS")
+
+
+class ScriptDownloaderTestCase(unittest.TestCase):
+    """Check the script downloader."""
+
+    def test_simple_complete(self):
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.return_value = b"test content of the remote script"
+                mock_urlopen.return_value = mock_http_response
+
+            filepath = helpers.download_remote_script("http://scripts.com/foobar.py")
+
+        # plan to remove the downloaded content (so test remains clean)
+        self.addCleanup(os.unlink, filepath)
+
+        # check urlopen was called with the proper url, and passing correct headers
+        headers = {
+            'Accept': 'text/plain',
+            'User-agent': helpers.USER_AGENT,
+        }
+        (call,) = mock_urlopen.mock_calls
+        (called_request,) = call[1]
+        self.assertIsInstance(called_request, Request)
+        self.assertEqual(called_request.full_url, "http://scripts.com/foobar.py")
+        self.assertEqual(called_request.headers, headers)
+
+        # check content
+        with open(filepath, "rb") as fh:
+            temp_content = fh.read()
+        self.assertEqual(temp_content, b"test content of the remote script")
