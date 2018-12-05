@@ -17,6 +17,7 @@
 """Tests for functions in helpers."""
 
 import io
+import json
 import os
 import sys
 import tempfile
@@ -379,29 +380,146 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
 class ScriptDownloaderTestCase(unittest.TestCase):
     """Check the script downloader."""
 
-    def test_simple_complete(self):
-        with patch('urllib.request.urlopen') as mock_urlopen:
-            with patch('http.client.HTTPResponse') as mock_http_response:
-                mock_http_response.read.return_value = b"test content of the remote script"
-                mock_urlopen.return_value = mock_http_response
+    def setUp(self):
+        logassert.setup(self, 'fades.helpers')
 
-            filepath = helpers.download_remote_script("http://scripts.com/foobar.py")
+    def test_external_public_function(self):
+        test_url = "http://scripts.com/foobar.py"
+        test_content = "test content of the remote script ññ"
+        with patch('fades.helpers._ScriptDownloader') as mock_downloader_class:
+            mock_downloader = mock_downloader_class()
+            mock_downloader.get.return_value = test_content
+            mock_downloader.name = 'mock downloader'
+            filepath = helpers.download_remote_script(test_url)
 
         # plan to remove the downloaded content (so test remains clean)
         self.addCleanup(os.unlink, filepath)
 
+        # checks
+        mock_downloader_class.assert_called_with(test_url)
+        self.assertLoggedInfo("Downloading remote script", test_url, filepath, 'mock downloader')
+        with open(filepath, "rt", encoding='utf8') as fh:
+            self.assertEqual(fh.read(), test_content)
+
+    def test_decide_linkode(self):
+        url = "http://linkode.org/#02c5nESQBLEjgBRhUwJK74"
+        downloader = helpers._ScriptDownloader(url)
+        name = downloader._decide()
+        self.assertEqual(name, 'linkode')
+
+    def test_decide_pastebin(self):
+        url = "https://pastebin.com/sZGwz7SL"
+        downloader = helpers._ScriptDownloader(url)
+        name = downloader._decide()
+        self.assertEqual(name, 'pastebin')
+
+    def test_decide_gist(self):
+        url = "https://gist.github.com/facundobatista/6ff4f75760a9acc35e68bae8c1d7da1c"
+        downloader = helpers._ScriptDownloader(url)
+        name = downloader._decide()
+        self.assertEqual(name, 'gist')
+
+    def test_downloader_raw(self):
+        test_url = "http://scripts.com/foobar.py"
+        raw_service_response = b"test content of the remote script"
+        downloader = helpers._ScriptDownloader(test_url)
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.return_value = raw_service_response
+                mock_urlopen.return_value = mock_http_response
+
+            content = downloader.get()
+
         # check urlopen was called with the proper url, and passing correct headers
         headers = {
             'Accept': 'text/plain',
-            'User-agent': helpers.USER_AGENT,
+            'User-agent': helpers._ScriptDownloader.USER_AGENT,
         }
         (call,) = mock_urlopen.mock_calls
         (called_request,) = call[1]
         self.assertIsInstance(called_request, Request)
-        self.assertEqual(called_request.full_url, "http://scripts.com/foobar.py")
+        self.assertEqual(called_request.full_url, test_url)
         self.assertEqual(called_request.headers, headers)
+        self.assertEqual(content, raw_service_response.decode("utf8"))
 
-        # check content
-        with open(filepath, "rb") as fh:
-            temp_content = fh.read()
-        self.assertEqual(temp_content, b"test content of the remote script")
+    def test_downloader_linkode(self):
+        test_url = "http://linkode.org/#02c5nESQBLEjgBRhUwJK74"
+        test_content = "test content of the remote script áéíóú"
+        raw_service_response = json.dumps({
+            'content': test_content,
+            'morestuff': 'whocares',
+        }).encode("utf8")
+
+        downloader = helpers._ScriptDownloader(test_url)
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.return_value = raw_service_response
+                mock_urlopen.return_value = mock_http_response
+
+            content = downloader.get()
+
+        # check urlopen was called with the proper url, and passing correct headers
+        headers = {
+            'Accept': 'application/json',
+            'User-agent': helpers._ScriptDownloader.USER_AGENT,
+        }
+        (call,) = mock_urlopen.mock_calls
+        (called_request,) = call[1]
+        self.assertIsInstance(called_request, Request)
+        self.assertEqual(
+            called_request.full_url, "https://linkode.org/api/1/linkodes/02c5nESQBLEjgBRhUwJK74")
+        self.assertEqual(called_request.headers, headers)
+        self.assertEqual(content, test_content)
+
+    def test_downloader_pastebin(self):
+        test_url = "http://pastebin.com/sZGwz7SL"
+        test_content = "test content of the remote script áéíóú"
+        raw_service_response = test_content.encode("utf8")
+
+        downloader = helpers._ScriptDownloader(test_url)
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.return_value = raw_service_response
+                mock_urlopen.return_value = mock_http_response
+
+            content = downloader.get()
+
+        # check urlopen was called with the proper url, and passing correct headers
+        headers = {
+            'Accept': 'text/plain',
+            'User-agent': helpers._ScriptDownloader.USER_AGENT,
+        }
+        (call,) = mock_urlopen.mock_calls
+        (called_request,) = call[1]
+        self.assertIsInstance(called_request, Request)
+        self.assertEqual(
+            called_request.full_url, "https://pastebin.com/raw/sZGwz7SL")
+        self.assertEqual(called_request.headers, headers)
+        self.assertEqual(content, test_content)
+
+    def test_downloader_gist(self):
+        test_url = "http://gist.github.com/facundobatista/6ff4f75760a9acc35e68bae8c1d7da1c"
+        test_content = "test content of the remote script áéíóú"
+        raw_service_response = test_content.encode("utf8")
+
+        downloader = helpers._ScriptDownloader(test_url)
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.return_value = raw_service_response
+                mock_urlopen.return_value = mock_http_response
+
+            content = downloader.get()
+
+        # check urlopen was called with the proper url, and passing correct headers
+        headers = {
+            'Accept': 'text/plain',
+            'User-agent': helpers._ScriptDownloader.USER_AGENT,
+        }
+        (call,) = mock_urlopen.mock_calls
+        (called_request,) = call[1]
+        self.assertIsInstance(called_request, Request)
+        self.assertEqual(
+            called_request.full_url,
+            "https://gist.github.com/facundobatista/6ff4f75760a9acc35e68bae8c1d7da1c/raw")
+        self.assertEqual(called_request.headers, headers)
+        self.assertEqual(content, test_content)
