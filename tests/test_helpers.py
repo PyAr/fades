@@ -397,7 +397,8 @@ class ScriptDownloaderTestCase(unittest.TestCase):
 
         # checks
         mock_downloader_class.assert_called_with(test_url)
-        self.assertLoggedInfo("Downloading remote script", test_url, filepath, 'mock downloader')
+        self.assertLoggedInfo(
+            "Downloading remote script", test_url, repr(filepath), 'mock downloader')
         with open(filepath, "rt", encoding='utf8') as fh:
             self.assertEqual(fh.read(), test_content)
 
