@@ -23,7 +23,7 @@ import logging
 import subprocess
 import tempfile
 
-from urllib import request
+from urllib import request, parse
 from urllib.error import HTTPError
 
 import pkg_resources
@@ -39,10 +39,6 @@ d = dict(path=sys.executable)
 d.update(zip('major minor micro releaselevel serial'.split(), sys.version_info))
 print(json.dumps(d))
 """
-
-# a user-agent for hitting the network
-USER_AGENT = "fades/{} (https://github.com/PyAr/fades/)".format(_version.__version__)
-
 
 # the url to query PyPI for project versions
 BASE_PYPI_URL = 'https://pypi.python.org/pypi/{name}/json'
@@ -262,15 +258,88 @@ def check_pypi_exists(dependencies):
     return True
 
 
-def download_remote_script(url):
-    """Download the content of a remote script to a local temp file."""
-    temp_fh = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
-    logger.info("Downloading remote script from %r to %r", url, temp_fh.name)
-    req = request.Request(url, headers={
+class _ScriptDownloader:
+    """Grouping of different backends downloaders."""
+
+    # a user-agent for hitting the network
+    USER_AGENT = "fades/{} (https://github.com/PyAr/fades/)".format(_version.__version__)
+    HEADERS_PLAIN = {
         'Accept': 'text/plain',
         'User-Agent': USER_AGENT,
-    })
-    content = request.urlopen(req).read()
+    }
+    HEADERS_JSON = {
+        'Accept': 'application/json',
+        'User-Agent': USER_AGENT,
+    }
+
+    # simple network locations to name map
+    NETLOCS = {
+        'linkode.org': 'linkode',
+        'pastebin.com': 'pastebin',
+        'gist.github.com': 'gist',
+    }
+
+    def __init__(self, url):
+        """Init."""
+        self.url = url
+        self.name = self._decide()
+
+    def _decide(self):
+        """Find out which method should be applied to download that URL."""
+        netloc = parse.urlparse(self.url).netloc
+        name = self.NETLOCS.get(netloc, 'raw')
+        return name
+
+    def get(self):
+        """Get the script content from the URL using the decided downloader."""
+        method_name = "_download_" + self.name
+        method = getattr(self, method_name)
+        return method()
+
+    def _download_raw(self, url=None):
+        """Download content from URL directly."""
+        if url is None:
+            url = self.url
+        req = request.Request(url, headers=self.HEADERS_PLAIN)
+        return request.urlopen(req).read().decode("utf8")
+
+    def _download_linkode(self):
+        """Download content from Linkode pastebin."""
+        # build the API url
+        linkode_id = self.url.split("/")[-1]
+        if linkode_id.startswith("#"):
+            linkode_id = linkode_id[1:]
+        url = "https://linkode.org/api/1/linkodes/" + linkode_id
+
+        req = request.Request(url, headers=self.HEADERS_JSON)
+        resp = request.urlopen(req)
+        raw = resp.read()
+        data = json.loads(raw.decode("utf8"))
+        content = data['content']
+        return content
+
+    def _download_pastebin(self):
+        """Download content from Pastebin itself."""
+        paste_id = self.url.split("/")[-1]
+        url = "https://pastebin.com/raw/" + paste_id
+        return self._download_raw(url)
+
+    def _download_gist(self):
+        """Download content from github's pastebin."""
+        parts = parse.urlparse(self.url)
+        url = "https://gist.github.com" + parts.path + "/raw"
+        return self._download_raw(url)
+
+
+def download_remote_script(url):
+    """Download the content of a remote script to a local temp file."""
+    temp_fh = tempfile.NamedTemporaryFile('wt', encoding='utf8', suffix=".py", delete=False)
+    downloader = _ScriptDownloader(url)
+    logger.info(
+        "Downloading remote script from %r using (%r downloader) to %r",
+        url, downloader.name, temp_fh.name)
+
+    content = downloader.get()
     temp_fh.write(content)
     temp_fh.close()
     return temp_fh.name
