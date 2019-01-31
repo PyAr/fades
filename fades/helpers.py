@@ -41,8 +41,8 @@ print(json.dumps(d))
 """
 
 # the url to query PyPI for project versions
-BASE_PYPI_URL = 'https://pypi.python.org/pypi/{name}/json'
-BASE_PYPI_URL_WITH_VERSION = 'https://pypi.python.org/pypi/{name}/{version}/json'
+BASE_PYPI_URL = 'https://pypi.org/pypi/{name}/json'
+BASE_PYPI_URL_WITH_VERSION = 'https://pypi.org/pypi/{name}/{version}/json'
 
 # prefix for all stdout lines when running a command
 STDOUT_LOG_PREFIX = ":: "
