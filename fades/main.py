@@ -102,7 +102,7 @@ def consolidate_dependencies(needs_ipython, child_program,
 def decide_child_program(args_executable, args_child_program):
     """Decide which the child program really is (if any)."""
     if args_executable:
-        # inidcated --execute, local and not analyzable for dependencies
+        # indicated --execute, local and not analyzable for dependencies
         analyzable_child_program = None
         child_program = args_child_program
     elif args_child_program is not None:
@@ -181,13 +181,17 @@ def go():
                         help=("Extra options to be supplied to python. (this option can be "
                               "used multiple times)"))
     parser.add_argument('--rm', dest='remove', metavar='UUID',
-                        help=("Remove a virtualenv by UUID."))
+                        help=("Remove a virtualenv by UUID. See --get-venv-dir option to "
+                              "easily find out the UUID."))
     parser.add_argument('--clean-unused-venvs', action='store',
                         help=("This option remove venvs that haven't been used for more than "
                               "CLEAN_UNUSED_VENVS days. Appart from that, will compact usage "
                               "stats file.\n"
                               "When this option is present, the cleaning takes place at the "
                               "beginning of the execution."))
+    parser.add_argument('--get-venv-dir', action='store_true',
+                        help=("Show the virtualenv base directory (which includes the "
+                              "virtualenv UUID) and quit."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -311,6 +315,11 @@ def go():
                                                       options, pip_options)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
+
+    if args.get_venv_dir:
+        # all it was requested is the virtualenv's path, show it and quit (don't run anything)
+        print(venv_data['env_path'])
+        return 0
 
     # run forest run!!
     python_exe = 'ipython' if args.ipython else 'python'

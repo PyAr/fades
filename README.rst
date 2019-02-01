@@ -234,7 +234,12 @@ If you want to use IPython shell you need to call *fades* with ``-i`` or
 ``--ipython`` option. This option will add IPython as a dependency to *fades*
 and it will launch this shell instead of the python one.
 
-You can also use ``--system-site-packages`` to create a venv with access to the system libs.
+You can also use ``--system-site-packages`` to create a venv with access to
+the system libs.
+
+Finally, no matter how the virtualenv was created, you can always get the
+base directory of the virtualenv in your system using the ``--get-venv-dir``
+option.
 
 
 How to deal with packages that are upgraded in PyPI
@@ -328,8 +333,10 @@ When using *fades* virtual environments are something you should not have to thi
 dependencies. There are cases however when you'll want to do some clean up to remove
 unnecessary virtual environments from disk.
 
-By running *fades* with the ``--rm`` argument, *fades* will remove the virtualenv
-matching the provided uuid if such a virtualenv exists.
+By running *fades* with the ``--rm`` argument, *fades* will remove the
+virtualenv matching the provided UUID if such a virtualenv exists (one easy
+way to find out the virtualenv's UUID is calling *fades* with the
+``--get-venv-dir`` option.
 
 Another way to clean up the cache is to remove all venvs that haven't been used for some time.
 In order to do this you need to call *fades* with ``--clean-unused-venvs``.
