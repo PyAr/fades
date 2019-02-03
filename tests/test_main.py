@@ -211,3 +211,8 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
         # check that analyzable and child are the same, and that its content is the remote one
         self.assertEqual(analyzable, "new_path_script")
         self.assertEqual(child, "new_path_script")
+
+    def test_indicated_with_executable_flag_in_path(self):
+        """Absolute paths not allowed when using --exec."""
+        with self.assertRaises(FadesError):
+            main.decide_child_program(True, "/path/foobar.py")
