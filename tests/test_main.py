@@ -1,4 +1,4 @@
-# Copyright 2015-2018 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2019 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -16,12 +16,13 @@
 
 """Tests for some code in main."""
 
+import os
 import unittest
 from unittest.mock import patch
 
 from pkg_resources import Requirement
 
-from fades import main, parsing, __version__, VERSION
+from fades import VERSION, FadesError, __version__, main, parsing
 from tests import create_tempfile
 
 
@@ -176,9 +177,20 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
         self.assertIsNone(child)
 
     def test_normal_child_program(self):
-        analyzable, child = main.decide_child_program(False, "foobar.py")
-        self.assertEqual(analyzable, "foobar.py")
-        self.assertEqual(child, "foobar.py")
+        child_path = create_tempfile(self, "")
+        analyzable, child = main.decide_child_program(False, child_path)
+        self.assertEqual(analyzable, child_path)
+        self.assertEqual(child, child_path)
+
+    def test_normal_child_program_not_found(self):
+        with self.assertRaises(FadesError):
+            main.decide_child_program(False, 'does_not_exist.py')
+
+    def test_normal_child_program_no_access(self):
+        child_path = create_tempfile(self, "")
+        os.chmod(child_path, 333)  # Remove read permission.
+        with self.assertRaises(FadesError):
+            main.decide_child_program(False, 'does_not_exist.py')
 
     def test_remote_child_program_simple(self):
         with patch('fades.helpers.download_remote_script') as mock:

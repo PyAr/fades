@@ -96,6 +96,9 @@ def consolidate_dependencies(needs_ipython, child_program,
 
 def decide_child_program(args_executable, args_child_program):
     """Decide which the child program really is (if any)."""
+    # We get the logger here because it's not defined at module level
+    logger = logging.getLogger('fades')
+
     if args_executable:
         # indicated --execute, local and not analyzable for dependencies
         analyzable_child_program = None
@@ -104,6 +107,13 @@ def decide_child_program(args_executable, args_child_program):
         # normal case, the child program is to be analyzed (being it local or remote)
         if args_child_program.startswith(("http://", "https://")):
             args_child_program = helpers.download_remote_script(args_child_program)
+        else:
+            if not os.access(args_child_program, os.R_OK):
+                logger.error("'%s' not found. If you wan to run an executable "
+                             "file from a library installed in the virtualenv "
+                             "check the `--exec` option in the help.",
+                             args_child_program)
+                raise FadesError("child program  not found.")
         analyzable_child_program = args_child_program
         child_program = args_child_program
     else:
