@@ -262,6 +262,13 @@ def go():
             logger.warning('No virtualenv found with uuid: %s.', uuid)
         return 0
 
+    # if --exec given, check that it's just the executable name, not absolute or relative paths
+    if args.executable and os.path.sep in args.child_program:
+        logger.error(
+            "The parameter to --exec must be a file name (to be found "
+            "inside venv's bin directory), not a file path: %r", args.child_program)
+        raise FadesError("File path given to --exec parameter")
+
     # decided which the child program really is
     analyzable_child_program, child_program = decide_child_program(
         args.executable, args.child_program)
