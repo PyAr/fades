@@ -234,10 +234,7 @@ def parse_manual(dependencies):
 
 
 def _read_lines(filepath):
-    """Read a req file to a list to support nested requirement files
-
-    It's the same behavior than pip using `-r other_file.txt` """
-
+    """Read a req file to a list to support nested requirement files."""
     lines = []
     with open(filepath, 'rt', encoding='utf8') as fh:
         for line in fh:
