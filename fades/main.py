@@ -299,7 +299,7 @@ def go():
 
     if create_venv:
         # Check if the requested packages exists in pypi.
-        if not args.no_precheck_availability and indicated_deps:
+        if not args.no_precheck_availability and indicated_deps.get('pypi'):
             logger.info("Checking the availabilty of dependencies in PyPI. "
                         "You can use '--no-precheck-availability' to avoid it.")
             if not helpers.check_pypi_exists(indicated_deps):
