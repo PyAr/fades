@@ -51,11 +51,6 @@ The "child options" (everything after the child program) are
 parameters passed as is to the child program.
 """
 
-help_usage = """
-  fades [-h] [-V] [-v] [-q] [-i] [-d DEPENDENCY] [-r REQUIREMENT] [-p PYTHON]
-        [child_program [child_options]]
-"""
-
 
 def consolidate_dependencies(needs_ipython, child_program,
                              requirement_files, manual_dependencies):
@@ -141,7 +136,7 @@ def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
 
 def go():
     """Make the magic happen."""
-    parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog, usage=help_usage,
+    parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='store_true',
                         help="show version and info about the system, and exit")
@@ -173,7 +168,8 @@ def go():
     parser.add_argument('--check-updates', action='store_true',
                         help=("check for packages updates"))
     parser.add_argument('--no-precheck-availability', action='store_true',
-                        help=("Don't check if the packages exists in PyPI."))
+                        help=("Don't check if the packages exists in PyPI before actually try "
+                              "to install them."))
     parser.add_argument('--pip-options', action='append', default=[],
                         help=("Extra options to be supplied to pip. (this option can be "
                               "used multiple times)"))

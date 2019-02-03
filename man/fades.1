@@ -22,6 +22,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB--check-updates\fR]
 [\fB--clean-unused-venvs\fR=\fImax_days_to_keep\fR]
 [\fB--get-venv-dir\fR]
+[\fB--no-precheck-availability\fR]
 [child_program [child_options]]
 
 \fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
@@ -116,6 +117,10 @@ Will remove all virtualenvs that haven't been used for more than MAX_DAYS_TO_KEE
 .TP
 .BR --get-venv-dir
 Show the virtualenv base directory (which includes the virtualenv UUID) and quit.
+
+.TP
+.BR --no-precheck-availability
+Don't check if the packages exists in PyPI before actually try to install them.
 
 
 .SH EXAMPLES
