@@ -18,12 +18,14 @@
 
 import io
 import unittest
+import os
 
 import logassert
 
 from pkg_resources import parse_requirements
 
 from fades import parsing, REPO_PYPI, REPO_VCS
+from tests import create_tempfile
 
 
 def get_req(text):
@@ -753,3 +755,55 @@ class VCSDependencyTestCase(unittest.TestCase):
         self.assertTrue(dep1 != dep3)
         self.assertFalse(dep1 == 123)
         self.assertFalse(dep1 == "testurl")
+
+
+class FileReqsParsingTestCase(unittest.TestCase):
+    """Check the requirements parsing from a reqs.txt file."""
+
+    def setUp(self):
+        logassert.setup(self, 'fades.parsing')
+
+    def test_requirement_files(self):
+        requirement_file = create_tempfile(self, ['foo'])
+        parsed = parsing.parse_reqfile(requirement_file)
+
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
+
+    def test_nested_requirement_files(self):
+        requirement_file = create_tempfile(self, ['foo'])
+        requirement_file_nested = create_tempfile(
+            self, ['bar\n-r {}'.format(requirement_file)])
+        parsed = parsing.parse_reqfile(requirement_file_nested)
+
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('bar'),
+                                                  get_req('foo')]})
+
+    def test_nested_requirement_files_not_pwd(self):
+        requirement_file = create_tempfile(self, ['foo'])
+        fname = os.path.basename(requirement_file)
+        requirement_file_nested = create_tempfile(
+            self, ['bar\n-r {}'.format(fname)])
+        parsed = parsing.parse_reqfile(requirement_file_nested)
+
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('bar'),
+                                                  get_req('foo')]})
+
+    def test_nested_requirement_files_first_line(self):
+        requirement_file = create_tempfile(self, ['foo'])
+        requirement_file_nested = create_tempfile(
+            self, ['\n-r {}\nbar'.format(requirement_file)])
+        parsed = parsing.parse_reqfile(requirement_file_nested)
+
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo'),
+                                                  get_req('bar')]})
+
+    def test_two_nested_requirement_files(self):
+        requirement_file = create_tempfile(self, ['foo'])
+        requirement_file_nested1 = create_tempfile(
+            self, ['bar\n-r {}'.format(requirement_file)])
+        requirement_file_nested2 = create_tempfile(
+            self, ['baz\n-r {}'.format(requirement_file_nested1)])
+        parsed = parsing.parse_reqfile(requirement_file_nested2)
+
+        self.assertDictEqual(parsed, {REPO_PYPI: [
+            get_req('baz'), get_req('bar'), get_req('foo')]})

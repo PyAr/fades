@@ -1,4 +1,4 @@
-# Copyright 2014-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2019 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -17,6 +17,7 @@
 """Script parsing to get needed dependencies."""
 
 import logging
+import os
 import re
 
 from pkg_resources import parse_requirements
@@ -232,12 +233,32 @@ def parse_manual(dependencies):
     return _parse_requirement(dependencies)
 
 
+def _read_lines(filepath):
+    """Read a req file to a list to support nested requirement files
+
+    It's the same behavior than pip using `-r other_file.txt` """
+
+    lines = []
+    with open(filepath, 'rt', encoding='utf8') as fh:
+        for line in fh:
+            line = line.strip()
+            if line.startswith("-r"):
+                logger.debug(
+                    "Reading deps from nested requirement file: %s", line)
+                nested_filename = line.split()[1]
+                nested_filepath = os.path.join(
+                    os.path.dirname(filepath), nested_filename)
+                lines.extend(_read_lines(nested_filepath))
+                continue
+            lines.append(line)
+    return lines
+
+
 def parse_reqfile(filepath):
     """Parse a requirement file and return the indicated dependencies."""
     if filepath is None:
         return {}
-    with open(filepath, 'rt', encoding='utf8') as fh:
-        return _parse_requirement(fh)
+    return _parse_requirement(_read_lines(filepath))
 
 
 def parse_srcfile(filepath):
