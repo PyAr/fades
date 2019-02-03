@@ -82,7 +82,9 @@ The dependencies can be indicated in multiple places (in the Python source file,
 
 .TP
 .BR -x ", " --exec
-Execute the \fIchild_program\fR inside the virtualenv.
+Execute the \fIchild_program\fR inside the virtualenv (so the parameter given needs to be just 
+the executable name). It's an error to use this option to execute anything outside the venv's bin 
+directory, just stop using this option for that case.
 
 The \fIchild_program\fR \fBmust\fR be found in the virtualenv's \fIbin\fR directory.
 
