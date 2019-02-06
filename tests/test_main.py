@@ -189,6 +189,7 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
     def test_normal_child_program_no_access(self):
         child_path = create_tempfile(self, "")
         os.chmod(child_path, 333)  # Remove read permission.
+        self.addCleanup(os.chmod, child_path, 333)
         with self.assertRaises(FadesError):
             main.decide_child_program(False, 'does_not_exist.py')
 
