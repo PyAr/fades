@@ -778,6 +778,14 @@ class FileReqsParsingTestCase(unittest.TestCase):
         self.assertDictEqual(parsed, {REPO_PYPI: [get_req('bar'),
                                                   get_req('foo')]})
 
+    def test_nested_requirement_files_invalid_format(self):
+        requirement_file_nested = create_tempfile(self, ['foo\n-r'])
+        parsed = parsing.parse_reqfile(requirement_file_nested)
+
+        self.assertDictEqual(parsed, {REPO_PYPI: [get_req('foo')]})
+        self.assertLoggedWarning(
+            "Invalid format to indicate a nested requirements file:")
+
     def test_nested_requirement_files_not_pwd(self):
         requirement_file = create_tempfile(self, ['foo'])
         fname = os.path.basename(requirement_file)

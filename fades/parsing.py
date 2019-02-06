@@ -241,11 +241,17 @@ def _read_lines(filepath):
             if line.startswith("-r"):
                 logger.debug(
                     "Reading deps from nested requirement file: %s", line)
-                nested_filename = line.split()[1]
-                nested_filepath = os.path.join(
-                    os.path.dirname(filepath), nested_filename)
-                yield from _read_lines(nested_filepath)
-                continue
+                try:
+                    nested_filename = line.split()[1]
+                except IndexError:
+                    logger.warning("Invalid format to indicate a nested "
+                                   "requirements file: '%s'", line)
+                    continue
+                else:
+                    nested_filepath = os.path.join(
+                        os.path.dirname(filepath), nested_filename)
+                    yield from _read_lines(nested_filepath)
+                    continue
             yield line
 
 
