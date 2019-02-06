@@ -235,7 +235,6 @@ def parse_manual(dependencies):
 
 def _read_lines(filepath):
     """Read a req file to a list to support nested requirement files."""
-    lines = []
     with open(filepath, 'rt', encoding='utf8') as fh:
         for line in fh:
             line = line.strip()
@@ -245,10 +244,9 @@ def _read_lines(filepath):
                 nested_filename = line.split()[1]
                 nested_filepath = os.path.join(
                     os.path.dirname(filepath), nested_filename)
-                lines.extend(_read_lines(nested_filepath))
+                yield from _read_lines(nested_filepath)
                 continue
-            lines.append(line)
-    return lines
+            yield line
 
 
 def parse_reqfile(filepath):
