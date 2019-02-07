@@ -216,4 +216,4 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
     def test_indicated_with_executable_flag_in_path(self):
         """Absolute paths not allowed when using --exec."""
         with self.assertRaises(FadesError):
-            main.decide_child_program(True, "/path/foobar.py")
+            main.decide_child_program(True, os.path.join("path", "foobar.py"))
