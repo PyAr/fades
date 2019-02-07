@@ -96,7 +96,19 @@ def consolidate_dependencies(needs_ipython, child_program,
 
 def decide_child_program(args_executable, args_child_program):
     """Decide which the child program really is (if any)."""
+    # We get the logger here because it's not defined at module level
+    logger = logging.getLogger('fades')
+
     if args_executable:
+        # if --exec given, check that it's just the executable name,
+        # not absolute or relative paths
+        if os.path.sep in args_child_program:
+            logger.error(
+                "The parameter to --exec must be a file name (to be found "
+                "inside venv's bin directory), not a file path: %r",
+                args_child_program)
+            raise FadesError("File path given to --exec parameter")
+
         # indicated --execute, local and not analyzable for dependencies
         analyzable_child_program = None
         child_program = args_child_program
@@ -104,6 +116,13 @@ def decide_child_program(args_executable, args_child_program):
         # normal case, the child program is to be analyzed (being it local or remote)
         if args_child_program.startswith(("http://", "https://")):
             args_child_program = helpers.download_remote_script(args_child_program)
+        else:
+            if not os.access(args_child_program, os.R_OK):
+                logger.error("'%s' not found. If you wan to run an executable "
+                             "file from a library installed in the virtualenv "
+                             "check the `--exec` option in the help.",
+                             args_child_program)
+                raise FadesError("child program  not found.")
         analyzable_child_program = args_child_program
         child_program = args_child_program
     else:
@@ -257,13 +276,6 @@ def go():
         else:
             logger.warning('No virtualenv found with uuid: %s.', uuid)
         return 0
-
-    # if --exec given, check that it's just the executable name, not absolute or relative paths
-    if args.executable and os.path.sep in args.child_program:
-        logger.error(
-            "The parameter to --exec must be a file name (to be found "
-            "inside venv's bin directory), not a file path: %r", args.child_program)
-        raise FadesError("File path given to --exec parameter")
 
     # decided which the child program really is
     analyzable_child_program, child_program = decide_child_program(
