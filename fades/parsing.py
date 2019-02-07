@@ -249,7 +249,8 @@ def _read_lines(filepath):
                     nested_filepath = os.path.join(
                         os.path.dirname(filepath), nested_filename)
                     yield from _read_lines(nested_filepath)
-            yield line
+            else:
+                yield line
 
 
 def parse_reqfile(filepath):
