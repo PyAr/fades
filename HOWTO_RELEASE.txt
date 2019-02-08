@@ -102,11 +102,15 @@ For that, just run the following and answer the questions:
 How to release it to Arch
 -------------------------
 
-Edit ``pkg/archlinux/PKGBUILD`` and set *pkgver* and *md5sums*, then run
-*makepkg -S* inside the same directory that PKGBUILD. It will generate a
-file named 'fades-X.X-X.src.tar.gz'.
 
-Finally submit this file at the AUR page.
+Changes should be applied in the AUR repo ``ssh://aur@aur.archlinux.org/fades.git``
+
+Edit ``pkg/archlinux/PKGBUILD`` and set *pkgver* and *sha256sums*, then run
+``makepkg --printsrcinfo > .SRCINFO`` to update the .SRCINFO file.
+
+Finally commit and push the changes. The package will be automatically updated in AUR.
+
+``https://aur.archlinux.org/packages/fades``
 
 
 How to release it to the Snap store
