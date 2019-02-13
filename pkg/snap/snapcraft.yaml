@@ -1,5 +1,5 @@
 name: fades
-version: 7.0
+version: "8.1"
 summary: system for automatically handling virtual environments
 description: |
     fades is a system that automatically handles the virtualenvs in the cases
@@ -21,6 +21,7 @@ description: |
 icon: resources/logo256.png
 confinement: classic
 grade: stable
+base: core18
 
 apps:
   fades:
