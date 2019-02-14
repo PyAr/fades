@@ -488,11 +488,11 @@ For others debian and ubuntu
 
 If you are NOT in debian unstable or testing (if you are, see
 above for better instructions), you can use this
-`.deb <http://taniquetil.com.ar/fades/fades-latest.deb>`_.
+`.deb <http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1_all.deb>`_.
 
 Download it and install doing::
 
-    sudo dpkg -i fades-latest.deb
+    sudo dpkg -i fades_*.deb
 
 
 Using pip if you want
@@ -508,8 +508,8 @@ Multiplatform tarball
 Finally you can always get the multiplatform tarball and install
 it in the old fashion way::
 
-    wget http://taniquetil.com.ar/fades/fades-latest.tar.gz
-    tar -xf fades-latest.tar.gz
+    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1.orig.tar.gz
+    tar -xf fades_*.tar.gz
     cd fades-*
     sudo ./setup.py install
 
