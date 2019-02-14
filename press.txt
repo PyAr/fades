@@ -1,6 +1,6 @@
 Hello all,
 
-We're glad to announce the release of fades 7.
+We're glad to announce the release of fades 8.1.
 
 fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and
@@ -18,24 +18,26 @@ also mark the required dependencies. More details here:
 
 What's new in this release?
 
-- Pre-check if everything requested is really available in PyPI before starting to install them
+- Automatically execute scripts from the web, supporting most common pastebins
 
-- Ignore duplicated dependencies
+- Multiple (and missing) requirement.txt file support, which can now be nested
 
-- Several enhancements and fixes in the messages fades shows in verbose mode
+- Avoid checking package availability if no PyPI dependencies indicated
 
-- Forbid fades misusing: installing it with legacy Python and running it from inside another virtualenv
+- Add an option to show the virtualenv path in the system
 
-- Lot of project related improvements (not visible directly to final user, though) and some small bug fixes
+- Better error/help on missing indicated script or executable from dependency
+
+- Improved logs, PyPI urls, documentation, multiplatform support, and several other small fixes/enhancements
 
 
 Nicolás and I want to say a big thank you to the following collaborators
 that helped to improve and enhance fades in different ways for this
 version (in alphabetical order):
 
-    Evan - https://github.com/evandandrea
-    Juan Carlos - https://github.com/juancarlospaco
-    Rotem Yaari - https://github.com/vmalloc
+    Andrés Delfino - https://github.com/andresdelfino
+    Iñaki Malerba - https://github.com/inakimalerba
+    Martin Alderete - https://github.com/malderete
 
 
 To install and enjoy fades...
@@ -45,12 +47,11 @@ To install and enjoy fades...
 
     sudo apt-get install fades
 
-- For not latest debian/ubuntu you have a .deb here (with checksum
-  and signature):
+- For not latest debian/ubuntu you have a .deb here (with its Debian
+  source file):
 
-    http://taniquetil.com.ar/fades/fades-latest.deb
-    http://taniquetil.com.ar/fades/fades-latest.deb.sha1
-    http://taniquetil.com.ar/fades/fades-latest.deb.asc
+    http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1_all.deb
+    http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1.dsc
 
 - Install it in Arch is very simple:
 
@@ -67,15 +68,10 @@ To install and enjoy fades...
 - You can always get the multiplatform tarball and install it in the
   old fashion way:
 
-    wget http://taniquetil.com.ar/fades/fades-latest.tar.gz
-    tar -xf fades-latest.tar.gz
+    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1.orig.tar.gz
+    tar -xf fades_*.tar.gz
     cd fades-*
     sudo ./setup.py install
-
-  Also have the checksum and signature, if interested:
-
-    http://taniquetil.com.ar/fades/fades-latest.tar.gz.sha1
-    http://taniquetil.com.ar/fades/fades-latest.tar.gz.asc
 
 
 Help / questions:
@@ -114,7 +110,7 @@ Thanks in advance for your time!
 
 Hola a todas y todos,
 
-Estamos encantados de anunciar la liberación de fades 7.
+Estamos encantados de anunciar la liberación de fades 8.1.
 
 fades es un sistema que maneja automáticamente los virtualenvs en los
 casos que uno normalmente encuentra al escribir scripts y programas
@@ -132,24 +128,25 @@ Python) y también marcar las dependencias necesarias. Más detalles acá:
 
 ¿Qué hay de nuevo en esta release?
 
-- Revisar si todo lo pedido está realmente disponible en PyPI antes de comenzar a instalarlo
+- Ejecuta automaticamente scripts desde la web, soportando los pastebines más comunes
 
-- Ignora dependencias duplicadas
+- Soporta múltiples (o inexistentes) archivos requirement.txt, los cuales también pueden estar anidados
 
-- Varias mejoras y correcciones en los mensajes que fades muestra en modo verbose
+- Evita revisar la disponibilidad en PyPI si no se indicaron dependencias
 
-- Prohibimos el mal uso de fades: instalarlo en legacy Python y ejecutarlo desde adentro de otro virtualenv
+- Ofrece una opción para mostrar el path del virtualenv en el sistema
 
-- Un montón de mejoras relacionadas al proyecto en sí (pero no directamente visibles para el usuario final) y algunas pequeñas otras correcciones
+- Mejor indicación/ayuda cuando no se encuentra el script indicado o el ejecutable de la dependencia
 
+- Trae mejoras en logs, urls de PyPI, documentación, soporte multiplataforma, y varias otras mejoras y correcciones menores
 
 Nicolás y yo queremos darles muchas gracias a los siguientes
 colaboradores que ayudaron a mejorar a fades de distintas maneras para
 esta versión (en orden alfabético):
 
-    Evan - https://github.com/evandandrea
-    Juan Carlos - https://github.com/juancarlospaco
-    Rotem Yaari - https://github.com/vmalloc
+    Andrés Delfino - https://github.com/andresdelfino
+    Iñaki Malerba - https://github.com/inakimalerba
+    Martin Alderete - https://github.com/malderete
 
 
 Para instalar y disfrutar fades:
@@ -159,12 +156,11 @@ Para instalar y disfrutar fades:
 
     sudo apt-get install fades
 
-- Para debian/ubuntu que no sea lo último, acá hay un .deb (con
-  checksum y firma):
+- Para debian/ubuntu que no sea lo último, acá hay un .deb (con su respectivo
+  archivo fuente Debian):
 
-    http://taniquetil.com.ar/fades/fades-latest.deb
-    http://taniquetil.com.ar/fades/fades-latest.deb.sha1
-    http://taniquetil.com.ar/fades/fades-latest.deb.asc
+    http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1_all.deb
+    http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1.dsc
 
 - Instalarlo en Arch es muy simple:
 
@@ -181,15 +177,10 @@ Para instalar y disfrutar fades:
 - Siempre podés usar el tarball multiplataforma e instalarlo de
   la manera clásica:
 
-    wget http://taniquetil.com.ar/fades/fades-latest.tar.gz
-    tar -xf fades-latest.tar.gz
+    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1.orig.tar.gz
+    tar -xf fades_*.tar.gz
     cd fades-*
     sudo ./setup.py install
-
-  También tenés el checksum y la firma, si te interesa:
-
-    http://taniquetil.com.ar/fades/fades-latest.tar.gz.sha1
-    http://taniquetil.com.ar/fades/fades-latest.tar.gz.asc
 
 
 Ayuda / preguntas:
