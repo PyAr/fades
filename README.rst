@@ -93,6 +93,13 @@ be executed with fades... ::
 
     chmod +x yourscript.py
 
+You can also execute scripts directly from the web, passing directly the
+URL of the pastebin where the script is pasted (most common pastebines are
+supported, pastebin.com, gist, linkode.org, but also it's supported if
+the URL points to the script directly)::
+
+    fades http://myserver.com/myscript.py
+
 
 How to mark the dependencies to be installed?
 ---------------------------------------------
@@ -388,6 +395,12 @@ Uses the ``django-admin.py`` script to start a new project named ``foo``, withou
 ``fades --rm 89a2bf83-c280-4918-a78d-c35506efd69d``
 
 Removes a virtualenv matching the given uuid from disk and cache index.
+
+``fades http://linkode.org/#4QI4TrPlGf1gK2V7jPBC47``
+
+Downloads the script from the given pastebin and executes it (previously
+building a virtualenv for the dependencies indicated in that pastebin,
+of course).
 
 
 What if Python is updated in my system?

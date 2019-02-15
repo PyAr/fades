@@ -36,6 +36,8 @@ The first non-option parameter (if any) would be then the child program to execu
 
 \fBfades\fR can also be executed without passing a child script to execute: in this mode it will open a Python interactive interpreter inside the created/reused virtualenv (taking dependencies from \fI--dependency\fR or \fI--requirement\fR options).
 
+If the \fIchild_program\fR parameter is really an URL, the script will be automatically downloaded from there (supporting also the most common pastebins URLs: pastebin.com, linkode.org, gist, etc.).
+
 .SH OPTIONS
 
 .TP
