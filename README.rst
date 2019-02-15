@@ -437,9 +437,9 @@ get the latest version, see below for alternative installation methods):
 
     sudo apt-get install fades
 
-For Arch linux:
+For Arch Linux, you can install it from the **AUR** using any `AUR helper <https://wiki.archlinux.org/index.php/AUR_helpers>`_, e.g. with ``pikaur``:
 
-    yaourt -S fades
+    pikaur -S fades
 
 In systems with Snaps:
 
@@ -463,7 +463,7 @@ you can install it in Ubuntu/Debian with::
 
     apt-get install python3-setuptools
 
-And on Archlinux with::
+And on Arch Linux with::
 
     pacman -S python-setuptools
 
@@ -475,7 +475,7 @@ You can install it in Ubuntu/Debian with::
 
     apt-get install python3-xdg
 
-And on Archlinux with::
+And on Arch Linux with::
 
     pacman -S python-xdg
 
