@@ -443,7 +443,12 @@ For Arch Linux, you can install it from the **AUR** using any `AUR helper <https
 
 In systems with Snaps:
 
-    snap install fades
+    snap install fades --classic
+
+(why `--classic`? Because it's the only way that `fades` could, from
+inside the snap, access the rest of the system in case you want to
+use a different Python version, or a dependency that needs
+compilation, etc).
 
 For Mac OS X (and `Homebrew <http://brew.sh/>`_):
 
