@@ -118,7 +118,7 @@ def decide_child_program(args_executable, args_child_program):
             args_child_program = helpers.download_remote_script(args_child_program)
         else:
             if not os.access(args_child_program, os.R_OK):
-                logger.error("'%s' not found. If you wan to run an executable "
+                logger.error("'%s' not found. If you want to run an executable "
                              "file from a library installed in the virtualenv "
                              "check the `--exec` option in the help.",
                              args_child_program)
@@ -214,7 +214,7 @@ def go():
     # parameters come in sys.argv[1] in a single string separated
     # by spaces (in this case, the third parameter is what is being
     # executed)
-    if len(sys.argv) > 1 and " " in sys.argv[1]:
+    if len(sys.argv) == 1 and " " in sys.argv[1]:
         real_args = sys.argv[1].split() + sys.argv[2:]
         cli_args = parser.parse_args(real_args)
     else:
