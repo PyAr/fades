@@ -214,7 +214,7 @@ def go():
     # parameters come in sys.argv[1] in a single string separated
     # by spaces (in this case, the third parameter is what is being
     # executed)
-    if len(sys.argv) == 1 and " " in sys.argv[1]:
+    if os.path.basename(sys.argv[0]) != 'fades' and len(sys.argv) >= 1 and " " in sys.argv[1]:
         real_args = sys.argv[1].split() + sys.argv[2:]
         cli_args = parser.parse_args(real_args)
     else:
