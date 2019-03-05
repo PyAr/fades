@@ -154,6 +154,18 @@ def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
     return prefix != base_prefix
 
 
+def _get_normalized_args(parser):
+    # support the case when executed from a shell-bang, where all the
+    # parameters come in sys.argv[1] in a single string separated
+    # by spaces (in this case, the third parameter is what is being
+    # executed)
+    env = os.environ
+    if ('_' in env and env['_'] != sys.argv[0] and len(sys.argv) >= 1 and " " in sys.argv[1]):
+        return parser.parse_args(shlex.split(sys.argv[1]) + sys.argv[2:])
+    else:
+        return parser.parse_args()
+
+
 def go():
     """Make the magic happen."""
     parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog,
@@ -211,15 +223,7 @@ def go():
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
-    # support the case when executed from a shell-bang, where all the
-    # parameters come in sys.argv[1] in a single string separated
-    # by spaces (in this case, the third parameter is what is being
-    # executed)
-    if os.environ['_'] != sys.argv[0] and len(sys.argv) >= 1 and " " in sys.argv[1]:
-        real_args = shlex.split(sys.argv[1]) + sys.argv[2:]
-        cli_args = parser.parse_args(real_args)
-    else:
-        cli_args = parser.parse_args()
+    cli_args = _get_normalized_args(parser)
 
     # update args from config file (if needed).
     args = file_options.options_from_file(cli_args)
