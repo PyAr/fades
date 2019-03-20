@@ -155,12 +155,15 @@ def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
 
 
 def _get_normalized_args(parser):
-    # support the case when executed from a shell-bang, where all the
-    # parameters come in sys.argv[1] in a single string separated
-    # by spaces (in this case, the third parameter is what is being
-    # executed)
+    """Return the parsed command line arguments.
+
+    Support the case when executed from a shebang, where all the
+    parameters come in sys.argv[1] in a single string separated
+    by spaces (in this case, the third parameter is what is being
+    executed)
+    """
     env = os.environ
-    if ('_' in env and env['_'] != sys.argv[0] and len(sys.argv) >= 1 and " " in sys.argv[1]):
+    if '_' in env and env['_'] != sys.argv[0] and len(sys.argv) >= 1 and " " in sys.argv[1]:
         return parser.parse_args(shlex.split(sys.argv[1]) + sys.argv[2:])
     else:
         return parser.parse_args()
