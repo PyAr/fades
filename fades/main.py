@@ -23,6 +23,7 @@ import os
 import platform
 import signal
 import sys
+import shlex
 import subprocess
 
 import fades
@@ -118,7 +119,7 @@ def decide_child_program(args_executable, args_child_program):
             args_child_program = helpers.download_remote_script(args_child_program)
         else:
             if not os.access(args_child_program, os.R_OK):
-                logger.error("'%s' not found. If you wan to run an executable "
+                logger.error("'%s' not found. If you want to run an executable "
                              "file from a library installed in the virtualenv "
                              "check the `--exec` option in the help.",
                              args_child_program)
@@ -151,6 +152,21 @@ def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
 
     # if prefix is different than base_prefix, it's a venv
     return prefix != base_prefix
+
+
+def _get_normalized_args(parser):
+    """Return the parsed command line arguments.
+
+    Support the case when executed from a shebang, where all the
+    parameters come in sys.argv[1] in a single string separated
+    by spaces (in this case, the third parameter is what is being
+    executed)
+    """
+    env = os.environ
+    if '_' in env and env['_'] != sys.argv[0] and len(sys.argv) >= 1 and " " in sys.argv[1]:
+        return parser.parse_args(shlex.split(sys.argv[1]) + sys.argv[2:])
+    else:
+        return parser.parse_args()
 
 
 def go():
@@ -210,15 +226,7 @@ def go():
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
-    # support the case when executed from a shell-bang, where all the
-    # parameters come in sys.argv[1] in a single string separated
-    # by spaces (in this case, the third parameter is what is being
-    # executed)
-    if len(sys.argv) > 1 and " " in sys.argv[1]:
-        real_args = sys.argv[1].split() + sys.argv[2:]
-        cli_args = parser.parse_args(real_args)
-    else:
-        cli_args = parser.parse_args()
+    cli_args = _get_normalized_args(parser)
 
     # update args from config file (if needed).
     args = file_options.options_from_file(cli_args)
