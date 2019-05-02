@@ -301,7 +301,21 @@ class _ScriptDownloader:
         if url is None:
             url = self.url
         req = request.Request(url, headers=self.HEADERS_PLAIN)
-        return request.urlopen(req).read().decode("utf8")
+        resp = request.urlopen(req)
+
+        # check if the response url is different than the original one; in this case we had
+        # redirected, and we need to pass the new url response through the proper
+        # pastebin-dependant adapter, so recursively go into another _ScriptDownloader
+        if resp.geturl() != url:
+            new_url = resp.geturl()
+            downloader = _ScriptDownloader(new_url)
+            logger.info(
+                "Download redirect detect, now downloading from %r using %r downloader",
+                new_url, downloader.name)
+            return downloader.get()
+
+        # simple non-redirect response
+        return resp.read().decode("utf8")
 
     def _download_linkode(self):
         """Download content from Linkode pastebin."""
@@ -336,7 +350,7 @@ def download_remote_script(url):
     temp_fh = tempfile.NamedTemporaryFile('wt', encoding='utf8', suffix=".py", delete=False)
     downloader = _ScriptDownloader(url)
     logger.info(
-        "Downloading remote script from %r using (%r downloader) to %r",
+        "Downloading remote script from %r (using %r downloader) to %r",
         url, downloader.name, temp_fh.name)
 
     content = downloader.get()

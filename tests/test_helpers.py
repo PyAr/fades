@@ -398,7 +398,8 @@ class ScriptDownloaderTestCase(unittest.TestCase):
         # checks
         mock_downloader_class.assert_called_with(test_url)
         self.assertLoggedInfo(
-            "Downloading remote script", test_url, repr(filepath), 'mock downloader')
+            "Downloading remote script from {!r}".format(test_url),
+            repr(filepath), "(using 'mock downloader' downloader)")
         with open(filepath, "rt", encoding='utf8') as fh:
             self.assertEqual(fh.read(), test_content)
 
@@ -428,6 +429,7 @@ class ScriptDownloaderTestCase(unittest.TestCase):
             with patch('http.client.HTTPResponse') as mock_http_response:
                 mock_http_response.read.return_value = raw_service_response
                 mock_urlopen.return_value = mock_http_response
+                mock_http_response.geturl.return_value = test_url
 
             content = downloader.get()
 
@@ -474,6 +476,7 @@ class ScriptDownloaderTestCase(unittest.TestCase):
 
     def test_downloader_pastebin(self):
         test_url = "http://pastebin.com/sZGwz7SL"
+        real_url = "https://pastebin.com/raw/sZGwz7SL"
         test_content = "test content of the remote script áéíóú"
         raw_service_response = test_content.encode("utf8")
 
@@ -482,6 +485,7 @@ class ScriptDownloaderTestCase(unittest.TestCase):
             with patch('http.client.HTTPResponse') as mock_http_response:
                 mock_http_response.read.return_value = raw_service_response
                 mock_urlopen.return_value = mock_http_response
+                mock_http_response.geturl.return_value = real_url
 
             content = downloader.get()
 
@@ -493,13 +497,13 @@ class ScriptDownloaderTestCase(unittest.TestCase):
         (call,) = mock_urlopen.mock_calls
         (called_request,) = call[1]
         self.assertIsInstance(called_request, Request)
-        self.assertEqual(
-            called_request.full_url, "https://pastebin.com/raw/sZGwz7SL")
+        self.assertEqual(called_request.full_url, real_url)
         self.assertEqual(called_request.headers, headers)
         self.assertEqual(content, test_content)
 
     def test_downloader_gist(self):
         test_url = "http://gist.github.com/facundobatista/6ff4f75760a9acc35e68bae8c1d7da1c"
+        real_url = "https://gist.github.com/facundobatista/6ff4f75760a9acc35e68bae8c1d7da1c/raw"
         test_content = "test content of the remote script áéíóú"
         raw_service_response = test_content.encode("utf8")
 
@@ -508,6 +512,7 @@ class ScriptDownloaderTestCase(unittest.TestCase):
             with patch('http.client.HTTPResponse') as mock_http_response:
                 mock_http_response.read.return_value = raw_service_response
                 mock_urlopen.return_value = mock_http_response
+                mock_http_response.geturl.return_value = real_url
 
             content = downloader.get()
 
@@ -519,8 +524,35 @@ class ScriptDownloaderTestCase(unittest.TestCase):
         (call,) = mock_urlopen.mock_calls
         (called_request,) = call[1]
         self.assertIsInstance(called_request, Request)
-        self.assertEqual(
-            called_request.full_url,
-            "https://gist.github.com/facundobatista/6ff4f75760a9acc35e68bae8c1d7da1c/raw")
+        self.assertEqual(called_request.full_url, real_url)
         self.assertEqual(called_request.headers, headers)
         self.assertEqual(content, test_content)
+
+    def test_downloader_raw_with_redirection(self):
+        test_url = "http://bit.ly/will-redirect"
+        final_url = "http://real-service.com/"
+        raw_service_response = b"test content of the remote script"
+        downloader = helpers._ScriptDownloader(test_url)
+        response_contents = [
+            b"whatever; we don't care as we are redirectect",
+            raw_service_response,
+        ]
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.side_effect = lambda: response_contents.pop()
+                mock_http_response.geturl.return_value = final_url
+                mock_urlopen.return_value = mock_http_response
+
+                content = downloader.get()
+
+        # two calls, first to the service that will redirect us, second to the final one
+        call1, call2 = mock_urlopen.mock_calls
+
+        (called_request,) = call1[1]
+        self.assertEqual(called_request.full_url, test_url)
+
+        (called_request,) = call2[1]
+        self.assertEqual(called_request.full_url, final_url)
+        self.assertEqual(content, raw_service_response.decode("utf8"))
+
+        self.assertLoggedInfo("Download redirect detect, now downloading from", final_url)
