@@ -8,4 +8,4 @@ if not [%*] == [] (
     set TARGET_TESTS=fades tests
 )
 
-bin\fades -r requirements.txt -x nosetests -v -s %TARGET_TESTS%
+bin\fades -r requirements.txt -x pytest -v -s %TARGET_TESTS%
