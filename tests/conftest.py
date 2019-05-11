@@ -8,8 +8,9 @@ from fades import cache
 
 @pytest.fixture(scope="function")
 def tmp_file(tmpdir_factory):
-    path = tmpdir_factory.mktemp("test").join("foo.bar")
-    yield tmpdir_factory.mktemp("test").join("foo.bar")
+    # Converted to str to support python <3.6 versions
+    path = str(tmpdir_factory.mktemp("test").join("foo.bar"))
+    yield path
     if os.path.isfile(path):
         os.remove(path)
 

@@ -121,7 +121,7 @@ setup(
         'install': CustomInstall,
     },
     install_requires=['setuptools'],
-    tests_require=['logassert', 'pyxdg', 'pyuca', 'nose', 'flake8',
+    tests_require=['logassert', 'pyxdg', 'pyuca', 'pytest', 'flake8',
                    'pep257', 'rst2html5'],  # what unittests require
     python_requires='>=3.3',  # Minimum Python version supported.
     extras_require={
