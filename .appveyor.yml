@@ -25,10 +25,10 @@ install:
 
     # Check that we have the expected version and architecture for Python
     - "python --version"
-    - "python -c \"import struct; print(struct.calcsize('P') * 8)\"" 
+    - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
 build: off
 
 test_script:
   # Run the project tests
-  - "%CMD_IN_ENV% python bin/fades -v -r requirements.txt -x nosetests -v -s tests"
+  - "%CMD_IN_ENV% python bin/fades -v -r requirements.txt -x pytest"
