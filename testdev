@@ -7,7 +7,7 @@ set -eu
 if [ $# -ne 0 ]; then
     TARGET_TESTS="$@"
 else
-    TARGET_TESTS="fades tests"
+    TARGET_TESTS=""
 fi
 
-./bin/fades -r requirements.txt -x nosetests -v -s $TARGET_TESTS
+./bin/fades -r requirements.txt -x pytest $TARGET_TESTS
