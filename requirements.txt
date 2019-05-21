@@ -10,9 +10,9 @@ pyxdg==0.25
 rst2html5==1.9.3
 setuptools>=5.5
 wheel==0.26.0
-coverage==4.0.3
-pytest==4.4.2
+coverage==5.0a5
+pytest==4.5.0
 pytest-xdist==1.28.0
 pytest-sugar==0.9.2
-pytest-cov==2.5.1
+pytest-cov==2.7.1
 pytest-mock==1.10.4

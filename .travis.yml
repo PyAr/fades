@@ -11,13 +11,8 @@ install:
     - "pip install -r requirements.txt"
     - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install python-coveralls ; fi
 
-script: 
-    - |
-      if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then
-         pytest --cov=fades; 
-      else
-         pytest;
-      fi
+script:
+    - pytest --cov=fades
 
 after_script:
     - "flake8 fades --max-line-length=99 --select=E,W,F,C,N"
