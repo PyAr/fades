@@ -1,10 +1,7 @@
-flake8==3.5.0
+flake8==3.7.7
 logassert==2
-mccabe==0.6.1
 pep257==0.7.0
 pep8==1.7.0
-pycodestyle==2.3.1
-pyflakes==1.6.0
 pyuca==1.1.2
 pyxdg==0.25
 rst2html5==1.9.3
