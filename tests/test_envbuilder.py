@@ -190,9 +190,9 @@ class EnvCreationTestCase(unittest.TestCase):
                    "pyvenv_options": ['--system-site-packages'],
                    }
         with patch.object(EnvBuilder, 'create') as mock_create:
-                env_builder.create_env(interpreter, is_current, options)
-                self.assertTrue(env_builder.system_site_packages)
-                self.assertTrue(mock_create.called)
+            env_builder.create_env(interpreter, is_current, options)
+            self.assertTrue(env_builder.system_site_packages)
+            self.assertTrue(mock_create.called)
 
     def test_create_pyvenv(self):
         env_builder = envbuilder._FadesEnvBuilder()
@@ -202,9 +202,9 @@ class EnvCreationTestCase(unittest.TestCase):
                    "pyvenv_options": [],
                    }
         with patch.object(EnvBuilder, 'create') as mock_create:
-                env_builder.create_env(interpreter, is_current, options)
-                self.assertFalse(env_builder.system_site_packages)
-                self.assertTrue(mock_create.called)
+            env_builder.create_env(interpreter, is_current, options)
+            self.assertFalse(env_builder.system_site_packages)
+            self.assertTrue(mock_create.called)
 
     def test_create_system_site_pkgs_virtualenv(self):
         env_builder = envbuilder._FadesEnvBuilder()
@@ -214,8 +214,8 @@ class EnvCreationTestCase(unittest.TestCase):
                    "pyvenv_options": [],
                    }
         with patch.object(envbuilder._FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
-                env_builder.create_env(interpreter, is_current, options)
-                mock_create.assert_called_with(interpreter, options['virtualenv_options'])
+            env_builder.create_env(interpreter, is_current, options)
+            mock_create.assert_called_with(interpreter, options['virtualenv_options'])
 
     def test_create_virtualenv(self):
         env_builder = envbuilder._FadesEnvBuilder()
@@ -225,8 +225,8 @@ class EnvCreationTestCase(unittest.TestCase):
                    "pyvenv_options": [],
                    }
         with patch.object(envbuilder._FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
-                env_builder.create_env(interpreter, is_current, options)
-                mock_create.assert_called_with(interpreter, options['virtualenv_options'])
+            env_builder.create_env(interpreter, is_current, options)
+            mock_create.assert_called_with(interpreter, options['virtualenv_options'])
 
     def test_custom_env_path(self):
         builder = envbuilder._FadesEnvBuilder('some-path')
@@ -361,11 +361,11 @@ class UsageManagerTestCase(unittest.TestCase):
                    "pyvenv_options": ['--system-site-packages'],
                    }
         with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
-                # mock_lexec.side_effect = envbuilder.helpers.ExecutionError('matanga!')
-                mock_lexec.side_effect = FileNotFoundError('matanga!')
-                with self.assertRaises(FadesError) as cm:
-                    env_builder.create_env(interpreter, is_current, options)
-                self.assertEqual(str(cm.exception), 'virtualenv not found')
+            # mock_lexec.side_effect = envbuilder.helpers.ExecutionError('matanga!')
+            mock_lexec.side_effect = FileNotFoundError('matanga!')
+            with self.assertRaises(FadesError) as cm:
+                env_builder.create_env(interpreter, is_current, options)
+            self.assertEqual(str(cm.exception), 'virtualenv not found')
 
     def test_executionerror_exception(self):
         env_builder = envbuilder._FadesEnvBuilder()
@@ -375,10 +375,10 @@ class UsageManagerTestCase(unittest.TestCase):
                    "pyvenv_options": ['--system-site-packages'],
                    }
         with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
-                mock_lexec.side_effect = envbuilder.helpers.ExecutionError(1, 'cmd', ['stdout'])
-                with self.assertRaises(FadesError) as cm:
-                    env_builder.create_env(interpreter, is_current, options)
-                self.assertEqual(str(cm.exception), 'virtualenv could not be run')
+            mock_lexec.side_effect = envbuilder.helpers.ExecutionError(1, 'cmd', ['stdout'])
+            with self.assertRaises(FadesError) as cm:
+                env_builder.create_env(interpreter, is_current, options)
+            self.assertEqual(str(cm.exception), 'virtualenv could not be run')
 
     def test_general_error_exception(self):
         env_builder = envbuilder._FadesEnvBuilder()
@@ -388,10 +388,10 @@ class UsageManagerTestCase(unittest.TestCase):
                    "pyvenv_options": ['--system-site-packages'],
                    }
         with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
-                mock_lexec.side_effect = Exception()
-                with self.assertRaises(FadesError) as cm:
-                    env_builder.create_env(interpreter, is_current, options)
-                self.assertEqual(str(cm.exception), 'General error while running virtualenv')
+            mock_lexec.side_effect = Exception()
+            with self.assertRaises(FadesError) as cm:
+                env_builder.create_env(interpreter, is_current, options)
+            self.assertEqual(str(cm.exception), 'General error while running virtualenv')
 
     def test_when_a_venv_is_removed_it_is_removed_from_everywhere(self):
         old_date = datetime.utcnow()
