@@ -123,7 +123,7 @@ def test_install_without_pip(mocker):
 
 
 def test_brute_force_install_pip_installer_exists(mocker, tmp_path):
-    tmp_file = tmp_path / "hello.txt"
+    tmp_file = str(tmp_path / "hello.txt")
     mgr = PipManager(BIN_PATH, pip_installed=False)
     python_path = os.path.join(BIN_PATH, "python")
     mocked_exec = mocker.patch.object(helpers, "logged_exec")
@@ -140,7 +140,7 @@ def test_brute_force_install_pip_installer_exists(mocker, tmp_path):
 
 
 def test_brute_force_install_pip_no_installer(mocker, tmp_path):
-    tmp_file = tmp_path / "hello.txt"
+    tmp_file = str(tmp_path / "hello.txt")
     mgr = PipManager(BIN_PATH, pip_installed=False)
     python_path = os.path.join(BIN_PATH, "python")
     mocked_exec = mocker.patch.object(helpers, "logged_exec")
