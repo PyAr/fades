@@ -9,7 +9,7 @@ install:
     - >
       if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]
         then 
-          pip install python-coveralls pytest-cov
+          pip install python-coveralls "pytest-cov<2.6.0"
       fi
 script:
     - >
