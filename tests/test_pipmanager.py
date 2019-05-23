@@ -18,149 +18,148 @@
 
 import os
 import io
-import unittest
-
-from unittest.mock import patch
-
-import logassert
+import pytest
 
 from fades.pipmanager import PipManager
 from fades import pipmanager
 from fades import helpers
-from tests import get_tempfile
 
 BIN_PATH = "somepath"
 
 
-class PipManagerTestCase(unittest.TestCase):
-    """Check parsing for `pip show`."""
+def test_get_parsing_ok_pytest(mocker):
+    mocked_stdout = [
+        "Name: foo",
+        "Version: 2.0.0",
+        "Location: ~/.local/share/fades/86cc492/lib/python3.4/site-packages",
+        "Requires: ",
+    ]
+    mgr = PipManager(BIN_PATH, pip_installed=True)
+    mocker.patch.object(helpers, "logged_exec", return_value=mocked_stdout)
+    version = mgr.get_version("foo")
+    assert version, "2.0.0"
 
-    def setUp(self):
-        logassert.setup(self, 'fades.pipmanager')
 
-    def test_get_parsing_ok(self):
-        mocked_stdout = ['Name: foo',
-                         'Version: 2.0.0',
-                         'Location: ~/.local/share/fades/86cc492/lib/python3.4/site-packages',
-                         'Requires: ']
-        mgr = PipManager(BIN_PATH, pip_installed=True)
-        with patch.object(helpers, 'logged_exec') as mock:
-            mock.return_value = mocked_stdout
-            version = mgr.get_version('foo')
-        self.assertEqual(version, '2.0.0')
+def test_get_parsing_error(mocker, caplog):
+    mocked_stdout = [
+        "Name: foo",
+        "Release: 2.0.0",
+        "Location: ~/.local/share/fades/86cc492/lib/python3.4/site-packages",
+        "Requires: ",
+    ]
+    mgr = PipManager(BIN_PATH, pip_installed=True)
+    mocker.patch.object(helpers, "logged_exec", return_value=mocked_stdout)
+    version = mgr.get_version("foo")
+    assert version == ""
+    msg = (
+        "Fades is having problems getting the installed version. "
+        "Run with -v or check the logs for details"
+    )
+    assert msg in caplog.messages
 
-    def test_get_parsing_error(self):
-        mocked_stdout = ['Name: foo',
-                         'Release: 2.0.0',
-                         'Location: ~/.local/share/fades/86cc492/lib/python3.4/site-packages',
-                         'Requires: ']
-        mgr = PipManager(BIN_PATH, pip_installed=True)
-        with patch.object(helpers, 'logged_exec') as mock:
-            version = mgr.get_version('foo')
-            mock.return_value = mocked_stdout
-        self.assertEqual(version, '')
-        self.assertLoggedError('Fades is having problems getting the installed version. '
-                               'Run with -v or check the logs for details')
 
-    def test_real_case_levenshtein(self):
-        mocked_stdout = [
-            'Metadata-Version: 1.1',
-            'Name: python-Levenshtein',
-            'Version: 0.12.0',
-            'License: GPL',
-        ]
-        mgr = PipManager(BIN_PATH, pip_installed=True)
-        with patch.object(helpers, 'logged_exec') as mock:
-            mock.return_value = mocked_stdout
-            version = mgr.get_version('foo')
-        self.assertEqual(version, '0.12.0')
+def test_real_case_levenshtein(mocker):
+    mocked_stdout = [
+        "Metadata-Version: 1.1",
+        "Name: python-Levenshtein",
+        "Version: 0.12.0",
+        "License: GPL",
+    ]
+    mgr = PipManager(BIN_PATH, pip_installed=True)
+    mocker.patch.object(helpers, "logged_exec", return_value=mocked_stdout)
+    version = mgr.get_version("foo")
+    assert version == "0.12.0"
 
-    def test_install(self):
-        mgr = PipManager(BIN_PATH, pip_installed=True)
-        pip_path = os.path.join(BIN_PATH, 'pip')
-        with patch.object(helpers, 'logged_exec') as mock:
-            mgr.install('foo')
-            mock.assert_called_with([pip_path, 'install', 'foo'])
 
-    def test_install_multiword_dependency(self):
-        mgr = PipManager(BIN_PATH, pip_installed=True)
-        pip_path = os.path.join(BIN_PATH, 'pip')
-        with patch.object(helpers, 'logged_exec') as mock:
-            mgr.install('foo bar')
-            mock.assert_called_with([pip_path, 'install', 'foo', 'bar'])
+def test_install(mocker):
+    mgr = PipManager(BIN_PATH, pip_installed=True)
+    pip_path = os.path.join(BIN_PATH, "pip")
+    mock = mocker.patch.object(helpers, "logged_exec")
+    mgr.install("foo")
+    mock.assert_called_with([pip_path, "install", "foo"])
 
-    def test_install_with_options(self):
-        mgr = PipManager(BIN_PATH, pip_installed=True, options=['--bar baz'])
-        pip_path = os.path.join(BIN_PATH, 'pip')
-        with patch.object(helpers, 'logged_exec') as mock:
-            mgr.install('foo')
-            mock.assert_called_with([pip_path, 'install', 'foo', '--bar', 'baz'])
 
-    def test_install_with_options_using_equal(self):
-        mgr = PipManager(BIN_PATH, pip_installed=True, options=['--bar=baz'])
-        pip_path = os.path.join(BIN_PATH, 'pip')
-        with patch.object(helpers, 'logged_exec') as mock:
-            mgr.install('foo')
-            mock.assert_called_with([pip_path, 'install', 'foo', '--bar=baz'])
+def test_install_multiword_dependency(mocker):
+    mgr = PipManager(BIN_PATH, pip_installed=True)
+    pip_path = os.path.join(BIN_PATH, "pip")
+    mock = mocker.patch.object(helpers, "logged_exec")
+    mgr.install("foo bar")
+    mock.assert_called_with([pip_path, "install", "foo", "bar"])
 
-    def test_install_raise_error(self):
-        mgr = PipManager(BIN_PATH, pip_installed=True)
-        with patch.object(helpers, 'logged_exec') as mock:
-            mock.side_effect = Exception("Kapow!")
-            with self.assertRaises(Exception):
-                mgr.install('foo')
-        self.assertLoggedError("Error installing foo: Kapow!")
 
-    def test_install_without_pip(self):
-        mgr = PipManager(BIN_PATH, pip_installed=False)
-        pip_path = os.path.join(BIN_PATH, 'pip')
-        with patch.object(helpers, 'logged_exec') as mocked_exec:
-            with patch.object(mgr, '_brute_force_install_pip') as mocked_install_pip:
-                mgr.install('foo')
-                self.assertEqual(mocked_install_pip.call_count, 1)
-            mocked_exec.assert_called_with([pip_path, 'install', 'foo'])
+def test_install_with_options(mocker):
+    mgr = PipManager(BIN_PATH, pip_installed=True, options=["--bar baz"])
+    pip_path = os.path.join(BIN_PATH, "pip")
+    mock = mocker.patch.object(helpers, "logged_exec")
+    mgr.install("foo")
+    mock.assert_called_with([pip_path, "install", "foo", "--bar", "baz"])
 
-    def test_brute_force_install_pip_installer_exists(self):
-        mgr = PipManager(BIN_PATH, pip_installed=False)
-        python_path = os.path.join(BIN_PATH, 'python')
-        with patch.object(helpers, 'logged_exec') as mocked_exec, \
-                patch.object(mgr, '_download_pip_installer') as download_installer:
 
-            # get the tempfile but leave it there to be found
-            mgr.pip_installer_fname = get_tempfile(self)
-            mgr._brute_force_install_pip()
+def test_install_with_options_using_equal(mocker):
+    mgr = PipManager(BIN_PATH, pip_installed=True, options=["--bar=baz"])
+    pip_path = os.path.join(BIN_PATH, "pip")
+    mock = mocker.patch.object(helpers, "logged_exec")
+    mgr.install("foo")
+    mock.assert_called_with([pip_path, "install", "foo", "--bar=baz"])
 
-            self.assertEqual(download_installer.call_count, 0)
-            mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, '-I'])
-        self.assertTrue(mgr.pip_installed)
 
-    def test_brute_force_install_pip_no_installer(self):
-        mgr = PipManager(BIN_PATH, pip_installed=False)
-        python_path = os.path.join(BIN_PATH, 'python')
-        with patch.object(helpers, 'logged_exec') as mocked_exec, \
-                patch.object(mgr, '_download_pip_installer') as download_installer:
+def test_install_raise_error(mocker, caplog):
+    mgr = PipManager(BIN_PATH, pip_installed=True)
+    mocker.patch.object(helpers, "logged_exec", side_effect=Exception("Kapow!"))
+    with pytest.raises(Exception):
+        mgr.install("foo")
 
-            # get the tempfile and remove it so then it's not found
-            tempfile = get_tempfile(self)
-            os.remove(tempfile)
+    assert "Error installing foo: Kapow!" in caplog.messages
 
-            mgr.pip_installer_fname = tempfile
-            mgr._brute_force_install_pip()
 
-            download_installer.assert_called_once_with()
-        mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, '-I'])
-        self.assertTrue(mgr.pip_installed)
+def test_install_without_pip(mocker):
+    mgr = PipManager(BIN_PATH, pip_installed=False)
+    pip_path = os.path.join(BIN_PATH, "pip")
+    mocked_exec = mocker.patch.object(helpers, "logged_exec")
+    mocked_install_pip = mocker.patch.object(mgr, "_brute_force_install_pip")
+    mgr.install("foo")
+    assert mocked_install_pip.call_count == 1
+    mocked_exec.assert_called_with([pip_path, "install", "foo"])
 
-    def test_download_pip_installer(self):
-        mgr = PipManager(BIN_PATH, pip_installed=False)
 
-        # get a tempfile and remove it, so later the installer is downloaded there
-        tempfile = get_tempfile(self)
-        os.remove(tempfile)
+def test_brute_force_install_pip_installer_exists(mocker, tmp_path):
+    tmp_file = tmp_path / "hello.txt"
+    mgr = PipManager(BIN_PATH, pip_installed=False)
+    python_path = os.path.join(BIN_PATH, "python")
+    mocked_exec = mocker.patch.object(helpers, "logged_exec")
+    download_installer = mocker.patch.object(mgr, "_download_pip_installer")
 
-        mgr.pip_installer_fname = tempfile
-        with patch('fades.pipmanager.request.urlopen') as urlopen:
-            urlopen.return_value = io.BytesIO(b'hola')
-            mgr._download_pip_installer()
-        self.assertTrue(os.path.exists(mgr.pip_installer_fname))
-        urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
+    # get the tempfile but leave it there to be found
+    open(tmp_file, 'wt', encoding='utf8').close()
+    mgr.pip_installer_fname = tmp_file
+    mgr._brute_force_install_pip()
+
+    assert not download_installer.called
+    mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, "-I"])
+    assert mgr.pip_installed
+
+
+def test_brute_force_install_pip_no_installer(mocker, tmp_path):
+    tmp_file = tmp_path / "hello.txt"
+    mgr = PipManager(BIN_PATH, pip_installed=False)
+    python_path = os.path.join(BIN_PATH, "python")
+    mocked_exec = mocker.patch.object(helpers, "logged_exec")
+    download_installer = mocker.patch.object(mgr, "_download_pip_installer")
+
+    mgr.pip_installer_fname = tmp_file
+    mgr._brute_force_install_pip()
+
+    download_installer.assert_called_once_with()
+    mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, "-I"])
+    assert mgr.pip_installed
+
+
+def test_download_pip_installer(mocker, tmp_path):
+    tmp_file = str(tmp_path / "hello.txt")
+    mgr = PipManager(BIN_PATH, pip_installed=False)
+
+    mgr.pip_installer_fname = tmp_file
+    urlopen = mocker.patch("fades.pipmanager.request.urlopen", return_value=io.BytesIO(b"hola"))
+    mgr._download_pip_installer()
+    assert os.path.exists(mgr.pip_installer_fname)
+    urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
