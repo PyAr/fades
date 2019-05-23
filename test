@@ -10,9 +10,7 @@ else
     TARGET_TESTS=""
 fi
 
-FADES='./bin/fades -r requirements.txt'
-
-$FADES -x pytest --cov=fades $TARGET_TESTS
+./bin/fades -r requirements.txt -d pytest-cov -x pytest --cov=fades $TARGET_TESTS
 
 # check if we are using exit() in the code.
 if grep -r -n ' exit(' --include="*.py" .; then echo 'Please use sys.exit() instead of exit(). https://github.com/PyAr/fades/issues/280'; fi

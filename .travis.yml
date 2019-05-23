@@ -6,15 +6,27 @@ python:
       - "3.7-dev"
 install:
     - "pip install -r requirements.txt"
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then pip install python-coveralls ; fi
+    - >
+      if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]
+        then 
+          pip install python-coveralls pytest-cov
+      fi
 script:
-    - "pytest --cov=fades"
-after_script:
-    - "flake8 fades --max-line-length=99 --select=E,W,F,C,N"
+    - >
+      if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]
+        then
+          pytest --cov=fades
+        else  
+          pytest
+      fi
 
 # report coverage to coveralls.io
 after_success:
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then coveralls; fi
+    - >
+      if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]
+        then 
+          coveralls
+      fi
 
 cache:
   apt: true
