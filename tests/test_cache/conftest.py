@@ -10,7 +10,7 @@ from fades import cache
 def venvscache(tmpdir_factory):
     """Fixture for a cache file for virtualenvs."""
     dir_path = tmpdir_factory.mktemp("test")
-    venvs_cache = cache.VEnvsCache(dir_path.join("test.file"))
+    venvs_cache = cache.VEnvsCache(dir_path.join("test_venv_cache"))
     yield venvs_cache
     shutil.rmtree(str(dir_path))
 
