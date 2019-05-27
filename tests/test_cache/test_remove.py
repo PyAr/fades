@@ -45,7 +45,6 @@ def test_preserve_cache_data_ordering(tmp_file):
     assert json.loads(lines[1]).get('metadata').get('env_path') == 'path/env3'
 
 
-@pytest.mark.skip(reason="I dont know why is not working with pytest")
 def test_lock_cache_for_remove(tmp_file, mocker):
     venvscache = cache.VEnvsCache(tmp_file)
     # store 3 venvs

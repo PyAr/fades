@@ -1,4 +1,5 @@
 import os
+import shutil
 from pkg_resources import parse_requirements, Distribution
 
 from pytest import fixture
@@ -8,10 +9,11 @@ from fades import cache
 
 @fixture(scope="function")
 def venvscache(tmpdir_factory):
-    path = tmpdir_factory.mktemp("test").join("foo.bar")
-    venvs_cache = cache.VEnvsCache(path)
+    """Fixture for a cache file for virtualenvs."""
+    dir_path = tmpdir_factory.mktemp("test")
+    venvs_cache = cache.VEnvsCache(dir_path.join("test.file"))
     yield venvs_cache
-    del venvs_cache
+    shutil.rmtree(str(dir_path))
 
 
 def get_req(text):

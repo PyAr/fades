@@ -7,24 +7,31 @@ from conftest import get_req, get_distrib
 
 
 @pytest.mark.parametrize("req,installed,expected", [
+    # Equal
     ("==5", "5", "ok"),
     ("==5", "2", None),
+    # Greater than
     (">5", "4", None),
     (">5", "5", None),
     (">5", "6", "ok"),
+    # Greater than or equal
     (">=5", "4", None),
     (">=5", "5", "ok"),
     (">=5", "6", "ok"),
+    # Less than
     ("<5", "4", "ok"),
     ("<5", "5", None),
     ("<5", "6", None),
+    # Less than or equal
     ("<=5", "4", "ok"),
     ("<=5", "5", "ok"),
     ("<=5", "6", None),
+    # Complex cases
     ("== 2.5", "2.5.0", "ok"),
     ("> 2.7", "2.12", "ok"),
     ("> 2.7a0", "2.7", "ok"),
     ("> 2.7", "2.7a0", None),
+    # Crazy picky
     (">1.6,<1.9,!=1.9.6", "1.5.0", None),
     (">1.6,<1.9,!=1.9.6", "1.6.7", "ok"),
     (">1.6,<1.9,!=1.8.6", "1.8.7", "ok"),

@@ -1,4 +1,3 @@
-"""Tests for the helpers."""
 from fades import cache
 
 

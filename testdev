@@ -10,4 +10,4 @@ else
     TARGET_TESTS=""
 fi
 
-./bin/fades -r requirements.txt -x python -m pytest $TARGET_TESTS
+./bin/fades -r requirements.txt -x pytest $TARGET_TESTS
