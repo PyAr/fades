@@ -1,20 +1,35 @@
+dist: xenial  # required for Python >= 3.7
+
 language: python
 
 python:
       - "3.5"
       - "3.6"
-      - "3.7-dev"
+      - "3.7"
+      - "3.8-dev"
 install:
     - "pip install -r requirements.txt"
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then pip install python-coveralls ; fi
+    - >
+      if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]
+        then 
+          pip install python-coveralls "pytest-cov<2.6.0"
+      fi
 script:
-    - "pytest --cov=fades"
-after_script:
-    - "flake8 fades --max-line-length=99 --select=E,W,F,C,N"
+    - >
+      if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]
+        then
+          pytest --cov=fades
+        else  
+          pytest
+      fi
 
 # report coverage to coveralls.io
 after_success:
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then coveralls; fi
+    - >
+      if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]
+        then 
+          coveralls
+      fi
 
 cache:
   apt: true
