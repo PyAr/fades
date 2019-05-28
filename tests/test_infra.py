@@ -17,7 +17,6 @@
 """Tests for infrastructure stuff."""
 
 import io
-import os
 import logging
 import docutils.core
 import pep257
@@ -25,6 +24,8 @@ import rst2html5_
 
 from flake8.api.legacy import get_style_guide
 from pyuca import Collator
+
+from tests.conftest import get_python_filepaths
 
 FLAKE8_ROOTS = ['fades', 'tests']
 FLAKE8_OPTIONS = ['--max-line-length=99', '--select=E,W,F,C,N']
@@ -36,19 +37,8 @@ for logger_name in ('flake8.plugins', 'flake8.api', 'flake8.checker', 'flake8.ma
     logging.getLogger(logger_name).setLevel(logging.CRITICAL)
 
 
-def _get_python_filepaths(roots):
-    """Helper to retrieve paths of Python files."""
-    python_paths = []
-    for root in roots:
-        for dirpath, dirnames, filenames in os.walk(root):
-            for filename in filenames:
-                if filename.endswith(".py"):
-                    python_paths.append(os.path.join(dirpath, filename))
-    return python_paths
-
-
 def test_flake8_pytest(mocker):
-    python_filepaths = _get_python_filepaths(FLAKE8_ROOTS)
+    python_filepaths = get_python_filepaths(FLAKE8_ROOTS)
     style_guide = get_style_guide(paths=FLAKE8_OPTIONS)
     fake_stdout = io.StringIO()
     mocker.patch('sys.stdout', fake_stdout)
@@ -57,7 +47,7 @@ def test_flake8_pytest(mocker):
 
 
 def test_pep257_pytest():
-    python_filepaths = _get_python_filepaths(PEP257_ROOTS)
+    python_filepaths = get_python_filepaths(PEP257_ROOTS)
     result = list(pep257.check(python_filepaths))
     assert len(result) == 0, "There are issues!\n" + '\n'.join(map(str, result))
 
