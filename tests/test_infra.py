@@ -25,7 +25,7 @@ import rst2html5_
 from flake8.api.legacy import get_style_guide
 from pyuca import Collator
 
-from tests.conftest import get_python_filepaths
+from fades import get_python_filepaths
 
 FLAKE8_ROOTS = ['fades', 'tests']
 FLAKE8_OPTIONS = ['--max-line-length=99', '--select=E,W,F,C,N']
