@@ -44,3 +44,14 @@ def create_tempfile(testcase, lines):
             f.write(line + '\n')
 
     return tempfile
+
+
+def get_python_filepaths(roots):
+    """Helper to retrieve paths of Python files."""
+    python_paths = []
+    for root in roots:
+        for dirpath, dirnames, filenames in os.walk(root):
+            for filename in filenames:
+                if filename.endswith(".py"):
+                    python_paths.append(os.path.join(dirpath, filename))
+    return python_paths
