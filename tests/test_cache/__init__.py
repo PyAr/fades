@@ -16,12 +16,7 @@
 
 """Helpers for the Cache tests collection."""
 
-from pkg_resources import parse_requirements, Distribution
-
-
-def get_req(text):
-    """Transform a text requirement into the pkg_resources object."""
-    return list(parse_requirements(text))
+from pkg_resources import Distribution
 
 
 def get_distrib(*dep_ver_pairs):

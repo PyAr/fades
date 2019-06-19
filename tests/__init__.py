@@ -1,4 +1,4 @@
-# Copyright 2017 Facundo Batista, Nicolás Demarchi
+# Copyright 2017-2019 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -17,8 +17,9 @@
 """Common code for the tests."""
 
 import os
-
 from tempfile import mkstemp
+
+from pkg_resources import parse_requirements
 
 
 def get_tempfile(testcase):
@@ -55,3 +56,8 @@ def get_python_filepaths(roots):
                 if filename.endswith(".py"):
                     python_paths.append(os.path.join(dirpath, filename))
     return python_paths
+
+
+def get_reqs(*items):
+    """Transform text requirements into pkg_resources objects."""
+    return list(parse_requirements(items))
