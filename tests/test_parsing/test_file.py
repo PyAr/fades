@@ -3,7 +3,7 @@ import io
 
 from fades import parsing, REPO_PYPI, REPO_VCS
 
-from tests.test_cache import get_req
+from tests import get_reqs
 
 
 def test_nocomment():
@@ -21,16 +21,16 @@ def test_simple_default():
         import time
         import foo    # fades
     """))
-    assert parsed == {REPO_PYPI: [get_req('foo')]}
+    assert parsed == {REPO_PYPI: get_reqs('foo')}
 
 
 def test_double():
     parsed = parsing._parse_content(io.StringIO("""
         import time  # fades
-        import foo    # fades
+        import foo   # fades
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('time'), get_req('foo')]
+        REPO_PYPI: get_reqs('time') + get_reqs('foo')
     }
 
 
@@ -39,7 +39,7 @@ def test_version_same_default():
         import foo    # fades == 3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo == 3.5')]
+        REPO_PYPI: get_reqs('foo == 3.5')
     }
 
 
@@ -48,7 +48,7 @@ def test_version_different():
         import foo    # fades !=3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo !=3.5')]
+        REPO_PYPI: get_reqs('foo !=3.5')
     }
 
 
@@ -57,7 +57,7 @@ def test_version_same_no_spaces():
         import foo    # fades==3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo ==3.5')]
+        REPO_PYPI: get_reqs('foo ==3.5')
     }
 
 
@@ -66,7 +66,7 @@ def test_version_same_two_spaces():
         import foo    # fades  ==  3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo ==  3.5')]
+        REPO_PYPI: get_reqs('foo ==  3.5')
     }
 
 
@@ -75,7 +75,7 @@ def test_version_same_one_space_before():
         import foo    # fades == 3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo == 3.5')]
+        REPO_PYPI: get_reqs('foo == 3.5')
     }
 
 
@@ -84,7 +84,7 @@ def test_version_same_two_space_before():
         import foo    # fades  == 3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo == 3.5')]
+        REPO_PYPI: get_reqs('foo == 3.5')
     }
 
 
@@ -93,7 +93,7 @@ def test_version_same_one_space_after():
         import foo    # fades== 3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo == 3.5')]
+        REPO_PYPI: get_reqs('foo == 3.5')
     }
 
 
@@ -102,7 +102,7 @@ def test_version_same_two_space_after():
         import foo    # fades==  3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo ==  3.5')]
+        REPO_PYPI: get_reqs('foo ==  3.5')
     }
 
 
@@ -111,7 +111,7 @@ def test_version_greater():
         import foo    # fades > 2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo > 2')]
+        REPO_PYPI: get_reqs('foo > 2')
     }
 
 
@@ -120,7 +120,7 @@ def test_version_greater_no_space():
         import foo    # fades>2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >2')]
+        REPO_PYPI: get_reqs('foo >2')
     }
 
 
@@ -129,23 +129,25 @@ def test_version_greater_no_space_default():
         import foo    # fades>2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >2')]
+        REPO_PYPI: get_reqs('foo >2')
     }
+
 
 def test_version_greater_two_spaces():
     parsed = parsing._parse_content(io.StringIO("""
         import foo    # fades  >  2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >  2')]
+        REPO_PYPI: get_reqs('foo >  2')
     }
+
 
 def test_version_greater_one_space_after():
     parsed = parsing._parse_content(io.StringIO("""
         import foo    # fades> 2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo > 2')]
+        REPO_PYPI: get_reqs('foo > 2')
     }
 
 
@@ -154,7 +156,7 @@ def test_version_greater_two_space_after():
         import foo    # fades>  2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo > 2')]
+        REPO_PYPI: get_reqs('foo > 2')
     }
 
 
@@ -163,7 +165,7 @@ def test_version_greater_one_space_before():
         import foo    # fades> 2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo > 2')]
+        REPO_PYPI: get_reqs('foo > 2')
     }
 
 
@@ -172,7 +174,7 @@ def test_version_greater_two_space_before():
         import foo    # fades>  2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo > 2')]
+        REPO_PYPI: get_reqs('foo > 2')
     }
 
 
@@ -181,7 +183,7 @@ def test_version_same_or_greater():
         import foo    # fades >= 2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >= 2')]
+        REPO_PYPI: get_reqs('foo >= 2')
     }
 
 
@@ -190,7 +192,7 @@ def test_version_same_or_greater_no_spaces():
         import foo    # fades>=2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >= 2')]
+        REPO_PYPI: get_reqs('foo >= 2')
     }
 
 
@@ -199,7 +201,7 @@ def test_version_same_or_greater_one_space_before():
         import foo    # fades >=2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >=2')]
+        REPO_PYPI: get_reqs('foo >=2')
     }
 
 
@@ -208,7 +210,7 @@ def test_version_same_or_greater_two_space_before():
         import foo    # fades  >=2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >=2')]
+        REPO_PYPI: get_reqs('foo >=2')
     }
 
 
@@ -217,7 +219,7 @@ def test_version_same_or_greater_one_space_after():
         import foo    # fades>= 2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >= 2')]
+        REPO_PYPI: get_reqs('foo >= 2')
     }
 
 
@@ -226,7 +228,7 @@ def test_version_same_or_greater_two_space_after():
         import foo    # fades>=  2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >= 2')]
+        REPO_PYPI: get_reqs('foo >= 2')
     }
 
 
@@ -237,7 +239,7 @@ def test_continuation_line():
         import foo
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo > 2')]
+        REPO_PYPI: get_reqs('foo > 2')
     }
 
 
@@ -246,7 +248,7 @@ def test_from_import_simple():
         from foo import bar   # fades
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo')]
+        REPO_PYPI: get_reqs('foo')
     }
 
 
@@ -255,7 +257,7 @@ def test_import():
         import foo.bar   # fades
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo')]
+        REPO_PYPI: get_reqs('foo')
     }
 
 
@@ -264,7 +266,7 @@ def test_from_import_complex():
         from baz.foo import bar   # fades
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('baz')]
+        REPO_PYPI: get_reqs('baz')
     }
 
 
@@ -273,7 +275,7 @@ def test_allow_other_comments():
         from foo import *   # NOQA   # fades
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo')]
+        REPO_PYPI: get_reqs('foo')
     }
 
 
@@ -282,7 +284,7 @@ def test_allow_other_comments_reverse_default():
         from foo import * # fades # NOQA
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo')]
+        REPO_PYPI: get_reqs('foo')
     }
 
 
@@ -318,7 +320,7 @@ def test_projectname_noversion_implicit():
         import foo    # fades othername
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('othername')]
+        REPO_PYPI: get_reqs('othername')
     }
 
 
@@ -327,7 +329,7 @@ def test_projectname_noversion_explicit():
         import foo    # fades pypi::othername
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('othername')]
+        REPO_PYPI: get_reqs('othername')
     }
 
 
@@ -336,7 +338,7 @@ def test_projectname_version_explicit():
         import foo    # fades pypi::othername >= 3
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('othername >= 3')]
+        REPO_PYPI: get_reqs('othername >= 3')
     }
 
 
@@ -345,7 +347,7 @@ def test_projectname_version_nospace():
         import foo    # fades othername==5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('othername==5')]
+        REPO_PYPI: get_reqs('othername==5')
     }
 
 
@@ -354,7 +356,7 @@ def test_projectname_version_space():
         import foo    # fades othername <5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('othername <5')]
+        REPO_PYPI: get_reqs('othername <5')
     }
 
 
@@ -363,7 +365,7 @@ def test_projectname_pkgnamedb():
         import bs4   # fades
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('beautifulsoup4')]
+        REPO_PYPI: get_reqs('beautifulsoup4')
     }
 
 
@@ -372,7 +374,7 @@ def test_projectname_pkgnamedb_version():
         import bs4   # fades >=5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('beautifulsoup4 >=5')]
+        REPO_PYPI: get_reqs('beautifulsoup4 >=5')
     }
 
 
@@ -381,7 +383,7 @@ def test_projectname_pkgnamedb_othername_default():
         import bs4   # fades othername
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('othername')]
+        REPO_PYPI: get_reqs('othername')
     }
 
 
@@ -390,7 +392,7 @@ def test_projectname_pkgnamedb_version_othername():
         import bs4   # fades othername >=5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('othername >=5')]
+        REPO_PYPI: get_reqs('othername >=5')
     }
 
 
@@ -399,7 +401,7 @@ def test_comma_separated_import():
         from foo import bar, baz, qux   # fades
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo')]
+        REPO_PYPI: get_reqs('foo')
     }
 
 
@@ -409,7 +411,7 @@ def test_other_lines_with_fades_string():
         print("screen fades to black")
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('bar')]
+        REPO_PYPI: get_reqs('bar')
     }
 
 
@@ -427,7 +429,7 @@ def test_with_fades_commented_line(logged):
         import bar   # fades
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('bar')]
+        REPO_PYPI: get_reqs('bar')
     }
     logged.assert_not_warning("Not understood fades")
 
@@ -438,7 +440,7 @@ def test_with_commented_line(logged):
         # a commented line
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('bar')]
+        REPO_PYPI: get_reqs('bar')
     }
     logged.assert_not_warning("Not understood fades")
 
@@ -468,7 +470,7 @@ def test_mixed():
     """))
     assert parsed == {
         REPO_VCS: [parsing.VCSDependency('superurl')],
-        REPO_PYPI: [get_req('bar')],
+        REPO_PYPI: get_reqs('bar'),
     }
 
 
@@ -488,7 +490,7 @@ def test_fades_and_hashtag_mentioned_in_code_mixed_with_imports():
       'http://fades.readthedocs.io/en/release-7-0/readme.html#how-to-use-it'
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('requests')]
+        REPO_PYPI: get_reqs('requests')
     }
 
 
