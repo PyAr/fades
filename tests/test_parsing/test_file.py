@@ -497,5 +497,5 @@ def test_fades_and_hashtag_mentioned_in_code_mixed_with_imports():
 def test_fades_user_strange_comment_with_hashtag_ignored():
     parsed = parsing._parse_content(io.StringIO("""
       import foo # fades==2 # Some comment with #hashtash
-    """))  # noqa
+    """))
     assert parsed == {}

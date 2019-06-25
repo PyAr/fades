@@ -1,13 +1,9 @@
 """Check the requirements parsing."""
 import io
 
-from pkg_resources import parse_requirements
 from fades import parsing, REPO_PYPI, REPO_VCS
 
-
-def get_req(text):
-    """Transform a text requirement into the pkg_resources object."""
-    return list(parse_requirements(text))[0]
+from tests import get_reqs
 
 
 def test_empty():
@@ -21,14 +17,14 @@ def test_simple():
     parsed = parsing._parse_requirement(io.StringIO("""
         pypi::foo
     """))
-    assert parsed == {REPO_PYPI: [get_req('foo')]}
+    assert parsed == {REPO_PYPI: get_reqs('foo')}
 
 
 def test_simple_default():
     parsed = parsing._parse_requirement(io.StringIO("""
         foo
     """))
-    assert parsed == {REPO_PYPI: [get_req('foo')]}
+    assert parsed == {REPO_PYPI: get_reqs('foo')}
 
 
 def test_double():
@@ -37,7 +33,7 @@ def test_double():
         foo
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('time'), get_req('foo')]
+        REPO_PYPI: get_reqs('time') + get_reqs('foo')
     }
 
 
@@ -46,7 +42,7 @@ def test_version_same():
         pypi::foo == 3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo == 3.5')]
+        REPO_PYPI: get_reqs('foo == 3.5')
     }
 
 
@@ -55,7 +51,7 @@ def test_version_same_default():
         foo == 3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo == 3.5')]
+        REPO_PYPI: get_reqs('foo == 3.5')
     }
 
 
@@ -64,7 +60,7 @@ def test_version_different():
         foo  !=3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo !=3.5')]
+        REPO_PYPI: get_reqs('foo !=3.5')
     }
 
 
@@ -73,7 +69,7 @@ def test_version_same_no_spaces():
         foo==3.5
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo ==3.5')]
+        REPO_PYPI: get_reqs('foo ==3.5')
     }
 
 
@@ -82,7 +78,7 @@ def test_version_greater_two_spaces():
         foo   >  2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >  2')]
+        REPO_PYPI: get_reqs('foo >  2')
     }
 
 
@@ -91,7 +87,7 @@ def test_version_same_or_greater():
         foo   >=2
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo >= 2')]
+        REPO_PYPI: get_reqs('foo >= 2')
     }
 
 
@@ -102,7 +98,7 @@ def test_comments():
         bar
     """))
     assert parsed == {
-        REPO_PYPI: [get_req('foo'), get_req('bar')]
+        REPO_PYPI: get_reqs('foo') + get_reqs('bar')
     }
 
 
@@ -135,5 +131,5 @@ def test_mixed():
     """))
     assert parsed == {
         REPO_VCS: [parsing.VCSDependency("strangeurl")],
-        REPO_PYPI: [get_req('foo')],
+        REPO_PYPI: get_reqs('foo'),
     }
