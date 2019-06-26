@@ -19,27 +19,24 @@ import logging
 from fades.logger import set_up as log_set_up
 
 
-def test_salutes_info(caplog):
+def test_salutes_info(logged):
     """Check saluting handler."""
     logger = log_set_up(verbose=False, quiet=True)
     logger.warning("test foobar")
 
-    assert caplog.record_tuples == [
-        ('fades', logging.INFO, "Hi! This is fades 8.1, automatically managing your dependencies"),
-        ('fades', logging.WARN, 'test foobar')
-    ]
+    logged.assert_info("Hi! This is fades")
+    logged.assert_warning("test foobar")
 
 
-def test_salutes_once(caplog):
+def test_salutes_once(logged):
     logger = log_set_up(verbose=False, quiet=False)
     logger.info("test foobar")
+    logged.assert_info("Hi! This is fades")
+    logged.assert_info("test foobar")
 
     # again, check this time it didn't salute, but original log message is ok
-    caplog.set_level(logging.INFO, logger='fades')
+    logassert.setup('fades')
     logger.info("test barbarroja")
 
-    assert caplog.record_tuples == [
-        ('fades', logging.INFO, "Hi! This is fades 8.1, automatically managing your dependencies"),
-        ('fades', logging.INFO, 'test foobar'),
-        ('fades', logging.INFO, 'test barbarroja'),
-    ]
+    logged.assert_not_info("Hi! This is fades")
+    logged.assert_info("test barbarroja")
