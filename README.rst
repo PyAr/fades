@@ -300,6 +300,12 @@ Examples:
 
 ``fades --python-options=-B foo.py``
 
+``fades -m "http.server --bind 0.0.0.0 8090"``
+
+``fades -d tox -m "tox -- -vv"``
+
+``fades -d pygame -m pygame.examples.aliens``
+
 
 Setting options using config files
 ----------------------------------

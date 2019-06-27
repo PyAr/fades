@@ -194,6 +194,7 @@ def go():
                         help=("Indicate that the child_program should be looked up in the "
                               "virtualenv."))
     parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
+    parser.add_argument('-m', '--module', action='store', help="Run library module as a script")
     parser.add_argument('--system-site-packages', action='store_true', default=False,
                         help=("Give the virtual environment access to the "
                               "system site-packages dir."))
@@ -356,7 +357,13 @@ def go():
 
     # store usage information
     usage_manager.store_usage_stat(venv_data, venvscache)
-    if child_program is None:
+    if args.module:
+        logger.debug(
+            "Executing module %r", args.module)
+        module_option = ["-m"] + args.module.split()
+        cmd = [python_exe] + python_options + module_option
+        p = subprocess.Popen(cmd)
+    elif child_program is None:
         interactive = True
         logger.debug(
             "Calling the interactive Python interpreter with arguments %r", python_options)

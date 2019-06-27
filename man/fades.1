@@ -13,6 +13,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB-d\fR][\fB--dependency\fR]
 [\fB-r\fR][\fB--requirement\fR]
 [\fB-x\fR][\fB--exec\fR]
+[\fB-m\fR][\fB--module\fR]
 [\fB-p\fR \fIversion\fR][\fB--python\fR=\fIversion\fR]
 [\fB--rm\fR=\fIUUID\fR]
 [\fB--system-site-packages\fR]
@@ -89,6 +90,10 @@ the executable name). It's an error to use this option to execute anything outsi
 directory, just stop using this option for that case.
 
 The \fIchild_program\fR \fBmust\fR be found in the virtualenv's \fIbin\fR directory.
+
+.TP
+.BR -m ", " --module
+Run library module as a script
 
 .TP
 .BR --rm " " \fIUUID\fR
