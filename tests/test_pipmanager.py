@@ -40,7 +40,7 @@ def test_get_parsing_ok_pytest(mocker):
     assert version, "2.0.0"
 
 
-def test_get_parsing_error(mocker, caplog):
+def test_get_parsing_error(mocker, logged):
     mocked_stdout = [
         "Name: foo",
         "Release: 2.0.0",
@@ -50,12 +50,12 @@ def test_get_parsing_error(mocker, caplog):
     mgr = PipManager(BIN_PATH, pip_installed=True)
     mocker.patch.object(helpers, "logged_exec", return_value=mocked_stdout)
     version = mgr.get_version("foo")
+
     assert version == ""
-    msg = (
-        "Fades is having problems getting the installed version. "
-        "Run with -v or check the logs for details"
+    logged.assert_error(
+        'Fades is having problems getting the installed version. '
+        'Run with -v or check the logs for details'
     )
-    assert msg in caplog.messages
 
 
 def test_real_case_levenshtein(mocker):
@@ -103,13 +103,13 @@ def test_install_with_options_using_equal(mocker):
     mock.assert_called_with([pip_path, "install", "foo", "--bar=baz"])
 
 
-def test_install_raise_error(mocker, caplog):
+def test_install_raise_error(mocker, logged):
     mgr = PipManager(BIN_PATH, pip_installed=True)
     mocker.patch.object(helpers, "logged_exec", side_effect=Exception("Kapow!"))
     with pytest.raises(Exception):
         mgr.install("foo")
 
-    assert "Error installing foo: Kapow!" in caplog.messages
+    logged.assert_error("Error installing foo: Kapow!")
 
 
 def test_install_without_pip(mocker):
