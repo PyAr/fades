@@ -19,7 +19,8 @@ import pytest
 
 from fades import parsing
 
-from tests.test_cache import get_req, get_distrib
+from tests import get_reqs
+from tests.test_cache import get_distrib
 
 
 @pytest.mark.parametrize("req,installed,expected", [
@@ -55,7 +56,7 @@ from tests.test_cache import get_req, get_distrib
 ])
 def test_check_versions(venvscache, req, installed, expected):
     """The comparison in the selection."""
-    reqs = {"pypi": get_req("dep" + req)}
+    reqs = {"pypi": get_reqs("dep" + req)}
     interpreter = "pythonX.Y"
     options = {"foo": "bar"}
     venv = json.dumps({

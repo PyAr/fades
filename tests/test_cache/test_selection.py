@@ -19,7 +19,7 @@ import json
 import uuid
 
 from fades import helpers, parsing
-from tests.test_cache import get_req
+from tests import get_reqs
 
 
 def test_empty(venvscache):
@@ -28,7 +28,7 @@ def test_empty(venvscache):
 
 
 def test_nomatch_repo_dependency(venvscache):
-    reqs = {"repoloco": get_req('dep == 5')}
+    reqs = {"repoloco": get_reqs('dep == 5')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -42,7 +42,7 @@ def test_nomatch_repo_dependency(venvscache):
 
 
 def test_nomatch_pypi_dependency(venvscache):
-    reqs = {'pypi': get_req('dep1 == 5')}
+    reqs = {'pypi': get_reqs('dep1 == 5')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -70,7 +70,7 @@ def test_nomatch_vcs_dependency(venvscache):
 
 
 def test_nomatch_version(venvscache):
-    reqs = {'pypi': get_req('dep == 5')}
+    reqs = {'pypi': get_reqs('dep == 5')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -84,7 +84,7 @@ def test_nomatch_version(venvscache):
 
 
 def test_simple_pypi_match(venvscache):
-    reqs = {'pypi': get_req('dep == 5')}
+    reqs = {'pypi': get_reqs('dep == 5')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -112,7 +112,7 @@ def test_simple_vcs_match(venvscache):
 
 
 def test_match_mixed_single(venvscache):
-    reqs = {'vcs': [parsing.VCSDependency('someurl')], 'pypi': get_req('dep == 5')}
+    reqs = {'vcs': [parsing.VCSDependency('someurl')], 'pypi': get_reqs('dep == 5')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv1 = json.dumps({
@@ -140,7 +140,7 @@ def test_match_mixed_single(venvscache):
 
 def test_match_mixed_multiple(venvscache):
     reqs = {'vcs': [parsing.VCSDependency('url1'), parsing.VCSDependency('url2')],
-            'pypi': get_req(['dep1 == 5', 'dep2'])}
+            'pypi': get_reqs('dep1 == 5', 'dep2')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -156,7 +156,7 @@ def test_match_mixed_multiple(venvscache):
 
 
 def test_match_noversion(venvscache):
-    reqs = {'pypi': get_req('dep')}
+    reqs = {'pypi': get_reqs('dep')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -170,7 +170,7 @@ def test_match_noversion(venvscache):
 
 
 def test_middle_match(venvscache):
-    reqs = {'pypi': get_req('dep == 5')}
+    reqs = {'pypi': get_reqs('dep == 5')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv1 = json.dumps({
@@ -197,7 +197,7 @@ def test_middle_match(venvscache):
 
 
 def test_multiple_match_bigger_version(venvscache):
-    reqs = {'pypi': get_req('dep')}
+    reqs = {'pypi': get_reqs('dep')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv1 = json.dumps({
@@ -226,7 +226,7 @@ def test_multiple_match_bigger_version(venvscache):
 
 
 def test_multiple_deps_ok(venvscache):
-    reqs = {'pypi': get_req(['dep1 == 5', 'dep2 == 7'])}
+    reqs = {'pypi': get_reqs('dep1 == 5', 'dep2 == 7')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -240,7 +240,7 @@ def test_multiple_deps_ok(venvscache):
 
 
 def test_multiple_deps_just_one(venvscache):
-    reqs = {'pypi': get_req(['dep1 == 5', 'dep2 == 7'])}
+    reqs = {'pypi': get_reqs('dep1 == 5', 'dep2 == 7')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -254,7 +254,7 @@ def test_multiple_deps_just_one(venvscache):
 
 
 def test_not_too_crowded(venvscache):
-    reqs = {'pypi': get_req(['dep1'])}
+    reqs = {'pypi': get_reqs('dep1')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -268,7 +268,7 @@ def test_not_too_crowded(venvscache):
 
 
 def test_same_quantity_different_deps(venvscache):
-    reqs = {'pypi': get_req(['dep1', 'dep2'])}
+    reqs = {'pypi': get_reqs('dep1', 'dep2')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -310,7 +310,7 @@ def test_no_requirements_empty_venv(venvscache):
 
 
 def test_simple_match_empty_options(venvscache):
-    reqs = {'pypi': get_req('dep == 5')}
+    reqs = {'pypi': get_reqs('dep == 5')}
     interpreter = 'pythonX.Y'
     options = {}
     venv = json.dumps({
@@ -324,7 +324,7 @@ def test_simple_match_empty_options(venvscache):
 
 
 def test_no_match_due_to_options(venvscache):
-    reqs = {'pypi': get_req('dep == 5')}
+    reqs = {'pypi': get_reqs('dep == 5')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv = json.dumps({
@@ -338,7 +338,7 @@ def test_no_match_due_to_options(venvscache):
 
 
 def test_match_due_to_options(venvscache):
-    reqs = {'pypi': get_req('dep == 5')}
+    reqs = {'pypi': get_reqs('dep == 5')}
     interpreter = 'pythonX.Y'
     options = {'foo': 'bar'}
     venv1 = json.dumps({
