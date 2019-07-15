@@ -62,4 +62,4 @@ def logged():
             """Called by logassert.SetupLogChecker on failure."""
             raise AssertionError(message)
 
-    return FixtureLogChecker("fades.parsing")
+    return FixtureLogChecker("fades")
