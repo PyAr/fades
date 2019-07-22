@@ -28,7 +28,7 @@ from pyuca import Collator
 from tests import get_python_filepaths
 
 FLAKE8_ROOTS = ['fades', 'tests']
-FLAKE8_OPTIONS = ['--max-line-length=99', '--select=E,W,F,C,N']
+FLAKE8_OPTIONS = {'max_line_length': 99, 'select': ['E', 'W', 'F', 'C', 'N']}
 PEP257_ROOTS = ['fades']
 
 # avoid seeing all DEBUG logs if the test fails
@@ -39,7 +39,7 @@ for logger_name in ('flake8.plugins', 'flake8.api', 'flake8.checker', 'flake8.ma
 
 def test_flake8_pytest(mocker):
     python_filepaths = get_python_filepaths(FLAKE8_ROOTS)
-    style_guide = get_style_guide(paths=FLAKE8_OPTIONS)
+    style_guide = get_style_guide(**FLAKE8_OPTIONS)
     fake_stdout = io.StringIO()
     mocker.patch('sys.stdout', fake_stdout)
     report = style_guide.check_files(python_filepaths)

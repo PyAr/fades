@@ -63,3 +63,4 @@ pkg/archlinux/*
 
 # Ides
 .vscode/
+.idea/
