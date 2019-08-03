@@ -35,7 +35,7 @@ def test_salutes_once(logged):
     logged.assert_info("test foobar")
 
     # again, check this time it didn't salute, but original log message is ok
-    logassert.setup('fades')
+    logged.records = []
     logger.info("test barbarroja")
 
     logged.assert_not_info("Hi! This is fades")
