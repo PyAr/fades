@@ -15,34 +15,27 @@
 # For further info, check  https://github.com/PyAr/fades
 
 """Tests for logger related code."""
-
-import unittest
-
-import logassert
-
 from fades.logger import set_up as log_set_up
 
 
-class SalutingHandlerTestCase(unittest.TestCase):
+def test_salutes_info(logged):
     """Check saluting handler."""
+    logger = log_set_up(verbose=False, quiet=True)
+    logger.warning("test foobar")
 
-    def setUp(self):
-        logassert.setup(self, 'fades')
+    logged.assert_info("Hi! This is fades")
+    logged.assert_warning("test foobar")
 
-    def test_salutes_info(self):
-        logger = log_set_up(verbose=False, quiet=True)
-        logger.warning("test foobar")
-        self.assertLoggedInfo("Hi! This is fades")
-        self.assertLoggedWarning("test foobar")
 
-    def test_salutes_once(self):
-        logger = log_set_up(verbose=False, quiet=False)
-        logger.info("test foobar")
-        self.assertLoggedInfo("Hi! This is fades")
-        self.assertLoggedInfo("test foobar")
+def test_salutes_once(logged):
+    logger = log_set_up(verbose=False, quiet=False)
+    logger.info("test foobar")
+    logged.assert_info("Hi! This is fades")
+    logged.assert_info("test foobar")
 
-        # again, check this time it didn't salute, but original log message is ok
-        logassert.setup(self, 'fades')
-        logger.info("test barbarroja")
-        self.assertNotLoggedInfo("Hi! This is fades")
-        self.assertLoggedInfo("test barbarroja")
+    # again, check this time it didn't salute, but original log message is ok
+    logged.records = []
+    logger.info("test barbarroja")
+
+    logged.assert_not_info("Hi! This is fades")
+    logged.assert_info("test barbarroja")
