@@ -15,7 +15,6 @@
 # For further info, check  https://github.com/PyAr/fades
 
 """Tests for logger related code."""
-import logassert
 from fades.logger import set_up as log_set_up
 
 
