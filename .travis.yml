@@ -12,7 +12,7 @@ install:
     - >
       if [[ $TRAVIS_PYTHON_VERSION == '3.8' ]]
         then
-          pip install python-coveralls "pytest-cov<2.6.0"
+          pip install python-coveralls pytest-cov
       fi
 -script:
     - >
@@ -22,7 +22,6 @@ install:
         else
           pytest
       fi
-
 # report coverage to coveralls.io
 after_success:
     - >
