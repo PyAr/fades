@@ -187,7 +187,6 @@ If you prefer, you can be explicit about which kind of repository *fades* should
     -d pypi::requests
     -d vcs::git+https://github.com/kennethreitz/requests.git#egg=requests
 
-
 There are two basic repositories: ``pypi`` which will make *fades* to install the desired dependency from PyPI, and ``vcs``, which will make *fades* to treat the dependency as a URL for a version control system site. In the first case, for PyPI, a full range of version comparators can be specified, as usual. For ``vcs`` repositories, though, the comparison is always exact: if the very same dependency is specified, a *virtualenv* is reused, otherwise a new one will be created and populated.
 
 In both cases (specifying the repository explicitly or implicitly) there is no difference if the dependency is specified in the command line, in a ``requirements.txt`` file, in the script's docstring, etc.  In the case of marking the ``import`` directly in the script, it slightly different.
@@ -206,6 +205,12 @@ But if the package is specified (normally needed because it's different than the
     import requests  # fades vcs::git+https://github.com/kennethreitz/requests.git#egg=requests
 
 One last detail about the ``vcs`` repository: the format to write the URLs is the same (as it's passed without modifications) than what ``pip`` itself supports (see `pip docs <https://pip.readthedocs.io/en/stable/reference/pip_install/#vcs-support>`_ for more details).
+
+Furthermore, you can install from local projects. It's just fine to use a
+dependency that starts with ``file:``. E.g. (please note the triple slash,
+because we're mixing the protocol indication with the path)::
+
+    fades -d file:///home/crazyuser/myproject/allstars/
 
 
 How to control the virtualenv creation and usage?
