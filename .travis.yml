@@ -26,7 +26,7 @@ install:
 # report coverage to coveralls.io
 after_success:
     - >
-      if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]
+      if [[ $TRAVIS_PYTHON_VERSION == '3.8' ]]
         then 
           coveralls
       fi
