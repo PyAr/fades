@@ -408,6 +408,35 @@ building a virtualenv for the dependencies indicated in that pastebin,
 of course).
 
 
+Some examples using fades in project scripts
+--------------------------------------------
+
+Including *fades* in project helper scripts makes it easy to stop 
+worrying about the virtualenv activation/deactivation when working 
+in that project, and also solves the problem of needing to 
+update/change/fix an already created virtualenv if the 
+dependencies change.
+
+This is an example of how a script to run your project may look like::
+
+    #!/bin/sh
+    if (command -v fades > /dev/null)
+    then
+        # fades FTW!
+        fades -r requirements.txt bin/start
+    else
+        echo 2
+        # hope you are in the correct virtualenv
+        python3 bin/start
+    fi
+
+To run the tests, it's super handy to have a script that also takes care
+of the development dependencies::
+
+    #!/bin/sh
+    fades -r requirements.txt -r reqs-dev.txt -x python -m pytest -s "$@"
+
+
 What if Python is updated in my system?
 ---------------------------------------
 
