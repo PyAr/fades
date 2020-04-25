@@ -25,11 +25,19 @@ import signal
 import sys
 import shlex
 import subprocess
+import tempfile
 
 import fades
-
-from fades import FadesError
-from fades import parsing, logger as fades_logger, cache, helpers, envbuilder, file_options
+from fades import (
+    FadesError,
+    cache,
+    envbuilder,
+    file_options,
+    helpers,
+    logger as fades_logger,
+    parsing,
+    pkgnamesdb,
+)
 
 # the signals to redirect to the child process (note: only these are
 # allowed in Windows, see 'signal' doc).
@@ -42,7 +50,7 @@ REDIRECTED_SIGNALS = [
     signal.SIGTERM,
 ]
 
-help_epilog = """
+HELP_EPILOG = """
 The "child program" is the script that fades will execute. It's an
 optional parameter, it will be the first thing received by fades that
 is not a parameter.  If no child program is indicated, a Python
@@ -51,6 +59,58 @@ interactive interpreter will be opened.
 The "child options" (everything after the child program) are
 parameters passed as is to the child program.
 """
+
+AUTOIMPORT_HEADER = """
+import sys
+print("Python {} on {}".format(sys.version, sys.platform))
+print('Type "help", "copyright", "credits" or "license" for more information.')
+"""
+
+AUTOIMPORT_MOD_IMPORTER = """
+try:
+    import {module}
+except ImportError:
+    print("::fades:: FAILED to autoimport {module!r}")
+else:
+    print("::fades:: automatically imported {module!r}")
+"""
+
+AUTOIMPORT_MOD_SKIPPING = (
+    """print("::fades:: autoimport skipped because not a PyPI package: {dependency!r}")\n""")
+
+
+def get_autoimport_scriptname(dependencies, is_ipython):
+    """Return the path of script that will import dependencies for interactive mode.
+
+    The script has:
+
+    - a safe import of the dependencies, taking in consideration that the module may be named
+      differently than the package, and printing a message accordingly
+
+    - if regular Python, also print the normal interactive interpreter first information lines,
+      that are not shown when starting it with `-i` (but IPython shows them anyway).
+    """
+    fd, tempfilepath = tempfile.mkstemp(prefix='fadesinit-', suffix='.py')
+    fh = os.fdopen(fd, 'wt', encoding='utf8')
+
+    if not is_ipython:
+        fh.write(AUTOIMPORT_HEADER)
+
+    for repo, dependencies in dependencies.items():
+        for dependency in dependencies:
+            if repo == fades.REPO_PYPI:
+                package = dependency.name
+                if is_ipython and package == 'ipython':
+                    # Ignore this artificially added dependency.
+                    continue
+
+                module = pkgnamesdb.PACKAGE_TO_MODULE.get(package, package)
+                fh.write(AUTOIMPORT_MOD_IMPORTER.format(module=module))
+            else:
+                fh.write(AUTOIMPORT_MOD_SKIPPING.format(dependency=dependency))
+
+    fh.close()
+    return tempfilepath
 
 
 def consolidate_dependencies(needs_ipython, child_program,
@@ -171,7 +231,7 @@ def _get_normalized_args(parser):
 
 def go():
     """Make the magic happen."""
-    parser = argparse.ArgumentParser(prog='PROG', epilog=help_epilog,
+    parser = argparse.ArgumentParser(prog='PROG', epilog=HELP_EPILOG,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='store_true',
                         help="show version and info about the system, and exit")
@@ -223,6 +283,9 @@ def go():
     parser.add_argument('--get-venv-dir', action='store_true',
                         help=("Show the virtualenv base directory (which includes the "
                               "virtualenv UUID) and quit."))
+    parser.add_argument('-a', '--autoimport', action='store_true',
+                        help=("Automatically import the specified dependencies in the "
+                              "interactive mode (ignored otherwise)."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -356,11 +419,17 @@ def go():
 
     # store usage information
     usage_manager.store_usage_stat(venv_data, venvscache)
+
     if child_program is None:
         interactive = True
-        logger.debug(
-            "Calling the interactive Python interpreter with arguments %r", python_options)
         cmd = [python_exe] + python_options
+
+        # get possible extra python options and environement for auto import
+        if indicated_deps and args.autoimport:
+            temp_scriptpath = get_autoimport_scriptname(indicated_deps, args.ipython)
+            cmd += ['-i', temp_scriptpath]
+
+        logger.debug("Calling the interactive Python interpreter: %s", cmd)
         p = subprocess.Popen(cmd)
     else:
         interactive = False

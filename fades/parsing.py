@@ -23,7 +23,7 @@ import re
 from pkg_resources import parse_requirements
 
 from fades import REPO_PYPI, REPO_VCS
-from fades.pkgnamesdb import PKG_NAMES_DB
+from fades.pkgnamesdb import MODULE_TO_PACKAGE
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ def _parse_content(fh):
         if import_part.startswith('#'):
             continue
 
-        # get module
+        # Get the module.
         import_tokens = import_part.split()
         if import_tokens[0] == 'import':
             module_path = import_tokens[1]
@@ -140,17 +140,21 @@ def _parse_content(fh):
             logger.debug("Not understood import info: %s", import_tokens)
             continue
         module = module_path.split(".")[0]
-        # If fades know the real name of the pkg. Replace it!
-        if module in PKG_NAMES_DB:
-            module = PKG_NAMES_DB[module]
+
+        # The package has the same name (most of the times! if fades knows the conversion, use it).
+        if module in MODULE_TO_PACKAGE:
+            package = MODULE_TO_PACKAGE[module]
+        else:
+            package = module
+
         # To match the "safe" name that pkg_resources creates:
-        module = module.replace('_', '-')
+        package = package.replace('_', '-')
 
         # get the fades info after 'fades' mark, if any
         if len(fades_part) == 5 or fades_part[5:].strip()[0] in "<>=!":
             # just the 'fades' mark, and maybe a version specification, the requirement is what
             # was imported (maybe with that version comparison)
-            requirement = module + fades_part[5:]
+            requirement = package + fades_part[5:]
         elif fades_part[5] != " ":
             # starts with fades but it's part of a longer weird word
             logger.warning("Not understood fades info: %r", fades_part)

@@ -136,6 +136,21 @@ version)::
     import bs4   # fades beautifulsoup4 == 4.2
 
 
+What if no script is given to execute?
+--------------------------------------
+
+If no script or program is passed to execute, *fades* will provide a virtualenv 
+with all the indicated dependencies, and then open an interactive interpreter 
+in the context of that virtualenv.
+
+Here is where it comes very handy the ``-i/--ipython`` option, if that REPL
+is preferred over the standard one.
+
+In the case of using an interactive interpreter, it's also very useful to
+make *fades* to automatically import all the indicated dependencies, 
+passing the ``--autoimport`` parameter.
+
+
 Other ways to specify dependencies
 ----------------------------------
 

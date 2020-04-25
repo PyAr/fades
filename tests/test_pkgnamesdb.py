@@ -1,4 +1,4 @@
-# Copyright 2015-2020 Facundo Batista, Nicolás Demarchi
+# Copyright 2020 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -14,19 +14,11 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-"""A module to package and viceversa conversion DB.
+"""Tests for the package names DB."""
 
-This is needed for names which don't match with the distrbution's name.
-"""
+from fades import pkgnamesdb
 
-MODULE_TO_PACKAGE = {
-    'bs4': 'beautifulsoup4',
-    'github3': 'github3.py',
-    'uritemplate': 'uritemplate.py',
-    'postgresql': 'py-postgresql',
-    'yaml': 'pyyaml',
-    'PIL': 'pillow',
-    'Crypto': 'pycrypto',
-}
 
-PACKAGE_TO_MODULE = {v: k for k, v in MODULE_TO_PACKAGE.items()}
+def test_db_consistency():
+    """Ensure multiple DB entrypoints are consistent between them."""
+    assert len(pkgnamesdb.MODULE_TO_PACKAGE) == len(pkgnamesdb.PACKAGE_TO_MODULE)

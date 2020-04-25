@@ -34,7 +34,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 
 The first non-option parameter (if any) would be then the child program to execute, and any other parameters after that are passed as is to that child script.
 
-\fBfades\fR can also be executed without passing a child script to execute: in this mode it will open a Python interactive interpreter inside the created/reused virtualenv (taking dependencies from \fI--dependency\fR or \fI--requirement\fR options).
+\fBfades\fR can also be executed without passing a child script to execute: in this mode it will open a Python interactive interpreter inside the created/reused virtualenv (taking dependencies from \fI--dependency\fR or \fI--requirement\fR options). If \fI--autoimport\fR is given, it will automatically import all the installed dependencies.
 
 If the \fIchild_program\fR parameter is really an URL, the script will be automatically downloaded from there (supporting also the most common pastebins URLs: pastebin.com, linkode.org, gist, etc.).
 
@@ -125,6 +125,10 @@ Show the virtualenv base directory (which includes the virtualenv UUID) and quit
 .TP
 .BR --no-precheck-availability
 Don't check if the packages exists in PyPI before actually try to install them.
+
+.TP
+.BR -a ", " --autoimport
+Automatically import the dependencies when in interactive interpreter mode (ignored otherwise).
 
 
 .SH EXAMPLES

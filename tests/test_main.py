@@ -22,7 +22,7 @@ from unittest.mock import patch
 
 from pkg_resources import Requirement
 
-from fades import VERSION, FadesError, __version__, main, parsing
+from fades import VERSION, FadesError, __version__, main, parsing, REPO_PYPI, REPO_VCS
 from tests import create_tempfile
 
 
@@ -217,3 +217,81 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
         """Absolute paths not allowed when using --exec."""
         with self.assertRaises(FadesError):
             main.decide_child_program(True, os.path.join("path", "foobar.py"))
+
+
+# ---------------------------------------
+# autoimport tests
+
+def _autoimport_safe_call(*args, **kwargs):
+    """Call the tested function and always remove the tempfile after the test."""
+    fpath = main.get_autoimport_scriptname(*args, **kwargs)
+
+    with open(fpath, "rt", encoding='utf8') as fh:
+        content = fh.read()
+    os.unlink(fpath)
+
+    return content
+
+
+def test_autoimport_simple():
+    """Simplest autoimport call."""
+    dependencies = {
+        REPO_PYPI: {Requirement.parse('mymod')},
+    }
+    content = _autoimport_safe_call(dependencies, is_ipython=False)
+
+    assert content.startswith(main.AUTOIMPORT_HEADER)
+    assert main.AUTOIMPORT_MOD_IMPORTER.format(module='mymod') in content
+
+
+def test_autoimport_several_dependencies():
+    """Indicate several dependencies."""
+    dependencies = {
+        REPO_PYPI: {Requirement.parse('mymod1'), Requirement.parse('mymod2')},
+    }
+    content = _autoimport_safe_call(dependencies, is_ipython=False)
+
+    assert content.startswith(main.AUTOIMPORT_HEADER)
+    assert main.AUTOIMPORT_MOD_IMPORTER.format(module='mymod1') in content
+    assert main.AUTOIMPORT_MOD_IMPORTER.format(module='mymod2') in content
+
+
+def test_autoimport_including_ipython():
+    """Call with ipython modifier."""
+    dependencies = {
+        REPO_PYPI: {
+            Requirement.parse('mymod'),
+            Requirement.parse('ipython'),  # this one is automatically added
+        },
+    }
+    content = _autoimport_safe_call(dependencies, is_ipython=True)
+
+    assert main.AUTOIMPORT_HEADER not in content
+    assert main.AUTOIMPORT_MOD_IMPORTER.format(module='mymod') in content
+    assert 'ipython' not in content
+
+
+def test_autoimport_no_pypi_dep():
+    """Case with no pypi dependencies."""
+    dependencies = {
+        REPO_PYPI: {Requirement.parse('my_pypi_mod')},
+        REPO_VCS: {'my_vcs_dependency'},
+    }
+    content = _autoimport_safe_call(dependencies, is_ipython=False)
+
+    assert main.AUTOIMPORT_MOD_IMPORTER.format(module='my_pypi_mod') in content
+    assert main.AUTOIMPORT_MOD_SKIPPING.format(dependency='my_vcs_dependency') in content
+
+
+def test_autoimport_importer_mod_ok(capsys):
+    """Check the generated code to import a module when works fine."""
+    code = main.AUTOIMPORT_MOD_IMPORTER.format(module='time')  # something from stdlib, always ok
+    exec(code)
+    assert capsys.readouterr().out == "::fades:: automatically imported 'time'\n"
+
+
+def test_autoimport_importer_mod_fail(capsys):
+    """Check the generated code to import a module when works fine."""
+    code = main.AUTOIMPORT_MOD_IMPORTER.format(module='not_there_should_explode')
+    exec(code)
+    assert capsys.readouterr().out == "::fades:: FAILED to autoimport 'not_there_should_explode'\n"
