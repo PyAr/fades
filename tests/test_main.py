@@ -213,10 +213,16 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
         self.assertEqual(analyzable, "new_path_script")
         self.assertEqual(child, "new_path_script")
 
-    def test_indicated_with_executable_flag_in_path(self):
-        """Absolute paths not allowed when using --exec."""
+    def test_indicated_with_executable_flag_with_relative_path(self):
+        """Relative paths not allowed when using --exec."""
         with self.assertRaises(FadesError):
-            main.decide_child_program(True, os.path.join("path", "foobar.py"))
+            main.decide_child_program(True, os.path.join("path", "../foobar.py"))
+
+    def test_indicated_with_executable_flag_with_absolute_path(self):
+        """Absolute paths are allowed when using --exec."""
+        analyzable, child = main.decide_child_program(True, "/tmp/foo/bar.py")
+        self.assertIsNone(analyzable)
+        self.assertEqual(child, "/tmp/foo/bar.py")
 
 
 # ---------------------------------------
