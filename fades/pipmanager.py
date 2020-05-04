@@ -1,4 +1,4 @@
-# Copyright 2014-2018 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2020 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -108,3 +108,10 @@ class PipManager():
         python_exe = os.path.join(self.env_bin_path, "python")
         helpers.logged_exec([python_exe, self.pip_installer_fname, '-I'])
         self.pip_installed = True
+
+    def freeze(self, filepath):
+        """Dump venv contents to the indicated filepath."""
+        logger.debug("running freeze to store in %r", filepath)
+        stdout = helpers.logged_exec([self.pip_exe, "freeze", "--all", "--local"])
+        with open(filepath, "wt", encoding='utf8') as fh:
+            fh.writelines(line + '\n' for line in sorted(stdout))

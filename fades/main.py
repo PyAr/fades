@@ -1,4 +1,4 @@
-# Copyright 2014-2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2020 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -36,6 +36,7 @@ from fades import (
     helpers,
     logger as fades_logger,
     parsing,
+    pipmanager,
     pkgnamesdb,
 )
 
@@ -286,6 +287,9 @@ def go():
     parser.add_argument('-a', '--autoimport', action='store_true',
                         help=("Automatically import the specified dependencies in the "
                               "interactive mode (ignored otherwise)."))
+    parser.add_argument('--freeze', action='store', metavar='FILEPATH',
+                        help=("Dump all the dependencies and its versions to the specified "
+                              "filepath (operating normally beyond that)."))
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -406,6 +410,11 @@ def go():
         # all it was requested is the virtualenv's path, show it and quit (don't run anything)
         print(venv_data['env_path'])
         return 0
+
+    if args.freeze:
+        # beyond all the rest of work, dump the dependencies versions to a file
+        mgr = pipmanager.PipManager(venv_data['env_bin_path'])
+        mgr.freeze(args.freeze)
 
     # run forest run!!
     python_exe = 'ipython' if args.ipython else 'python'

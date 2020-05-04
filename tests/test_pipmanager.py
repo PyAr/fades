@@ -1,4 +1,4 @@
-# Copyright 2015-2018 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2020 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -163,3 +163,21 @@ def test_download_pip_installer(mocker, tmp_path):
     mgr._download_pip_installer()
     assert os.path.exists(mgr.pip_installer_fname)
     urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
+
+
+def test_freeze(mocker, tmp_path):
+    tmp_file = str(tmp_path / "reqtest.txt")
+    mock = mocker.patch.object(helpers, "logged_exec")
+    mock.return_value = ['moño>11', 'foo==1.2']  # "bad" order, on purpose
+
+    # call and check pip was executed ok
+    mgr = PipManager(BIN_PATH)
+    mgr.freeze(tmp_file)
+
+    pip_path = os.path.join(BIN_PATH, "pip")
+    mock.assert_called_with([pip_path, "freeze", "--all", "--local"])
+
+    # check results were stored properly
+    with open(tmp_file, 'rt', encoding='utf8') as fh:
+        stored = fh.read()
+    assert stored == 'foo==1.2\nmoño>11\n'
