@@ -24,6 +24,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB--get-venv-dir\fR]
 [\fB--no-precheck-availability\fR]
 [\fB-a\fR][\fB--autoimport\fR]
+[\fB--freeze\fR]
 [child_program [child_options]]
 
 \fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
@@ -126,6 +127,10 @@ Don't check if the packages exists in PyPI before actually try to install them.
 .TP
 .BR -a ", " --autoimport
 Automatically import the dependencies when in interactive interpreter mode (ignored otherwise).
+
+.TP
+.BR --freeze " " \fIFILEPATH\fR
+Will operate exactly as without the command, but also it will dump the revisions of installed dependencies to the given \fBfilepath\fR.
 
 
 .SH EXAMPLES

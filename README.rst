@@ -322,6 +322,52 @@ matter which one is the latest. But if you do::
 is available!
 
 
+What about pinning dependencies?
+--------------------------------
+
+One nice benefit of *fades* is that every time dependencies change in your 
+project, you actually get to use a new virtualenv automatically.
+
+If you don't pin the dependencies in your requirements file, this has 
+another nice side effect: everytime you use them in a new environment (or
+if you have `--check-updates` set) you will get latest versions, effectively
+avoiding the trap of sticking in old versions forever.
+
+However, this has a bad side. If it happens that a dependency of your 
+project released a revision between the moment you run the tests and the 
+moment your project is deployed to the server, it may happen that you 
+actually put in production an untested combination. Furthermore, it may 
+happen that even if you do pin your dependencies, the dependencies of 
+those dependencies may not be pinned, and you get into the same situation.
+
+For example, you may have the ``requests == 2.19.1`` dependency, but
+``requests`` declares its own dependencies, for example
+``chardet >= 3.0.2``, and when running tests locally you may get ``chardet``
+in version ``3.0.3``, but nothing guarantees you that when deploying your
+project to a server (effectively building everything from scratch) you will 
+not get a newer version of ``chardet``, which may be totally fine but in fact
+it's something that you did NOT test locally.
+
+Here is where *fades* comes to the rescue with the ``--freeze`` option. If 
+this parameter is given, *fades* will operate exactly as it normally would,
+but also will dump the result of ``pip freeze`` into the specified file.
+
+So to continue with the example above, you could run your tests like::
+
+    fades -d "requests == 2.19.1" --freeze=reqs-frozen.txt -x python3 -m unittest
+
+...which will leave you ``reqs-frozen.txt`` with a content similar to::
+
+    certifi==2018.4.16
+    chardet==3.0.4
+    pip==18.0
+    requests==2.19.1
+    ...
+
+And then you could use *that file* for deployment, which has *all packages*
+pinned, so you will get exactly what you was expecting.
+
+
 Under the hood options
 ----------------------
 
