@@ -318,7 +318,7 @@ avoiding the trap of sticking in old versions forever.
 
 However, this has a bad side. If it happens that a dependency of your 
 project released a revision between the moment you run the tests and the 
-mement your project is deployed to the server, it may happen that you 
+moment your project is deployed to the server, it may happen that you 
 actually put in production an untested combination. Furthermore, it may 
 happen that even if you do pin your dependencies, the dependencies of 
 those dependencies may not be pinned, and you get into the same situation.
