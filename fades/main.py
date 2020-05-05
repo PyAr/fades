@@ -162,9 +162,9 @@ def decide_child_program(args_executable, args_child_program):
     logger = logging.getLogger('fades')
 
     if args_executable:
-        # if --exec given, check that it's just the executable name,
-        # not absolute or relative paths
-        if os.path.sep in args_child_program:
+        # If --exec given, check that it's just the executable name or an absolute path;
+        # relative paths are forbidden (as the location of the venv should not be known).
+        if os.path.sep in args_child_program and args_child_program[0] != os.path.sep:
             logger.error(
                 "The parameter to --exec must be a file name (to be found "
                 "inside venv's bin directory), not a file path: %r",
@@ -232,7 +232,7 @@ def _get_normalized_args(parser):
 
 def go():
     """Make the magic happen."""
-    parser = argparse.ArgumentParser(prog='PROG', epilog=HELP_EPILOG,
+    parser = argparse.ArgumentParser(prog='fades', epilog=HELP_EPILOG,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='store_true',
                         help="show version and info about the system, and exit")
@@ -252,8 +252,9 @@ def go():
                         help=("Specify the Python interpreter to use.\n"
                               " Default is: %s") % (sys.executable,))
     parser.add_argument('-x', '--exec', dest='executable', action='store_true',
-                        help=("Indicate that the child_program should be looked up in the "
-                              "virtualenv."))
+                        help=(
+                            "Execute the child_program (must be present) in the context "
+                            "of the virtualenv."))
     parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
     parser.add_argument('--system-site-packages', action='store_true', default=False,
                         help=("Give the virtual environment access to the "
@@ -304,6 +305,15 @@ def go():
         print("    Python:", sys.version_info)
         print("    System:", platform.platform())
         return 0
+
+    # The --exec flag needs child_program to exist (this is not handled at
+    # argparse level because it's easier to collect the executable as the
+    # normal child_program, so everything after that are parameteres
+    # considered for the executable itself, not for fades)
+    if args.executable and not args.child_program:
+        parser.print_usage()
+        print("fades: error: argument -x/--exec needs child_program to be present")
+        return 2
 
     # set up logger and dump basic version info
     logger = fades_logger.set_up(args.verbose, args.quiet)
@@ -443,7 +453,11 @@ def go():
     else:
         interactive = False
         if args.executable:
-            cmd = [os.path.join(venv_data['env_bin_path'], child_program)]
+            # Build the exec path relative to 'bin' dir; note that if child_program's path
+            # is absolute (starting with '/') the resulting exec_path will be just it,
+            # which is something fades supports
+            exec_path = os.path.join(venv_data['env_bin_path'], child_program)
+            cmd = [exec_path]
             logger.debug("Calling child program %r with options %s",
                          child_program, args.child_options)
         else:

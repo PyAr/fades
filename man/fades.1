@@ -23,6 +23,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB--clean-unused-venvs\fR=\fImax_days_to_keep\fR]
 [\fB--get-venv-dir\fR]
 [\fB--no-precheck-availability\fR]
+[\fB-a\fR][\fB--autoimport\fR]
 [\fB--freeze\fR]
 [child_program [child_options]]
 
@@ -85,11 +86,7 @@ The dependencies can be indicated in multiple places (in the Python source file,
 
 .TP
 .BR -x ", " --exec
-Execute the \fIchild_program\fR inside the virtualenv (so the parameter given needs to be just 
-the executable name). It's an error to use this option to execute anything outside the venv's bin 
-directory, just stop using this option for that case.
-
-The \fIchild_program\fR \fBmust\fR be found in the virtualenv's \fIbin\fR directory.
+Execute the \fIchild_program\fR in the context of the virtualenv. The child_program, which in this case becomes a mandatory parameter, can be just the executable name (relative to the venv's bin directory) or an absolute path.
 
 .TP
 .BR --rm " " \fIUUID\fR

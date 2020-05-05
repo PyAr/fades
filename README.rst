@@ -253,13 +253,6 @@ On the other hand if you pass the ``-q`` or ``--quiet`` parameter, *fades*
 will not show anything (unless it has a real problem), so the original
 script stderr is not polluted at all.
 
-Sometimes, you want to run a script provided by one of the dependencies
-installed into the virtualenv. *fades* supports this via the ``-x`` (
-or ``--exec`` argument). The parameter given to this option needs to be just
-the executable name; it's an error to use this to execute anything outside
-the venv's bin directory, just don't use this option and pass the executable
-directly if you want that.
-
 If you want to use IPython shell you need to call *fades* with ``-i`` or
 ``--ipython`` option. This option will add IPython as a dependency to *fades*
 and it will launch this shell instead of the python one.
@@ -270,6 +263,30 @@ the system libs.
 Finally, no matter how the virtualenv was created, you can always get the
 base directory of the virtualenv in your system using the ``--get-venv-dir``
 option.
+
+
+Running programs in the context of the virtualenv
+-------------------------------------------------
+
+The ``-x/--exec`` parameter allows you to execute any program (not just
+a Python one) in the context of the virtualenv.
+
+By default the mandatory given argument is considered the executable 
+name, relative to the virtualenv's ``bin`` directory, so this is 
+specially useful to execute installed scripts/program by the declared 
+dependencies. E.g.::
+
+    fades -d flake8 -x flake8 my_script_to_be_verified_by_flake8.py
+
+Take in consideration that you can pass an absolute path and it will be 
+respected (but not a relative path, as it will depend of the virtualenv
+location). 
+
+For example, if you want to run a shell script that in turn runs a Python
+program that needs to be executed in the context of the virtualenv, you 
+can do the following::
+
+    fades -r requirements.txt --exec /var/lib/foobar/special.sh
 
 
 How to deal with packages that are upgraded in PyPI
