@@ -447,43 +447,45 @@ ie, add a cron task that perform this command::
 Some command line examples
 --------------------------
 
-``fades foo.py --bar``
+Execute ``foo.py`` under *fades*, passing the ``--bar`` parameter to the child program, in a virtualenv with the dependencies indicated in the source code::
 
-Executes ``foo.py`` under *fades*, passing the ``--bar`` parameter to the child program, in a virtualenv with the dependencies indicated in the source code.
+    fades foo.py --bar
 
-``fades -v foo.py``
+Execute ``foo.py`` under *fades*, showing all the *fades* messages (verbose mode)::
 
-Executes ``foo.py`` under *fades*, showing all the *fades* messages (verbose mode).
+    fades -v foo.py
 
-``fades -d dependency1 -d dependency2>3.2 foo.py --bar``
+Execute ``foo.py`` under *fades* (passing the ``--bar`` parameter to it), in a virtualenv with the dependencies indicated in the source code and also ``dependency1`` and ``dependency2`` (any version > 3.2)::
 
-Executes ``foo.py`` under *fades* (passing the ``--bar`` parameter to it), in a virtualenv with the dependencies indicated in the source code and also ``dependency1`` and ``dependency2`` (any version > 3.2).
+    fades -d dependency1 -d "dependency2>3.2" foo.py --bar
 
-``fades -d dependency1``
+Execute the Python interactive interpreter in a virtualenv with ``dependency1`` installed::
 
-Executes the Python interactive interpreter in a virtualenv with ``dependency1`` installed.
+    fades -d dependency1
 
-``fades -r requirements.txt``
+Execute the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the ``requirements.txt`` file::
 
-Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the ``requirements.txt`` file.
+    fades -r requirements.txt
 
-``fades -r requirements.txt -r requirements_devel.txt``
+Execute the Python interactive interpreter in a virtualenv after installing there all dependencies taken from files ``requirements.txt`` and ``requirements_devel.txt``::
 
-Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from files ``requirements.txt`` and ``requirements_devel.txt``.
+    fades -r requirements.txt -r requirements_devel.txt
 
-``fades -d django -x django-admin.py startproject foo``
+Use the ``django-admin.py`` script to start a new project named ``foo``, without having to have django previously installed::
 
-Uses the ``django-admin.py`` script to start a new project named ``foo``, without having to have django previously installed.
+    fades -d django -x django-admin.py startproject foo
 
-``fades --rm 89a2bf83-c280-4918-a78d-c35506efd69d``
+Remove a virtualenv matching the given uuid from disk and cache index::
 
-Removes a virtualenv matching the given uuid from disk and cache index.
+    fades --rm 89a2bf83-c280-4918-a78d-c35506efd69d
 
-``fades http://linkode.org/#4QI4TrPlGf1gK2V7jPBC47``
+Download the script from the given pastebin and executes it (previously building a virtualenv for the dependencies indicated in that pastebin, of course)::
 
-Downloads the script from the given pastebin and executes it (previously
-building a virtualenv for the dependencies indicated in that pastebin,
-of course).
+    fades http://linkode.org/#4QI4TrPlGf1gK2V7jPBC47
+
+Run all the tests in a project and at the same time freeze dependencies for later deployment::
+
+    fades -r requirements.txt --freeze -x pytest -v
 
 
 Some examples using fades in project scripts
