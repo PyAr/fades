@@ -288,6 +288,12 @@ can do the following::
 
     fades -r requirements.txt --exec /var/lib/foobar/special.sh
 
+Finally, if the intended code to run is prepared to be executed as a module 
+(what you would normally run as `python3 -m some_module`), you can 
+use the same parameter with *fades* to run that module inside the virtualenv::
+
+    fades -r requirements.txt -m some_module
+
 
 How to deal with packages that are upgraded in PyPI
 ---------------------------------------------------
@@ -483,9 +489,9 @@ Download the script from the given pastebin and executes it (previously building
 
     fades http://linkode.org/#4QI4TrPlGf1gK2V7jPBC47
 
-Run all the tests in a project and at the same time freeze dependencies for later deployment::
+Run all the tests in a project (running ``pytest`` directly as a module, for better behaviour) and at the same time freeze dependencies for later deployment::
 
-    fades -r requirements.txt --freeze -x pytest -v
+    fades -r requirements.txt --freeze -m pytest -v
 
 
 Some examples using fades in project scripts

@@ -156,7 +156,7 @@ def consolidate_dependencies(needs_ipython, child_program,
     return indicated_deps
 
 
-def decide_child_program(args_executable, args_child_program):
+def decide_child_program(args_executable, args_module, args_child_program):
     """Decide which the child program really is (if any)."""
     # We get the logger here because it's not defined at module level
     logger = logging.getLogger('fades')
@@ -172,6 +172,11 @@ def decide_child_program(args_executable, args_child_program):
             raise FadesError("File path given to --exec parameter")
 
         # indicated --execute, local and not analyzable for dependencies
+        analyzable_child_program = None
+        child_program = args_child_program
+    elif args_module:
+        # If --module given, the module may be installed (nothing can be really checked),
+        # but surely it's not used as a source for dependencies.
         analyzable_child_program = None
         child_program = args_child_program
     elif args_child_program is not None:
@@ -251,10 +256,6 @@ def go():
     parser.add_argument('-p', '--python', action='store',
                         help=("Specify the Python interpreter to use.\n"
                               " Default is: %s") % (sys.executable,))
-    parser.add_argument('-x', '--exec', dest='executable', action='store_true',
-                        help=(
-                            "Execute the child_program (must be present) in the context "
-                            "of the virtualenv."))
     parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
     parser.add_argument('--system-site-packages', action='store_true', default=False,
                         help=("Give the virtual environment access to the "
@@ -291,6 +292,15 @@ def go():
     parser.add_argument('--freeze', action='store', metavar='FILEPATH',
                         help=("Dump all the dependencies and its versions to the specified "
                               "filepath (operating normally beyond that)."))
+
+    mutexg = parser.add_mutually_exclusive_group()
+    mutexg.add_argument(
+        '-x', '--exec', dest='executable', action='store_true',
+        help="Execute the child_program (must be present) in the context of the virtualenv.")
+    mutexg.add_argument(
+        '-m', '--module', action='store_true',
+        help="Run library module as a script (same behaviour than Python's -m parameter).")
+
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
 
@@ -306,14 +316,18 @@ def go():
         print("    System:", platform.platform())
         return 0
 
-    # The --exec flag needs child_program to exist (this is not handled at
+    # The --exec and --module flags needs child_program to exist (this is not handled at
     # argparse level because it's easier to collect the executable as the
     # normal child_program, so everything after that are parameteres
-    # considered for the executable itself, not for fades)
+    # considered for the executable itself, not for fades).
     if args.executable and not args.child_program:
         parser.print_usage()
         print("fades: error: argument -x/--exec needs child_program to be present")
-        return 2
+        return -1
+    if args.module and not args.child_program:
+        parser.print_usage()
+        print("fades: error: argument -m/--module needs child_program (module) to be present")
+        return -1
 
     # set up logger and dump basic version info
     logger = fades_logger.set_up(args.verbose, args.quiet)
@@ -364,7 +378,7 @@ def go():
 
     # decided which the child program really is
     analyzable_child_program, child_program = decide_child_program(
-        args.executable, args.child_program)
+        args.executable, args.module, args.child_program)
 
     # Group and merge dependencies
     indicated_deps = consolidate_dependencies(args.ipython,
@@ -449,7 +463,7 @@ def go():
             cmd += ['-i', temp_scriptpath]
 
         logger.debug("Calling the interactive Python interpreter: %s", cmd)
-        p = subprocess.Popen(cmd)
+        proc = subprocess.Popen(cmd)
     else:
         interactive = False
         if args.executable:
@@ -458,16 +472,17 @@ def go():
             # which is something fades supports
             exec_path = os.path.join(venv_data['env_bin_path'], child_program)
             cmd = [exec_path]
-            logger.debug("Calling child program %r with options %s",
-                         child_program, args.child_options)
+        elif args.module:
+            cmd = [python_exe, '-m'] + python_options + [child_program]
         else:
             cmd = [python_exe] + python_options + [child_program]
-            logger.debug(
-                "Calling Python interpreter with arguments %s to execute the child program"
-                " %r with options %s", python_options, child_program, args.child_options)
+
+        # Incorporate the child options, always at the end, log and run.
+        cmd += args.child_options
+        logger.debug("Calling %s", cmd)
 
         try:
-            p = subprocess.Popen(cmd + args.child_options)
+            proc = subprocess.Popen(cmd)
         except FileNotFoundError:
             logger.error("Command not found: %s", child_program)
             raise FadesError("Command not found")
@@ -483,14 +498,14 @@ def go():
             logger.debug("Swallowing signal %s", signum)
         else:
             logger.debug("Redirecting signal %s to child", signum)
-            os.kill(p.pid, signum)
+            os.kill(proc.pid, signum)
 
     # redirect the useful signals
     for s in REDIRECTED_SIGNALS:
         signal.signal(s, _signal_handler)
 
     # wait child to finish, end
-    rc = p.wait()
+    rc = proc.wait()
     if rc:
         logger.debug("Child process not finished correctly: returncode=%d", rc)
     return rc
