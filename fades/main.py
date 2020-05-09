@@ -34,11 +34,16 @@ from fades import (
     envbuilder,
     file_options,
     helpers,
-    logger as fades_logger,
     parsing,
     pipmanager,
     pkgnamesdb,
 )
+from fades.logger import set_up as logger_set_up
+
+
+# Get the logger here; it will be properly setup at bootstrap, but can be used from
+# the rest of the module just fine
+logger = logging.getLogger('fades')
 
 # the signals to redirect to the child process (note: only these are
 # allowed in Windows, see 'signal' doc).
@@ -117,9 +122,6 @@ def get_autoimport_scriptname(dependencies, is_ipython):
 def consolidate_dependencies(needs_ipython, child_program,
                              requirement_files, manual_dependencies):
     """Parse files, get deps and merge them. Deps read later overwrite those read earlier."""
-    # We get the logger here because it's not defined at module level
-    logger = logging.getLogger('fades')
-
     if needs_ipython:
         logger.debug("Adding ipython dependency because --ipython was detected")
         ipython_dep = parsing.parse_manual(['ipython'])
@@ -158,9 +160,6 @@ def consolidate_dependencies(needs_ipython, child_program,
 
 def decide_child_program(args_executable, args_module, args_child_program):
     """Decide which the child program really is (if any)."""
-    # We get the logger here because it's not defined at module level
-    logger = logging.getLogger('fades')
-
     if args_executable:
         # If --exec given, check that it's just the executable name or an absolute path;
         # relative paths are forbidden (as the location of the venv should not be known).
@@ -237,69 +236,75 @@ def _get_normalized_args(parser):
 
 def go():
     """Make the magic happen."""
-    parser = argparse.ArgumentParser(prog='fades', epilog=HELP_EPILOG,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='store_true',
-                        help="show version and info about the system, and exit")
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help="send all internal debugging lines to stderr, which may be very "
-                             "useful to debug any problem that may arise.")
-    parser.add_argument('-q', '--quiet', action='store_true',
-                        help="don't show anything (unless it has a real problem), so the "
-                             "original script stderr is not polluted at all.")
-    parser.add_argument('-d', '--dependency', action='append',
-                        help="specify dependencies through command line (this option can be "
-                             "used multiple times)")
-    parser.add_argument('-r', '--requirement', action='append',
-                        help="indicate files to read dependencies from (this option can be "
-                             "used multiple times)")
-    parser.add_argument('-p', '--python', action='store',
-                        help=("Specify the Python interpreter to use.\n"
-                              " Default is: %s") % (sys.executable,))
-    parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
-    parser.add_argument('--system-site-packages', action='store_true', default=False,
-                        help=("Give the virtual environment access to the "
-                              "system site-packages dir."))
-    parser.add_argument('--virtualenv-options', action='append', default=[],
-                        help=("Extra options to be supplied to virtualenv. (this option can be "
-                              "used multiple times)"))
-    parser.add_argument('--check-updates', action='store_true',
-                        help=("check for packages updates"))
-    parser.add_argument('--no-precheck-availability', action='store_true',
-                        help=("Don't check if the packages exists in PyPI before actually try "
-                              "to install them."))
-    parser.add_argument('--pip-options', action='append', default=[],
-                        help=("Extra options to be supplied to pip. (this option can be "
-                              "used multiple times)"))
-    parser.add_argument('--python-options', action='append', default=[],
-                        help=("Extra options to be supplied to python. (this option can be "
-                              "used multiple times)"))
-    parser.add_argument('--rm', dest='remove', metavar='UUID',
-                        help=("Remove a virtualenv by UUID. See --get-venv-dir option to "
-                              "easily find out the UUID."))
-    parser.add_argument('--clean-unused-venvs', action='store',
-                        help=("This option remove venvs that haven't been used for more than "
-                              "CLEAN_UNUSED_VENVS days. Appart from that, will compact usage "
-                              "stats file.\n"
-                              "When this option is present, the cleaning takes place at the "
-                              "beginning of the execution."))
-    parser.add_argument('--get-venv-dir', action='store_true',
-                        help=("Show the virtualenv base directory (which includes the "
-                              "virtualenv UUID) and quit."))
-    parser.add_argument('-a', '--autoimport', action='store_true',
-                        help=("Automatically import the specified dependencies in the "
-                              "interactive mode (ignored otherwise)."))
-    parser.add_argument('--freeze', action='store', metavar='FILEPATH',
-                        help=("Dump all the dependencies and its versions to the specified "
-                              "filepath (operating normally beyond that)."))
+    parser = argparse.ArgumentParser(
+        prog='fades', epilog=HELP_EPILOG, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+        '-V', '--version', action='store_true',
+        help="show version and info about the system, and exit")
+    parser.add_argument(
+        '-d', '--dependency', action='append',
+        help="specify dependencies through command line (this option can be used multiple times)")
+    parser.add_argument(
+        '-r', '--requirement', action='append',
+        help="indicate files to read dependencies from (this option can be used multiple times)")
+    parser.add_argument(
+        '-p', '--python', action='store',
+        help="specify the Python interpreter to use; the default is: {}".format(sys.executable))
+    parser.add_argument(
+        '-i', '--ipython', action='store_true', help="use IPython shell when in interactive mode")
+    parser.add_argument(
+        '--system-site-packages', action='store_true', default=False,
+        help="give the virtual environment access to the system site-packages dir.")
+    parser.add_argument(
+        '--virtualenv-options', action='append', default=[],
+        help="extra options to be supplied to virtualenv (this option can be used multiple times)")
+    parser.add_argument(
+        '--check-updates', action='store_true', help="check for packages updates")
+    parser.add_argument(
+        '--no-precheck-availability', action='store_true',
+        help="don't check if the packages exists in PyPI before actually try to install them")
+    parser.add_argument(
+        '--pip-options', action='append', default=[],
+        help="extra options to be supplied to pip (this option can be used multiple times)")
+    parser.add_argument(
+        '--python-options', action='append', default=[],
+        help="extra options to be supplied to python (this option can be used multiple times)")
+    parser.add_argument(
+        '--rm', dest='remove', metavar='UUID',
+        help="remove a virtualenv by UUID; see --get-venv-dir option to easily find out the UUID")
+    parser.add_argument(
+        '--clean-unused-venvs', action='store',
+        help="remove venvs that haven't been used for more than the indicated days and compact "
+             "usage stats file (all this takes place at the beginning of the execution)")
+    parser.add_argument(
+        '--get-venv-dir', action='store_true',
+        help="show the virtualenv base directory (including the venv's UUID) and quit")
+    parser.add_argument(
+        '-a', '--autoimport', action='store_true',
+        help="automatically import the specified dependencies in the interactive mode "
+             "(ignored otherwise).")
+    parser.add_argument(
+        '--freeze', action='store', metavar='FILEPATH',
+        help="dump all the dependencies and its versions to the specified filepath "
+             "(operating normally beyond that)")
+
+    mutexg = parser.add_mutually_exclusive_group()
+    mutexg.add_argument(
+        '-v', '--verbose', action='store_true',
+        help="send all internal debugging lines to stderr, which may be very "
+             "useful to debug any problem that may arise")
+    mutexg.add_argument(
+        '-q', '--quiet', action='store_true',
+        help="don't show anything (unless it has a real problem), so the "
+             "original script stderr is not polluted at all")
 
     mutexg = parser.add_mutually_exclusive_group()
     mutexg.add_argument(
         '-x', '--exec', dest='executable', action='store_true',
-        help="Execute the child_program (must be present) in the context of the virtualenv.")
+        help="execute the child_program (must be present) in the context of the virtualenv")
     mutexg.add_argument(
         '-m', '--module', action='store_true',
-        help="Run library module as a script (same behaviour than Python's -m parameter).")
+        help="run library module as a script (same behaviour than Python's -m parameter)")
 
     parser.add_argument('child_program', nargs='?', default=None)
     parser.add_argument('child_options', nargs=argparse.REMAINDER)
@@ -329,15 +334,16 @@ def go():
         print("fades: error: argument -m/--module needs child_program (module) to be present")
         return -1
 
-    # set up logger and dump basic version info
-    logger = fades_logger.set_up(args.verbose, args.quiet)
+    # set up the logger and dump basic version info
+    logger_set_up(args.verbose, args.quiet)
     logger.debug("Running Python %s on %r", sys.version_info, platform.platform())
     logger.debug("Starting fades v. %s", fades.__version__)
     logger.debug("Arguments: %s", args)
 
     # verify that the module is NOT being used from a virtualenv
-    if detect_inside_virtualenv(sys.prefix, getattr(sys, 'real_prefix', None),
-                                getattr(sys, 'base_prefix', None)):
+    _real_prefix = getattr(sys, 'real_prefix', None)
+    _base_prefix = getattr(sys, 'base_prefix', None)
+    if detect_inside_virtualenv(sys.prefix, _real_prefix, _base_prefix):
         logger.error(
             "fades is running from inside a virtualenv (%r), which is not supported", sys.prefix)
         raise FadesError("Cannot run from a virtualenv")
@@ -348,8 +354,8 @@ def go():
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
     # start usage manager
-    usage_manager = envbuilder.UsageManager(os.path.join(helpers.get_basedir(), 'usage_stats'),
-                                            venvscache)
+    usage_manager = envbuilder.UsageManager(
+        os.path.join(helpers.get_basedir(), 'usage_stats'), venvscache)
 
     if args.clean_unused_venvs:
         try:
@@ -370,8 +376,9 @@ def go():
             if env_path:
                 envbuilder.destroy_venv(env_path, venvscache)
             else:
-                logger.warning("Invalid 'env_path' found in virtualenv metadata: %r. "
-                               "Not removing virtualenv.", env_path)
+                logger.warning(
+                    "Invalid 'env_path' found in virtualenv metadata: %r. "
+                    "Not removing virtualenv.", env_path)
         else:
             logger.warning('No virtualenv found with uuid: %s.', uuid)
         return 0
@@ -381,10 +388,8 @@ def go():
         args.executable, args.module, args.child_program)
 
     # Group and merge dependencies
-    indicated_deps = consolidate_dependencies(args.ipython,
-                                              analyzable_child_program,
-                                              args.requirement,
-                                              args.dependency)
+    indicated_deps = consolidate_dependencies(
+        args.ipython, analyzable_child_program, args.requirement, args.dependency)
 
     # Check for packages updates
     if args.check_updates:
@@ -418,15 +423,16 @@ def go():
     if create_venv:
         # Check if the requested packages exists in pypi.
         if not args.no_precheck_availability and indicated_deps.get('pypi'):
-            logger.info("Checking the availabilty of dependencies in PyPI. "
-                        "You can use '--no-precheck-availability' to avoid it.")
+            logger.info(
+                "Checking the availabilty of dependencies in PyPI. "
+                "You can use '--no-precheck-availability' to avoid it.")
             if not helpers.check_pypi_exists(indicated_deps):
                 logger.error("An indicated dependency doesn't exist. Exiting")
                 raise FadesError("Required dependency does not exist")
 
         # Create a new venv
-        venv_data, installed = envbuilder.create_venv(indicated_deps, args.python, is_current,
-                                                      options, pip_options)
+        venv_data, installed = envbuilder.create_venv(
+            indicated_deps, args.python, is_current, options, pip_options)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
 
