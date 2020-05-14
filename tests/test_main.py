@@ -167,36 +167,37 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
     """Check how the child program is decided."""
 
     def test_indicated_with_executable_flag(self):
-        analyzable, child = main.decide_child_program(True, "foobar.py")
+        analyzable, child = main.decide_child_program(True, False, "foobar.py")
         self.assertIsNone(analyzable)
         self.assertEqual(child, "foobar.py")
 
     def test_no_child_at_all(self):
-        analyzable, child = main.decide_child_program(False, None)
+        analyzable, child = main.decide_child_program(False, False, None)
         self.assertIsNone(analyzable)
         self.assertIsNone(child)
 
     def test_normal_child_program(self):
         child_path = create_tempfile(self, "")
-        analyzable, child = main.decide_child_program(False, child_path)
+        analyzable, child = main.decide_child_program(False, False, child_path)
         self.assertEqual(analyzable, child_path)
         self.assertEqual(child, child_path)
 
     def test_normal_child_program_not_found(self):
         with self.assertRaises(FadesError):
-            main.decide_child_program(False, 'does_not_exist.py')
+            main.decide_child_program(False, False, 'does_not_exist.py')
 
     def test_normal_child_program_no_access(self):
         child_path = create_tempfile(self, "")
         os.chmod(child_path, 333)  # Remove read permission.
         self.addCleanup(os.chmod, child_path, 644)
         with self.assertRaises(FadesError):
-            main.decide_child_program(False, 'does_not_exist.py')
+            main.decide_child_program(False, False, 'does_not_exist.py')
 
     def test_remote_child_program_simple(self):
         with patch('fades.helpers.download_remote_script') as mock:
             mock.return_value = "new_path_script"
-            analyzable, child = main.decide_child_program(False, "http://scripts.com/foobar.py")
+            analyzable, child = main.decide_child_program(
+                False, False, "http://scripts.com/foobar.py")
             mock.assert_called_with("http://scripts.com/foobar.py")
 
         # check that analyzable and child are the same, and that its content is the remote one
@@ -206,7 +207,8 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
     def test_remote_child_program_ssl(self):
         with patch('fades.helpers.download_remote_script') as mock:
             mock.return_value = "new_path_script"
-            analyzable, child = main.decide_child_program(False, "https://scripts.com/foobar.py")
+            analyzable, child = main.decide_child_program(
+                False, False, "https://scripts.com/foobar.py")
             mock.assert_called_with("https://scripts.com/foobar.py")
 
         # check that analyzable and child are the same, and that its content is the remote one
@@ -216,13 +218,19 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
     def test_indicated_with_executable_flag_with_relative_path(self):
         """Relative paths not allowed when using --exec."""
         with self.assertRaises(FadesError):
-            main.decide_child_program(True, os.path.join("path", "../foobar.py"))
+            main.decide_child_program(True, False, os.path.join("path", "../foobar.py"))
 
     def test_indicated_with_executable_flag_with_absolute_path(self):
         """Absolute paths are allowed when using --exec."""
-        analyzable, child = main.decide_child_program(True, "/tmp/foo/bar.py")
+        analyzable, child = main.decide_child_program(True, False, "/tmp/foo/bar.py")
         self.assertIsNone(analyzable)
         self.assertEqual(child, "/tmp/foo/bar.py")
+
+    def test_module(self):
+        child_path = 'foo.bar'
+        analyzable, child = main.decide_child_program(False, True, child_path)
+        self.assertIsNone(analyzable)
+        self.assertEqual(child, child_path)
 
 
 # ---------------------------------------
