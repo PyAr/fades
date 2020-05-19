@@ -287,6 +287,10 @@ def go():
         '--freeze', action='store', metavar='FILEPATH',
         help="dump all the dependencies and its versions to the specified filepath "
              "(operating normally beyond that)")
+    parser.add_argument(
+        '--avoid-pip-upgrade', action='store_true',
+        help="disable the automatic pip upgrade that happens after the virtualenv is created "
+             "and before the dependencies begin to be installed.")
 
     mutexg = parser.add_mutually_exclusive_group()
     mutexg.add_argument(
@@ -432,7 +436,7 @@ def go():
 
         # Create a new venv
         venv_data, installed = envbuilder.create_venv(
-            indicated_deps, args.python, is_current, options, pip_options)
+            indicated_deps, args.python, is_current, options, pip_options, args.avoid_pip_upgrade)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
 

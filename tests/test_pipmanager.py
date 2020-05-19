@@ -76,6 +76,18 @@ def test_install(mocker):
     pip_path = os.path.join(BIN_PATH, "pip")
     mock = mocker.patch.object(helpers, "logged_exec")
     mgr.install("foo")
+
+    # check it always upgrades pip, and then the proper install
+    c1 = mocker.call([pip_path, "install", "pip", "--upgrade"])
+    c2 = mocker.call([pip_path, "install", "foo"])
+    assert mock.call_args_list == [c1, c2]
+
+
+def test_install_without_pip_upgrade(mocker):
+    mgr = PipManager(BIN_PATH, pip_installed=True, avoid_pip_upgrade=True)
+    pip_path = os.path.join(BIN_PATH, "pip")
+    mock = mocker.patch.object(helpers, "logged_exec")
+    mgr.install("foo")
     mock.assert_called_with([pip_path, "install", "foo"])
 
 
@@ -105,7 +117,7 @@ def test_install_with_options_using_equal(mocker):
 
 def test_install_raise_error(mocker, logged):
     mgr = PipManager(BIN_PATH, pip_installed=True)
-    mocker.patch.object(helpers, "logged_exec", side_effect=Exception("Kapow!"))
+    mocker.patch.object(helpers, "logged_exec", side_effect=['ok', Exception("Kapow!")])
     with pytest.raises(Exception):
         mgr.install("foo")
 

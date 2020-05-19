@@ -38,7 +38,7 @@ PIP_INSTALLER = "https://bootstrap.pypa.io/get-pip.py"
 class PipManager():
     """A manager for all PIP related actions."""
 
-    def __init__(self, env_bin_path, pip_installed=False, options=None):
+    def __init__(self, env_bin_path, pip_installed=False, options=None, avoid_pip_upgrade=False):
         """Init."""
         self.env_bin_path = env_bin_path
         self.pip_installed = pip_installed
@@ -46,6 +46,7 @@ class PipManager():
         self.pip_exe = os.path.join(self.env_bin_path, "pip")
         basedir = helpers.get_basedir()
         self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
+        self.avoid_pip_upgrade = avoid_pip_upgrade
 
     def install(self, dependency):
         """Install a new dependency."""
@@ -53,6 +54,11 @@ class PipManager():
             logger.info("Need to install a dependency with pip, but no builtin, "
                         "doing it manually (just wait a little, all should go well)")
             self._brute_force_install_pip()
+
+        # Always update pip to get latest behaviours (specially regarding security); this has
+        # the nice side effect of getting logged the pip version that is used.
+        if not self.avoid_pip_upgrade:
+            helpers.logged_exec([self.pip_exe, 'install', 'pip', '--upgrade'])
 
         # split to pass several tokens on multiword dependency (this is very specific for '-e' on
         # external requirements, but implemented generically; note that this does not apply for
