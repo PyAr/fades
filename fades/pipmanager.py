@@ -58,7 +58,8 @@ class PipManager():
         # Always update pip to get latest behaviours (specially regarding security); this has
         # the nice side effect of getting logged the pip version that is used.
         if not self.avoid_pip_upgrade:
-            helpers.logged_exec([self.pip_exe, 'install', 'pip', '--upgrade'])
+            python_exe = os.path.join(self.env_bin_path, "python")
+            helpers.logged_exec([python_exe, '-m', 'pip', 'install', 'pip', '--upgrade'])
 
         # split to pass several tokens on multiword dependency (this is very specific for '-e' on
         # external requirements, but implemented generically; note that this does not apply for
