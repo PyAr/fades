@@ -121,7 +121,7 @@ class _FadesEnvBuilder(EnvBuilder):
         self.env_bin_path = context.bin_path
 
 
-def create_venv(requested_deps, interpreter, is_current, options, pip_options):
+def create_venv(requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade):
     """Create a new virtualvenv with the requirements of this script."""
     # create virtualenv
     env = _FadesEnvBuilder()
@@ -135,7 +135,9 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options):
     installed = {}
     for repo in requested_deps.keys():
         if repo in (REPO_PYPI, REPO_VCS):
-            mgr = PipManager(env_bin_path, pip_installed=pip_installed, options=pip_options)
+            mgr = PipManager(
+                env_bin_path, pip_installed=pip_installed, options=pip_options,
+                avoid_pip_upgrade=avoid_pip_upgrade)
         else:
             logger.warning("Install from %r not implemented", repo)
             continue

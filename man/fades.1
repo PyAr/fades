@@ -26,6 +26,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB-a\fR][\fB--autoimport\fR]
 [\fB--freeze\fR]
 [\fB-m\fR][\fB--module\fR]
+[\fB--avoid-pip-upgrade\fR]
 [child_program [child_options]]
 
 \fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
@@ -136,6 +137,10 @@ Will operate exactly as without the command, but also it will dump the revisions
 .TP
 .BR -m ", " --module
 Run library module as a script (same behaviour than Python's \fB-m\fR parameter).
+
+.TP
+.BR --avoid-pip-upgrade
+Disable the automatic \fBpip\fR upgrade that happens after the virtualenv is created and before the dependencies begin to be installed.
 
 
 .SH EXAMPLES
