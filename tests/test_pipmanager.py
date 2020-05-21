@@ -78,7 +78,8 @@ def test_install(mocker):
     mgr.install("foo")
 
     # check it always upgrades pip, and then the proper install
-    c1 = mocker.call([pip_path, "install", "pip", "--upgrade"])
+    python_path = os.path.join(BIN_PATH, "python")
+    c1 = mocker.call([python_path, "-m", "pip", "install", "pip", "--upgrade"])
     c2 = mocker.call([pip_path, "install", "foo"])
     assert mock.call_args_list == [c1, c2]
 
