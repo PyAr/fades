@@ -626,7 +626,7 @@ For others debian and ubuntu
 
 If you are NOT in debian unstable or testing (if you are, see
 above for better instructions), you can use this
-`.deb <http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0-1_all.deb>`_.
+`.deb <http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1_all.deb>`_.
 
 Download it and install doing::
 
@@ -646,7 +646,7 @@ Multiplatform tarball
 Finally you can always get the multiplatform tarball and install
 it in the old fashion way::
 
-    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.orig.tar.gz
+    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1.orig.tar.gz
     tar -xf fades_*.tar.gz
     cd fades-*
     sudo ./setup.py install
