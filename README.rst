@@ -565,8 +565,7 @@ Simplest way
 In some systems you can install ``fades`` directly, no needing to
 install previously any dependency.
 
-If you are in debian unstable or testing, just do (but probably you will not
-get the latest version, see below for alternative installation methods):
+If you are in debian unstable or testing, just do:
 
     sudo apt-get install fades
 
@@ -617,8 +616,9 @@ And on Arch Linux with::
 
     pacman -S python-xdg
 
-Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>` package to
-support different Python versions for child execution. (see `--python` argument.)
+Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>` 
+package to support different Python versions for child execution. (see the 
+``--python`` option.)
 
 
 For others debian and ubuntu
@@ -626,7 +626,7 @@ For others debian and ubuntu
 
 If you are NOT in debian unstable or testing (if you are, see
 above for better instructions), you can use this
-`.deb <http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1_all.deb>`_.
+`.deb <http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0-1_all.deb>`_.
 
 Download it and install doing::
 
@@ -646,7 +646,7 @@ Multiplatform tarball
 Finally you can always get the multiplatform tarball and install
 it in the old fashion way::
 
-    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1.orig.tar.gz
+    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.orig.tar.gz
     tar -xf fades_*.tar.gz
     cd fades-*
     sudo ./setup.py install
