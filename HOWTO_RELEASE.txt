@@ -149,6 +149,17 @@ Announce in the snapcraft forum, something similar to:
     https://forum.snapcraft.io/t/call-for-testing-fades-7/5070
 
 
+Read the Docs
+-------------
+
+- go and login there, go to "fades" project
+- in "Versions" tab, activate the new version (corresponding to the release in github)
+- in "Administrator" tab, go to option "Advanced configuration" at the left, choose latest release as "default version"
+- verify all latest is seen in 
+
+    http://fades.rtfd.org/ 
+
+
 How to sign the files
 ---------------------
 
