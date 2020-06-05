@@ -616,7 +616,7 @@ And on Arch Linux with::
 
     pacman -S python-xdg
 
-Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>` 
+Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>`_ 
 package to support different Python versions for child execution. (see the 
 ``--python`` option.)
 
