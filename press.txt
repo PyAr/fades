@@ -123,23 +123,22 @@ instalando las dependencias necesarias, y ejecutando el script
 dentro de ese virtualenv.
 
 Todo lo que necesitás hacer es ejecutar el script con fades (en lugar de
-Python) y también marcar las dependencias necesarias. Más detalles acá:
+Python) y también marcar las dependencias necesarias. Más detalles en 
+la [documentación del proyecto](http://fades.rtfd.org/).
 
-    http://fades.rtfd.org/
 
-
-¿Qué hay de nuevo en esta release?
+**¿Qué hay de nuevo en esta release?**
 
 - Hace que pip se actualice automáticamente a la última versión en la 
   creación del virtualenv (a menos que se indique lo contrario).
 
-- Provee la opción --freeze, que graba la info detallada de los paquetes
+- Provee la opción `--freeze`, que graba la info detallada de los paquetes
   del virtualenv, para duplicar instalaciones futuras.
 
-- Extiende y normaliza el comportamiento del parámetro -x/--exec para 
+- Extiende y normaliza el comportamiento del parámetro `-x/--exec` para 
   soportar paths arbitrarios.
 
-- Crea la opción --autoimport para importar automáticamente las 
+- Crea la opción `--autoimport` para importar automáticamente las 
   dependencias instaladas al entrar al intérprete interactivo.
 
 - Agrega ejemplos y descripciones a la documentación.
@@ -154,68 +153,51 @@ Nicolás y yo queremos darles muchas gracias a los siguientes
 colaboradores que ayudaron a mejorar a fades de distintas maneras para
 esta versión (en orden alfabético):
 
-    Alejandro Dau -https://github.com/alejandrodau 
-    Carlos Joel -https://github.com/c0x6a
-    Diego Mascialino - https://github.com/dmascialino
-    Eduardo Enriquez - https://github.com/eduzen
-    Iñaki Malerba - https://github.com/inakimalerba
+- [Alejandro Dau](https://github.com/alejandrodau )
+- [Carlos Joel](https://github.com/c0x6a)
+- [Diego Mascialino](https://github.com/dmascialino)
+- [Eduardo Enriquez](https://github.com/eduzen)
+- [Iñaki Malerba](https://github.com/inakimalerba)
 
 
-Para instalar y disfrutar fades:
+**Para instalar y disfrutar fades:**
 
 - Si estás en Ubuntu o Debian, podés facilmente instalarlo así (aunque
-  probablemente no obtengas la *última* versión:
+  probablemente no obtengas la *última* versión: `sudo apt-get install fades`
 
-    sudo apt-get install fades
+- Para debian/ubuntu que no sea lo último, acá hay [un .deb](http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1_all.deb) (con su respectivo [archivo fuente Debian](http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1.dsc)).
 
-- Para debian/ubuntu que no sea lo último, acá hay un .deb (con su respectivo
-  archivo fuente Debian):
+- Instalarlo en Arch es muy simple: `yaourt -S fades`
 
-    http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1_all.deb
-    http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1.dsc
+- En cualquier Linux si tenés el sistema Snap: `snap install fades`
 
-- Instalarlo en Arch es muy simple:
-
-    yaourt -S fades
-
-- En cualquier Linux si tenés el sistema Snap:
-
-    snap install fades
-
-- Podés usar pip si querés:
-
-    pip3 install fades
+- Podés usar pip si querés: `pip3 install fades`
 
 - Siempre podés usar el tarball multiplataforma e instalarlo de
   la manera clásica:
 
+```bash
     wget http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1.orig.tar.gz
     tar -xf fades_*.tar.gz
     cd fades-*
     sudo ./setup.py install
+```
+-  Es muy fácil ejecutar la última versión de desarrollo::
 
-
-Ayuda / preguntas:
-
-- Podés hacer cualquier pregunta o mandar una recomendación o pedido
-  en el grupo de Telegram:
-
-    https://t.me/fadesmagic
-
-- También podés abrir un issue acá (por favor hacelo si
-  encontrás algún problema!):
-
-    https://github.com/PyAr/fades/issues/new
-
-- El proyecto en sí está en
-
-    https://github.com/PyAr/fades
-
-  Es muy fácil ejecutar la última versión de desarrollo:
-
+```bash
     git clone https://github.com/PyAr/fades.git
     cd fades
     bin/fades
+```
 
+**Ayuda / preguntas:**
+
+- Podés hacer cualquier pregunta o mandar una recomendación o pedido
+  en [el grupo de Telegram](https://t.me/fadesmagic).
+
+- También podés [abrir un issue](https://github.com/PyAr/fades/issues/new) (por favor hacelo si
+  encontrás algún problema!)::
+
+- El proyecto en sí está en [Github](https://github.com/PyAr/fades).
 
 Desde ya, muchas gracias por tu tiempo!
