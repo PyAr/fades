@@ -1,6 +1,6 @@
 Hello all,
 
-We're glad to announce the release of fades 8.1.
+We're glad to announce the release of fades 9.0.
 
 fades is a system that automatically handles the virtualenvs in the
 cases normally found when writing scripts and simple programs, and
@@ -18,26 +18,34 @@ also mark the required dependencies. More details here:
 
 What's new in this release?
 
-- Automatically execute scripts from the web, supporting most common pastebins
+- Get pip automatically upgraded to latest version on each virtualenv 
+  creation (unless explicitly avoided)
 
-- Multiple (and missing) requirement.txt file support, which can now be nested
+- Provides the --freeze parameter, which dumps the detailed package 
+  information of the virtualenv, to duplicate future installations.
 
-- Avoid checking package availability if no PyPI dependencies indicated
+- The -x/--exec parameter behaviour is extended/normalized to 
+  support arbitrary paths.
 
-- Add an option to show the virtualenv path in the system
+- Has the --autoimport parameter to automatically import the 
+  dependencies to the interactive interpreter
 
-- Better error/help on missing indicated script or executable from dependency
+- Added more examples and descriptions to the documentation
 
-- Improved logs, PyPI urls, documentation, multiplatform support, and several other small fixes/enhancements
+- Improved argument parsing when fades is used in the shebang
+
+- Worked on infrastructure: better testing, multiplatform installation support, etc.
 
 
 Nicolás and I want to say a big thank you to the following collaborators
 that helped to improve and enhance fades in different ways for this
 version (in alphabetical order):
 
-    Andrés Delfino - https://github.com/andresdelfino
+    Alejandro Dau -https://github.com/alejandrodau 
+    Carlos Joel -https://github.com/c0x6a
+    Diego Mascialino - https://github.com/dmascialino
+    Eduardo Enriquez - https://github.com/eduzen
     Iñaki Malerba - https://github.com/inakimalerba
-    Martin Alderete - https://github.com/malderete
 
 
 To install and enjoy fades...
@@ -50,8 +58,8 @@ To install and enjoy fades...
 - For not latest debian/ubuntu you have a .deb here (with its Debian
   source file):
 
-    http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1_all.deb
-    http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1.dsc
+    http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1_all.deb
+    http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1.dsc
 
 - Install it in Arch is very simple:
 
@@ -68,7 +76,7 @@ To install and enjoy fades...
 - You can always get the multiplatform tarball and install it in the
   old fashion way:
 
-    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1.orig.tar.gz
+    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1.orig.tar.gz
     tar -xf fades_*.tar.gz
     cd fades-*
     sudo ./setup.py install
@@ -80,12 +88,6 @@ Help / questions:
   in the Telegram group:
 
     https://t.me/fadesmagic
-
-  ...or to the mailing list...
-
-    http://listas.python.org.ar/mailman/listinfo/fades
-
-  ...or in the #fades IRC channel (in Freenode).
 
 - Also, you can open an issue here (please do if you find any problem!).
 
@@ -110,7 +112,7 @@ Thanks in advance for your time!
 
 Hola a todas y todos,
 
-Estamos encantados de anunciar la liberación de fades 8.1.
+Estamos encantados de anunciar la liberación de fades 9.0.
 
 fades es un sistema que maneja automáticamente los virtualenvs en los
 casos que uno normalmente encuentra al escribir scripts y programas
@@ -128,25 +130,35 @@ Python) y también marcar las dependencias necesarias. Más detalles acá:
 
 ¿Qué hay de nuevo en esta release?
 
-- Ejecuta automaticamente scripts desde la web, soportando los pastebines más comunes
+- Hace que pip se actualice automáticamente a la última versión en la 
+  creación del virtualenv (a menos que se indique lo contrario).
 
-- Soporta múltiples (o inexistentes) archivos requirement.txt, los cuales también pueden estar anidados
+- Provee la opción --freeze, que graba la info detallada de los paquetes
+  del virtualenv, para duplicar instalaciones futuras.
 
-- Evita revisar la disponibilidad en PyPI si no se indicaron dependencias
+- Extiende y normaliza el comportamiento del parámetro -x/--exec para 
+  soportar paths arbitrarios.
 
-- Ofrece una opción para mostrar el path del virtualenv en el sistema
+- Crea la opción --autoimport para importar automáticamente las 
+  dependencias instaladas al entrar al intérprete interactivo.
 
-- Mejor indicación/ayuda cuando no se encuentra el script indicado o el ejecutable de la dependencia
+- Agrega ejemplos y descripciones a la documentación.
 
-- Trae mejoras en logs, urls de PyPI, documentación, soporte multiplataforma, y varias otras mejoras y correcciones menores
+- Mejora el parseo de argumentos cuando fades se usa en el shebang.
+
+- Se mejoró la infrastructura: mejores pruebas, soporte 
+  multiplataforma, etc.
+
 
 Nicolás y yo queremos darles muchas gracias a los siguientes
 colaboradores que ayudaron a mejorar a fades de distintas maneras para
 esta versión (en orden alfabético):
 
-    Andrés Delfino - https://github.com/andresdelfino
+    Alejandro Dau -https://github.com/alejandrodau 
+    Carlos Joel -https://github.com/c0x6a
+    Diego Mascialino - https://github.com/dmascialino
+    Eduardo Enriquez - https://github.com/eduzen
     Iñaki Malerba - https://github.com/inakimalerba
-    Martin Alderete - https://github.com/malderete
 
 
 Para instalar y disfrutar fades:
@@ -159,8 +171,8 @@ Para instalar y disfrutar fades:
 - Para debian/ubuntu que no sea lo último, acá hay un .deb (con su respectivo
   archivo fuente Debian):
 
-    http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1_all.deb
-    http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1-1.dsc
+    http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1_all.deb
+    http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1.dsc
 
 - Instalarlo en Arch es muy simple:
 
@@ -177,7 +189,7 @@ Para instalar y disfrutar fades:
 - Siempre podés usar el tarball multiplataforma e instalarlo de
   la manera clásica:
 
-    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_8.1.orig.tar.gz
+    wget http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1.orig.tar.gz
     tar -xf fades_*.tar.gz
     cd fades-*
     sudo ./setup.py install
@@ -189,12 +201,6 @@ Ayuda / preguntas:
   en el grupo de Telegram:
 
     https://t.me/fadesmagic
-
-  ...o en la lista de correo...
-
-    http://listas.python.org.ar/mailman/listinfo/fades
-
-  ...o en el canal de IRC #fades en Freenode.
 
 - También podés abrir un issue acá (por favor hacelo si
   encontrás algún problema!):
