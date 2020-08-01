@@ -21,12 +21,12 @@ def test_nested_requirement_files(create_tmpfile):
     assert parsed == {REPO_PYPI: get_reqs('bar', 'foo')}
 
 
-def test_nested_requirement_files_invalid_format(logged, create_tmpfile):
+def test_nested_requirement_files_invalid_format(logs, create_tmpfile):
     requirement_file_nested = create_tmpfile(['foo\n-r'])
     parsed = parsing.parse_reqfile(requirement_file_nested)
 
     assert parsed == {REPO_PYPI: get_reqs('foo')}
-    logged.assert_warning("Invalid format to indicate a nested requirements file:")
+    assert "Invalid format to indicate a nested requirements file:" in logs.warning
 
 
 def test_nested_requirement_files_not_pwd(create_tmpfile):

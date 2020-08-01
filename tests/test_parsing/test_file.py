@@ -1,6 +1,8 @@
 """Check the imports parsing."""
 import io
 
+from logassert import Exact
+
 from fades import parsing, REPO_PYPI, REPO_VCS
 
 from tests import get_reqs
@@ -288,30 +290,28 @@ def test_allow_other_comments_reverse_default():
     }
 
 
-def test_strange_import(logged):
+def test_strange_import(logs):
     parsed = parsing._parse_content(io.StringIO("""
         from foo bar import :(   # fades
     """))
-    logged.assert_debug(
-        "Not understood import info",
-        "['from', 'foo', 'bar', 'import', ':(']"
-    )
+    assert Exact(
+        "Not understood import info: ['from', 'foo', 'bar', 'import', ':(']") in logs.debug
     assert parsed == {}
 
 
-def test_strange_fadesinfo(logged):
+def test_strange_fadesinfo(logs):
     parsed = parsing._parse_content(io.StringIO("""
         import foo   # fades  broken::whatever
     """))
-    logged.assert_warning("Not understood fades repository", "broken")
+    assert "Not understood fades repository: 'broken'" in logs.warning
     assert parsed == {}
 
 
-def test_strange_fadesinfo2(logged):
+def test_strange_fadesinfo2(logs):
     parsed = parsing._parse_content(io.StringIO("""
         import foo   # fadesbroken
     """))
-    logged.assert_warning("Not understood fades info", "fadesbroken")
+    assert "Not understood fades info: 'fadesbroken'" in logs.warning
     assert parsed == {}
 
 
@@ -415,15 +415,15 @@ def test_other_lines_with_fades_string():
     }
 
 
-def test_commented_line(logged):
+def test_commented_line(logs):
     parsed = parsing._parse_content(io.StringIO("""
         #import foo   # fades
     """))
     assert parsed == {}
-    logged.assert_not_warning("Not understood fades")
+    assert "Not understood fades" not in logs.warning
 
 
-def test_with_fades_commented_line(logged):
+def test_with_fades_commented_line(logs):
     parsed = parsing._parse_content(io.StringIO("""
         #import foo   # fades
         import bar   # fades
@@ -431,10 +431,10 @@ def test_with_fades_commented_line(logged):
     assert parsed == {
         REPO_PYPI: get_reqs('bar')
     }
-    logged.assert_not_warning("Not understood fades")
+    assert "Not understood fades" not in logs.warning
 
 
-def test_with_commented_line(logged):
+def test_with_commented_line(logs):
     parsed = parsing._parse_content(io.StringIO("""
         import bar   # fades
         # a commented line
@@ -442,7 +442,7 @@ def test_with_commented_line(logged):
     assert parsed == {
         REPO_PYPI: get_reqs('bar')
     }
-    logged.assert_not_warning("Not understood fades")
+    assert "Not understood fades" not in logs.warning
 
 
 def test_vcs_explicit():

@@ -1,6 +1,8 @@
 """Check the requirements parsing."""
 import io
 
+from logassert import Multiple
+
 from fades import parsing, REPO_PYPI, REPO_VCS
 
 from tests import get_reqs
@@ -102,11 +104,11 @@ def test_comments():
     }
 
 
-def test_strange_repo(logged):
+def test_strange_repo(logs):
     parsed = parsing._parse_requirement(io.StringIO("""
         unknown::foo
     """))
-    logged.assert_warning("Not understood fades repository", "unknown")
+    assert Multiple("Not understood fades repository", "unknown") in logs.warning
     assert parsed == {}
 
 

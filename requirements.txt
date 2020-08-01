@@ -1,5 +1,5 @@
 flake8==3.7.7
-logassert==2
+#logassert==2
 pep257==0.7.0
 pep8==1.7.0
 pyuca==1.1.2
