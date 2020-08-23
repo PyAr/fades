@@ -1,7 +1,6 @@
 import shutil
 import uuid
 
-from logassert import logassert
 from pytest import fixture
 
 
@@ -30,36 +29,3 @@ def create_tmpfile(tmpdir_factory):
 
     yield add_content
     shutil.rmtree(str(dir_path))
-
-
-@fixture()
-def logged():
-    """Fixture to assert on loggings."""
-
-    class FixtureLogChecker(logassert.SetupLogChecker):
-
-        _translation = [
-            ("assertLogged", "assert_logged"),
-            ("assertLoggedError", "assert_error"),
-            ("assertLoggedWarning", "assert_warning"),
-            ("assertLoggedInfo", "assert_info"),
-            ("assertLoggedDebug", "assert_debug"),
-            ("assertNotLogged", "assert_not_logged"),
-            ("assertNotLoggedError", "assert_not_error"),
-            ("assertNotLoggedWarning", "assert_not_warning"),
-            ("assertNotLoggedInfo", "assert_not_info"),
-            ("assertNotLoggedDebug", "assert_not_debug"),
-        ]
-
-        def __init__(self, logpath):
-            super().__init__(self, logpath)
-
-            # old testing API translation
-            for old_name, new_name in self._translation:
-                setattr(self, new_name, getattr(self, old_name))
-
-        def fail(self, message):
-            """Called by logassert.SetupLogChecker on failure."""
-            raise AssertionError(message)
-
-    return FixtureLogChecker("fades")
