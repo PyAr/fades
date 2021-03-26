@@ -192,6 +192,13 @@ def decide_child_program(args_executable, args_module, args_child_program):
         child_program = args_child_program
     else:
         # not indicated executable, not child program, "interpreter" mode
+         help=("Indicate that the child_program should be looked up in the "
+                              "virtualenv."))
+    parser.add_argument('-i', '--ipython', action='store_true', help="use IPython shell.")
+    parser.add_argument('-m', '--module', action='store', help="Run library module as a script")
+    parser.add_argument('--system-site-packages', action='store_true', default=False,
+                        help=("Give the virtual environment access to the "
+                              "system site-packages dir."))
         analyzable_child_program = None
         child_program = None
 
@@ -354,6 +361,17 @@ def go():
 
         usage_manager.clean_unused_venvs(max_days_to_keep)
         return 0
+    
+    if child_program is None:
+    if args.module:
+        logger.debug(
+            "Executing module %r", args.module)
+        module_option = ["-m"] + args.module.split()
+        cmd = [python_exe] + python_options + module_option
+        p = subprocess.Popen(cmd)
+    elif child_program is None:
+ 
+
 
     uuid = args.remove
     if uuid:
