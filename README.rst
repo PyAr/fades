@@ -626,7 +626,7 @@ For others debian and ubuntu
 
 If you are NOT in debian unstable or testing (if you are, see
 above for better instructions), you can use this
-`.deb <http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-1_all.deb>`_.
+`.deb <http://ftp.debian.org/debian/pool/main/f/fades/fades_9.0.1-2_all.deb>`_.
 
 Download it and install doing::
 
