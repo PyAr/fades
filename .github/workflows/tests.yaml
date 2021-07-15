@@ -15,6 +15,12 @@ jobs:
       matrix:
         os: [ubuntu-20.04, ubuntu-18.04, macos-11, macos-10.15, windows-2019, windows-2016]
         python-version: [3.6, 3.7, 3.8, 3.9]
+        exclude:
+            # https://stackoverflow.com/questions/62616464/what-versions-of-python-is-shipped-with-macos-11-big-sur 
+            - os: macos-11
+              python-version: 3.6
+            - os: macos-11
+              python-version: 3.7
 
     runs-on: ${{ matrix.os }}
     steps:
