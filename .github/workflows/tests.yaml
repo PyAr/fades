@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    strategy:
+      matrix:
+        # no macos-11: https://github.com/actions/virtual-environments/issues/841
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019, windows-2016]
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install -U -r requirements.txt
+      - name: Run tests
+        run: |
+          pytest

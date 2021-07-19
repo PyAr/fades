@@ -2,8 +2,8 @@ What is fades?
 ==============
 
 
-.. image:: https://travis-ci.org/PyAr/fades.svg?branch=master
-    :target: https://travis-ci.org/PyAr/fades
+.. image:: https://github.com/PyAr/fades/actions/workflows/test.uaml/badge.svg
+    :target: https://github.com/PyAr/fades/actions/workflows/test.uaml/badge.svg
 .. image:: https://readthedocs.org/projects/fades/badge/?version=latest
     :target: http://fades.readthedocs.org/en/latest/?badge=latest
     :alt: Documentation Status
