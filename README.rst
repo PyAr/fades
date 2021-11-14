@@ -87,7 +87,7 @@ directly with python, it's better if you put at the beggining of
 the script the indication for the operating system that it should
 be executed with fades... ::
 
-    #!/usr/bin/fades
+    #!/usr/bin/env fades
 
 ...and also set the executable bit in the script::
 
