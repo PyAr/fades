@@ -25,17 +25,35 @@ adopt-info: fades  # look for 'snapcraftctl set-*' in the fades part
 
 apps:
   fades:
-    command: bin/fades
-    environment:
-      PYTHONPATH: $SNAP/lib/python3.8/site-packages/
+    command: bin/python3 -m fades
 
 parts:
+  # Classic core20 snaps require staged python.
+  python3:
+    plugin: nil
+    build-packages:
+      - python3-dev
+    stage-packages:
+      - libpython3-stdlib
+      - libpython3.8-minimal
+      - libpython3.8-stdlib
+      - python3.8-minimal
+      - python3-distutils
+      - python3-minimal
+      - python3-pkg-resources
+      - python3-pip
+      - python3-setuptools
+      - python3-venv
+      - python3-wheel
+
   fades:
+    after: [python3]
     source: .
     plugin: python
-    requirements:
-      - requirements.txt
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version "$( python3 -c 'import fades; print(fades._version.__version__)' )"
-
+    override-build: |
+      snapcraftctl build
+      # python3 fixup symlink (snapcraft bug)
+      ln -sf ../usr/bin/python3.8 $SNAPCRAFT_PART_INSTALL/bin/python3
