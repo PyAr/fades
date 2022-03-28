@@ -103,7 +103,7 @@ class PipManager():
         os.rename(temp_location, self.pip_installer_fname)
 
     def _brute_force_install_pip(self):
-        """A brute force install of pip itself."""
+        """Check a brute force install of pip itself."""
         if os.path.exists(self.pip_installer_fname):
             logger.debug("Using pip installer from %r", self.pip_installer_fname)
         else:

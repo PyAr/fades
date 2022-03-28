@@ -1,6 +1,6 @@
 flake8
 logassert
-pep257
+pydocstyle
 pytest
 pyuca
 pyxdg
