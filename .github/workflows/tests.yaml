@@ -13,9 +13,8 @@ jobs:
   run-tests:
     strategy:
       matrix:
-        # no macos-11: https://github.com/actions/virtual-environments/issues/841
-        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019, windows-2016]
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, macos-11, windows-2019, windows-2022]
+        python-version: [3.8, 3.9, "3.10"]
 
     runs-on: ${{ matrix.os }}
     steps:
