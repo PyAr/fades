@@ -1,4 +1,4 @@
-# Copyright 2015-2020 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2022 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -19,6 +19,7 @@
 import os
 import io
 import pytest
+from unittest.mock import patch, call
 
 from fades.pipmanager import PipManager
 from fades import pipmanager
@@ -27,7 +28,7 @@ from fades import helpers
 BIN_PATH = "somepath"
 
 
-def test_get_parsing_ok_pytest(mocker):
+def test_get_parsing_ok_pytest():
     mocked_stdout = [
         "Name: foo",
         "Version: 2.0.0",
@@ -35,12 +36,12 @@ def test_get_parsing_ok_pytest(mocker):
         "Requires: ",
     ]
     mgr = PipManager(BIN_PATH, pip_installed=True)
-    mocker.patch.object(helpers, "logged_exec", return_value=mocked_stdout)
-    version = mgr.get_version("foo")
+    with patch.object(helpers, "logged_exec", return_value=mocked_stdout):
+        version = mgr.get_version("foo")
     assert version, "2.0.0"
 
 
-def test_get_parsing_error(mocker, logs):
+def test_get_parsing_error(logs):
     mocked_stdout = [
         "Name: foo",
         "Release: 2.0.0",
@@ -48,8 +49,8 @@ def test_get_parsing_error(mocker, logs):
         "Requires: ",
     ]
     mgr = PipManager(BIN_PATH, pip_installed=True)
-    mocker.patch.object(helpers, "logged_exec", return_value=mocked_stdout)
-    version = mgr.get_version("foo")
+    with patch.object(helpers, "logged_exec", return_value=mocked_stdout):
+        version = mgr.get_version("foo")
 
     assert version == ""
     assert (
@@ -58,7 +59,7 @@ def test_get_parsing_error(mocker, logs):
     ) in logs.error
 
 
-def test_real_case_levenshtein(mocker):
+def test_real_case_levenshtein():
     mocked_stdout = [
         "Metadata-Version: 1.1",
         "Name: python-Levenshtein",
@@ -66,126 +67,127 @@ def test_real_case_levenshtein(mocker):
         "License: GPL",
     ]
     mgr = PipManager(BIN_PATH, pip_installed=True)
-    mocker.patch.object(helpers, "logged_exec", return_value=mocked_stdout)
-    version = mgr.get_version("foo")
+    with patch.object(helpers, "logged_exec", return_value=mocked_stdout):
+        version = mgr.get_version("foo")
     assert version == "0.12.0"
 
 
-def test_install(mocker):
+def test_install():
     mgr = PipManager(BIN_PATH, pip_installed=True)
     pip_path = os.path.join(BIN_PATH, "pip")
-    mock = mocker.patch.object(helpers, "logged_exec")
-    mgr.install("foo")
+    with patch.object(helpers, "logged_exec") as mock:
+        mgr.install("foo")
 
     # check it always upgrades pip, and then the proper install
     python_path = os.path.join(BIN_PATH, "python")
-    c1 = mocker.call([python_path, "-m", "pip", "install", "pip", "--upgrade"])
-    c2 = mocker.call([pip_path, "install", "foo"])
+    c1 = call([python_path, "-m", "pip", "install", "pip", "--upgrade"])
+    c2 = call([pip_path, "install", "foo"])
     assert mock.call_args_list == [c1, c2]
 
 
-def test_install_without_pip_upgrade(mocker):
+def test_install_without_pip_upgrade():
     mgr = PipManager(BIN_PATH, pip_installed=True, avoid_pip_upgrade=True)
     pip_path = os.path.join(BIN_PATH, "pip")
-    mock = mocker.patch.object(helpers, "logged_exec")
-    mgr.install("foo")
+    with patch.object(helpers, "logged_exec") as mock:
+        mgr.install("foo")
     mock.assert_called_with([pip_path, "install", "foo"])
 
 
-def test_install_multiword_dependency(mocker):
+def test_install_multiword_dependency():
     mgr = PipManager(BIN_PATH, pip_installed=True)
     pip_path = os.path.join(BIN_PATH, "pip")
-    mock = mocker.patch.object(helpers, "logged_exec")
-    mgr.install("foo bar")
+    with patch.object(helpers, "logged_exec") as mock:
+        mgr.install("foo bar")
     mock.assert_called_with([pip_path, "install", "foo", "bar"])
 
 
-def test_install_with_options(mocker):
+def test_install_with_options():
     mgr = PipManager(BIN_PATH, pip_installed=True, options=["--bar baz"])
     pip_path = os.path.join(BIN_PATH, "pip")
-    mock = mocker.patch.object(helpers, "logged_exec")
-    mgr.install("foo")
+    with patch.object(helpers, "logged_exec") as mock:
+        mgr.install("foo")
     mock.assert_called_with([pip_path, "install", "foo", "--bar", "baz"])
 
 
-def test_install_with_options_using_equal(mocker):
+def test_install_with_options_using_equal():
     mgr = PipManager(BIN_PATH, pip_installed=True, options=["--bar=baz"])
     pip_path = os.path.join(BIN_PATH, "pip")
-    mock = mocker.patch.object(helpers, "logged_exec")
-    mgr.install("foo")
+    with patch.object(helpers, "logged_exec") as mock:
+        mgr.install("foo")
     mock.assert_called_with([pip_path, "install", "foo", "--bar=baz"])
 
 
-def test_install_raise_error(mocker, logs):
+def test_install_raise_error(logs):
     mgr = PipManager(BIN_PATH, pip_installed=True)
-    mocker.patch.object(helpers, "logged_exec", side_effect=['ok', Exception("Kapow!")])
-    with pytest.raises(Exception):
-        mgr.install("foo")
+    with patch.object(helpers, "logged_exec", side_effect=['ok', Exception("Kapow!")]):
+        with pytest.raises(Exception):
+            mgr.install("foo")
 
     assert "Error installing foo: Kapow!" in logs.error
 
 
-def test_install_without_pip(mocker):
+def test_install_without_pip():
     mgr = PipManager(BIN_PATH, pip_installed=False)
     pip_path = os.path.join(BIN_PATH, "pip")
-    mocked_exec = mocker.patch.object(helpers, "logged_exec")
-    mocked_install_pip = mocker.patch.object(mgr, "_brute_force_install_pip")
-    mgr.install("foo")
+    with patch.object(helpers, "logged_exec") as mocked_exec:
+        with patch.object(mgr, "_brute_force_install_pip") as mocked_install_pip:
+            mgr.install("foo")
     assert mocked_install_pip.call_count == 1
     mocked_exec.assert_called_with([pip_path, "install", "foo"])
 
 
-def test_brute_force_install_pip_installer_exists(mocker, tmp_path):
+def test_brute_force_install_pip_installer_exists(tmp_path):
     tmp_file = str(tmp_path / "hello.txt")
     mgr = PipManager(BIN_PATH, pip_installed=False)
     python_path = os.path.join(BIN_PATH, "python")
-    mocked_exec = mocker.patch.object(helpers, "logged_exec")
-    download_installer = mocker.patch.object(mgr, "_download_pip_installer")
 
     # get the tempfile but leave it there to be found
     open(tmp_file, 'wt', encoding='utf8').close()
     mgr.pip_installer_fname = tmp_file
-    mgr._brute_force_install_pip()
+
+    with patch.object(helpers, "logged_exec") as mocked_exec:
+        with patch.object(mgr, "_download_pip_installer") as download_installer:
+            mgr._brute_force_install_pip()
 
     assert not download_installer.called
     mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, "-I"])
     assert mgr.pip_installed
 
 
-def test_brute_force_install_pip_no_installer(mocker, tmp_path):
+def test_brute_force_install_pip_no_installer(tmp_path):
     tmp_file = str(tmp_path / "hello.txt")
     mgr = PipManager(BIN_PATH, pip_installed=False)
     python_path = os.path.join(BIN_PATH, "python")
-    mocked_exec = mocker.patch.object(helpers, "logged_exec")
-    download_installer = mocker.patch.object(mgr, "_download_pip_installer")
 
     mgr.pip_installer_fname = tmp_file
-    mgr._brute_force_install_pip()
+    with patch.object(helpers, "logged_exec") as mocked_exec:
+        with patch.object(mgr, "_download_pip_installer") as download_installer:
+            mgr._brute_force_install_pip()
 
     download_installer.assert_called_once_with()
     mocked_exec.assert_called_with([python_path, mgr.pip_installer_fname, "-I"])
     assert mgr.pip_installed
 
 
-def test_download_pip_installer(mocker, tmp_path):
+def test_download_pip_installer(tmp_path):
     tmp_file = str(tmp_path / "hello.txt")
     mgr = PipManager(BIN_PATH, pip_installed=False)
 
     mgr.pip_installer_fname = tmp_file
-    urlopen = mocker.patch("fades.pipmanager.request.urlopen", return_value=io.BytesIO(b"hola"))
-    mgr._download_pip_installer()
+    with patch("fades.pipmanager.request.urlopen", return_value=io.BytesIO(b"hola")) as urlopen:
+        mgr._download_pip_installer()
     assert os.path.exists(mgr.pip_installer_fname)
     urlopen.assert_called_once_with(pipmanager.PIP_INSTALLER)
 
 
-def test_freeze(mocker, tmp_path):
+def test_freeze(tmp_path):
     tmp_file = str(tmp_path / "reqtest.txt")
-    mock = mocker.patch.object(helpers, "logged_exec")
-    mock.return_value = ['moño>11', 'foo==1.2']  # "bad" order, on purpose
 
     # call and check pip was executed ok
     mgr = PipManager(BIN_PATH)
-    mgr.freeze(tmp_file)
+    with patch.object(helpers, "logged_exec") as mock:
+        mock.return_value = ['moño>11', 'foo==1.2']  # "bad" order, on purpose
+        mgr.freeze(tmp_file)
 
     pip_path = os.path.join(BIN_PATH, "pip")
     mock.assert_called_with([pip_path, "freeze", "--all", "--local"])
