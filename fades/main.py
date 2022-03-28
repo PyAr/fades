@@ -208,6 +208,11 @@ def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
         https://github.com/pypa/pip/blob/281eb61b09d87765d7c2b92f6982b3fe76ccb0af/
             pip/locations.py#L39
     """
+    if os.environ.get("SNAP"):
+        # snaps under core20 are really virtualenvs but we have full control of the
+        # system layout, "this is fine" (<insert meme>), skip this control
+        return False
+
     if real_prefix is not None:
         return True
 

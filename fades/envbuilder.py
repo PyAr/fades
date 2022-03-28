@@ -55,7 +55,14 @@ class _FadesEnvBuilder(EnvBuilder):
         self.env_bin_path = ''
         logger.debug("Env will be created at: %s", self.env_path)
 
-        if sys.version_info >= (3, 4):
+        if os.environ.get("SNAP"):
+            # running inside a snap: we need to avoid EnvBuilder ending up running ensurepip
+            # because it doesn't work properly (it does a special magic to run the script
+            # and ends up mixing external and internal pips)
+            self.pip_installed = False
+            super().__init__(with_pip=False, symlinks=True)
+
+        elif sys.version_info >= (3, 4):
             # try to install pip using default machinery (which will work in a lot
             # of systems, noticeably it won't in some debians or ubuntus, like
             # Trusty; in that cases mark it to install manually later)
