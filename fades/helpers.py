@@ -152,7 +152,7 @@ def get_interpreter_version(requested_interpreter):
     current_interpreter = _get_interpreter_info()
     logger.debug('Current interpreter is %s', current_interpreter)
     if requested_interpreter is None:
-        return(current_interpreter, True)
+        return (current_interpreter, True)
     else:
         requested_interpreter = _get_interpreter_info(requested_interpreter)
         is_current = requested_interpreter == current_interpreter
