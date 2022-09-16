@@ -32,7 +32,7 @@ import shutil
 import sys
 import zlib
 
-from distutils.core import setup
+from setuptools import setup
 from setuptools.command.install import install
 
 _PY2_MESSAGE = (
