@@ -40,10 +40,11 @@ for logger_name in ('flake8.plugins', 'flake8.api', 'flake8.checker', 'flake8.ma
 def test_flake8_pytest():
     python_filepaths = get_python_filepaths(FLAKE8_ROOTS)
     style_guide = get_style_guide(**FLAKE8_OPTIONS)
-    fake_stdout = io.StringIO()
+    fake_stdout = io.TextIOWrapper(io.BytesIO())
     with patch('sys.stdout', fake_stdout):
         report = style_guide.check_files(python_filepaths)
-    assert report.total_errors == 0, "There are issues!\n" + fake_stdout.getvalue()
+    assert report.total_errors == 0, \
+           "There are issues!\n" + fake_stdout.buffer.getvalue().decode('utf-8')
 
 
 def test_pep257_pytest():
