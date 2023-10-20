@@ -152,13 +152,13 @@ def get_interpreter_version(requested_interpreter):
     current_interpreter = _get_interpreter_info()
     logger.debug('Current interpreter is %s', current_interpreter)
     if requested_interpreter is None:
-        return(current_interpreter, True)
-    else:
-        requested_interpreter = _get_interpreter_info(requested_interpreter)
-        is_current = requested_interpreter == current_interpreter
-        logger.debug('Interpreter=%s. It is the same as fades?=%s',
-                     requested_interpreter, is_current)
-        return (requested_interpreter, is_current)
+        return (current_interpreter, True)
+
+    requested_interpreter = _get_interpreter_info(requested_interpreter)
+    is_current = requested_interpreter == current_interpreter
+    logger.debug('Interpreter=%s. It is the same as fades?=%s',
+                 requested_interpreter, is_current)
+    return (requested_interpreter, is_current)
 
 
 def get_latest_version_number(project_name):

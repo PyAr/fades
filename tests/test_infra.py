@@ -22,6 +22,7 @@ from unittest.mock import patch
 
 import docutils.core
 import pydocstyle
+import pytest
 import rst2html5_
 from flake8.api.legacy import get_style_guide
 from pyuca import Collator
@@ -37,13 +38,13 @@ for logger_name in ('flake8.plugins', 'flake8.api', 'flake8.checker', 'flake8.ma
     logging.getLogger(logger_name).setLevel(logging.CRITICAL)
 
 
-def test_flake8_pytest():
+def test_flake8_pytest(capsys):
     python_filepaths = get_python_filepaths(FLAKE8_ROOTS)
     style_guide = get_style_guide(**FLAKE8_OPTIONS)
-    fake_stdout = io.StringIO()
-    with patch('sys.stdout', fake_stdout):
-        report = style_guide.check_files(python_filepaths)
-    assert report.total_errors == 0, "There are issues!\n" + fake_stdout.getvalue()
+    report = style_guide.check_files(python_filepaths)
+    if report.total_errors != 0:
+        out, _ = capsys.readouterr()
+        pytest.fail(f"There are {report.total_errors} issues!\n{''.join(out)}")
 
 
 def test_pep257_pytest():
