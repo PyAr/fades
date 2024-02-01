@@ -19,7 +19,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB--virtualenv-options\fR=\fIoptions\fR]
 [\fB--pip-options\fR=\fIoptions\fR]
 [\fB--python-options\fR=\fIoptions\fR]
-[\fB--check-updates\fR]
+[\fB-U\fR][\fB--check-updates\fR]
 [\fB--clean-unused-venvs\fR=\fImax_days_to_keep\fR]
 [\fB--get-venv-dir\fR]
 [\fB--no-precheck-availability\fR]
@@ -111,7 +111,7 @@ Extra options to be supplied to pip. (this option can be used multiple times)
 Extra options to be supplied to python. (this option can be used multiple times)
 
 .TP 
-.BR --check-updates
+.BR -U ", " --check-updates
 Will check for updates in PyPI to verify if there are new versions for the requested dependencies. If a new version is available for a dependency, it will use it (if the dependency was requested without version) or just inform which new version is available (if the dependency was requested with a specific version).
 
 .TP
