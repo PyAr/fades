@@ -248,7 +248,7 @@ def go():
         '--virtualenv-options', action='append', default=[],
         help="extra options to be supplied to virtualenv (this option can be used multiple times)")
     parser.add_argument(
-        '--check-updates', action='store_true', help="check for packages updates")
+        '-U', '--check-updates', action='store_true', help="check for packages updates")
     parser.add_argument(
         '--no-precheck-availability', action='store_true',
         help="don't check if the packages exists in PyPI before actually try to install them")
