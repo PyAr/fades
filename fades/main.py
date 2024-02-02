@@ -266,7 +266,7 @@ def go():
         help="remove venvs that haven't been used for more than the indicated days and compact "
              "usage stats file (all this takes place at the beginning of the execution)")
     parser.add_argument(
-        '--get-venv-dir', action='store_true',
+        '--get-venv-dir', '--where', action='store_true',
         help="show the virtualenv base directory (including the venv's UUID) and quit")
     parser.add_argument(
         '-a', '--autoimport', action='store_true',

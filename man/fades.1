@@ -21,7 +21,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB--python-options\fR=\fIoptions\fR]
 [\fB-U\fR][\fB--check-updates\fR]
 [\fB--clean-unused-venvs\fR=\fImax_days_to_keep\fR]
-[\fB--get-venv-dir\fR]
+[\fB--where\fR][\fB--get-venv-dir\fR]
 [\fB--no-precheck-availability\fR]
 [\fB-a\fR][\fB--autoimport\fR]
 [\fB--freeze\fR]
@@ -119,7 +119,7 @@ Will check for updates in PyPI to verify if there are new versions for the reque
 Will remove all virtualenvs that haven't been used for more than MAX_DAYS_TO_KEEP days.
 
 .TP
-.BR --get-venv-dir
+.BR --where ", " --get-venv-dir
 Show the virtualenv base directory (which includes the virtualenv UUID) and quit.
 
 .TP
