@@ -260,13 +260,13 @@ def go():
         help="extra options to be supplied to python (this option can be used multiple times)")
     parser.add_argument(
         '--rm', dest='remove', metavar='UUID',
-        help="remove a virtualenv by UUID; see --get-venv-dir option to easily find out the UUID")
+        help="remove a virtualenv by UUID; see --where option to easily find out the UUID")
     parser.add_argument(
         '--clean-unused-venvs', action='store',
         help="remove venvs that haven't been used for more than the indicated days and compact "
              "usage stats file (all this takes place at the beginning of the execution)")
     parser.add_argument(
-        '--get-venv-dir', '--where', action='store_true',
+        '--where', '--get-venv-dir', action='store_true',
         help="show the virtualenv base directory (including the venv's UUID) and quit")
     parser.add_argument(
         '-a', '--autoimport', action='store_true',
@@ -429,7 +429,7 @@ def go():
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
 
-    if args.get_venv_dir:
+    if args.where:
         # all it was requested is the virtualenv's path, show it and quit (don't run anything)
         print(venv_data['env_path'])
         return 0
