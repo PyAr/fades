@@ -261,8 +261,8 @@ You can also use ``--system-site-packages`` to create a venv with access to
 the system libs.
 
 Finally, no matter how the virtualenv was created, you can always get the
-base directory of the virtualenv in your system using the ``--get-venv-dir``
-option.
+base directory of the virtualenv in your system using the ``--where`` (or its
+alias ``--get-venv-dir``) option.
 
 
 Running programs in the context of the virtualenv
@@ -312,7 +312,10 @@ You can tell fades to do otherwise, just do::
     fades -d foobar --check-updates
 
 ...and *fades* will search updates for the package on PyPI, and as it will
-found version 8, will create a new virtualenv using the latest version.
+found version 8, will create a new virtualenv using the latest version. You
+can also use the ``-U`` option as an alias for ``--check-updates``::
+    
+    fades -d foobar -U
 
 From this moment on, if you request ``fades -d foobar`` it will bring the
 virtualenv with the new version. If you want to get a virtualenv with
@@ -435,7 +438,7 @@ unnecessary virtual environments from disk.
 By running *fades* with the ``--rm`` argument, *fades* will remove the
 virtualenv matching the provided UUID if such a virtualenv exists (one easy
 way to find out the virtualenv's UUID is calling *fades* with the
-``--get-venv-dir`` option.
+``--where`` option).
 
 Another way to clean up the cache is to remove all venvs that haven't been used for some time.
 In order to do this you need to call *fades* with ``--clean-unused-venvs``.
