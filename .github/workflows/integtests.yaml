@@ -12,10 +12,16 @@ jobs:
     container:
       image: archlinux:latest
       volumes:
-        - ${{ github.workspace }}:/project
+        - $GITHUB_WORKSPACE:/project
     steps:
       - name: Simple fades run
         run: |
+          echo "minusc"
+          echo ${{ github.workspace }}
+          echo "MAYUsc"
+          echo $GITHUB_WORKSPACE
+          echo "cd and ls"
           cd /project
           ls -l
+          echo "Fades"
           bin/fades -v -d pytest -x pytesxt --version
