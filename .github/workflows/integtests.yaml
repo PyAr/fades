@@ -12,8 +12,12 @@ jobs:
     container:
       image: archlinux:latest
       volumes:
-        - $GITHUB_WORKSPACE:/project
+        - ${{ github.workspace }}:/project
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Simple fades run
         run: |
           echo "minusc"
