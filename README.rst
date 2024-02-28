@@ -239,8 +239,8 @@ be installed in your system, but you can control exactly which one to use.
 
 No matter which way you're executing the script (see above), you can
 pass a ``-p`` or ``--python`` argument, indicating the Python version to
-be used just with the number (``2.7``), the whole name (``python2.7``) or
-the whole path (``/usr/bin/python2.7``).
+be used just with the number (``3.9``), the whole name (``python3.9``) or
+the whole path (``/usr/bin/python3.9``).
 
 Other detail is the verbosity of *fades* when telling what is doing. By
 default, *fades* only will use stderr to tell if a virtualenv is being
