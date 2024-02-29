@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: |
-          pacman -Sy --noconfirm python3 
+          pacman -Sy --noconfirm python3 python-setuptools
       - name: Simple fades run
         run: |
           echo ${{ github.workspace }}
