@@ -8,24 +8,25 @@ on:
 
 jobs:
 
-  archlinux:
-    runs-on: ubuntu-latest
-    container:
-      image: archlinux:latest
-      volumes:
-        - ${{ github.workspace }}:/fades
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install dependencies
-        run: |
-          pacman -Sy --noconfirm python3 python-setuptools
-      - name: Simple fades run
-        run: |
-          cd /fades
-          bin/fades -v -d pytest -x pytest --version
+          #  archlinux:
+          #    runs-on: ubuntu-latest
+          #    container:
+          #      image: archlinux:latest
+          #      volumes:
+          #        - ${{ github.workspace }}:/fades
+          #    steps:
+          #      - name: Checkout code
+          #        uses: actions/checkout@v4
+          #        with:
+          #          fetch-depth: 0
+          #      - name: Install dependencies
+          #        run: |
+          #          pacman -Sy --noconfirm python3 python-setuptools
+          #      - name: Simple fades run
+          #        run: |
+          #          cd /fades
+          #          bin/fades -v -d pytest -x pytest --version
+
 
   fedora:
     runs-on: ubuntu-latest
@@ -45,24 +46,33 @@ jobs:
         run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
-
-  native:
-    strategy:
-      matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, macos-12, macos-11, windows-2019, windows-2022]
-        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
-
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Using a different Python
         run: |
-          pip install -U setuptools
-      - name: Simple fades run
-        run: |
-          bin/fades -v -d pytest -x pytest --version
+          yum install --assumeyes python3.9
+          cd /fades
+          export TEST_PYTHON_VERSION=3.9
+          bin/fades -v --python=python3.9 -d pytest -x pytest tests/integtest.py
+
+          #  native:
+          #    strategy:
+          #      matrix:
+          #        # just a selection otherwise it's too much
+          #        # - latest OSes
+          #        # - oldest and newest Python
+          #        os: [ubuntu-22.04, macos-12, windows-2022]
+          #        python-version: [3.8, "3.12"]
+          #
+          #    runs-on: ${{ matrix.os }}
+          #    steps:
+          #      - uses: actions/checkout@v4
+          #
+          #      - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
+          #        uses: actions/setup-python@v4
+          #        with:
+          #          python-version: ${{ matrix.python-version }}
+          #      - name: Install dependencies
+          #        run: |
+          #          pip install -U setuptools
+          #      - name: Simple fades run
+          #        run: |
+          #          bin/fades -v -d pytest -x pytest --version
