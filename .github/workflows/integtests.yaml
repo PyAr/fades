@@ -60,9 +60,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-            # - name: Install dependencies
-            #   run: |
-            #     pip install -U -r requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -U setuptools
       - name: Simple fades run
         run: |
           bin/fades -v -d pytest -x pytest --version
