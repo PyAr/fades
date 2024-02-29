@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  container-test-job:
+  archlinux:
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -26,8 +26,4 @@ jobs:
           echo ${{ github.workspace }}
           echo $GITHUB_WORKSPACE
           cd /fades
-          ls -l
-          echo "Fades V"
-          bin/fades --version
-          echo "Fades R"
-          bin/fades -v -d pytest -x pytesxt --version
+          bin/fades -v -d pytest -x pytest --version
