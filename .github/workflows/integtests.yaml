@@ -12,7 +12,7 @@ jobs:
     container:
       image: archlinux:latest
       volumes:
-        - ${{ github.workspace }}:/project
+        - ${{ github.workspace }}:/fades
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,7 +25,7 @@ jobs:
         run: |
           echo ${{ github.workspace }}
           echo $GITHUB_WORKSPACE
-          cd /project
+          cd /fades
           ls -l
           echo "Fades V"
           bin/fades --version
