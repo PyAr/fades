@@ -45,3 +45,24 @@ jobs:
         run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
+
+  native:
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, macos-12, macos-11, windows-2019, windows-2022]
+        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+            # - name: Install dependencies
+            #   run: |
+            #     pip install -U -r requirements.txt
+      - name: Simple fades run
+        run: |
+          bin/fades -v -d pytest -x pytest --version
