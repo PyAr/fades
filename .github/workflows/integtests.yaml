@@ -7,6 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
+
   archlinux:
     runs-on: ubuntu-latest
     container:
@@ -23,7 +24,24 @@ jobs:
           pacman -Sy --noconfirm python3 python-setuptools
       - name: Simple fades run
         run: |
-          echo ${{ github.workspace }}
-          echo $GITHUB_WORKSPACE
+          cd /fades
+          bin/fades -v -d pytest -x pytest --version
+
+  fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+      volumes:
+        - ${{ github.workspace }}:/fades
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: |
+          yum install --assumeyes python3-setuptools
+      - name: Simple fades run
+        run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
