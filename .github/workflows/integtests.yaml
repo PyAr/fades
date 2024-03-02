@@ -80,7 +80,7 @@ jobs:
           pip install -U setuptools
       - name: Simple fades run
         run: |
-          bin/fades -v -d pytest -x pytest --version
+          python${{ matrix.python-version }} bin/fades -v -d pytest -x pytest --version
       - name: Using a different Python
         run: |
           export TEST_PYTHON_VERSION=3.10
