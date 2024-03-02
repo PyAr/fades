@@ -83,6 +83,5 @@ jobs:
           bin/fades -v -d pytest -x pytest --version
       - name: Using a different Python
         run: |
-          cd /fades
           export TEST_PYTHON_VERSION=3.10
           python${{ matrix.python-version }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
