@@ -80,7 +80,7 @@ jobs:
       - name: Using a different Python
         run: |
           # apt update ???
-          apt install -y python3.10 python3.10-venv python3-virtualenv
+          sudo apt install -y python3.10 python3.10-venv python3-virtualenv
           cd /fades
           export TEST_PYTHON_VERSION=3.10
           python${{ matrix.python-version }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
