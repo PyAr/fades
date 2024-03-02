@@ -80,6 +80,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python3 -c "import sys;print(sys.executable)"
           python${{ matrix.python-version }} -m pip install -U setuptools
       - name: Simple fades run
         run: |
