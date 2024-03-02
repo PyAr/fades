@@ -71,17 +71,23 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Also set up Python 3.10 for cross-Python test
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+
+      # XXX Facundo 2024-03-02 - disabled until we enable the cross test below
+      # - name: Also set up Python 3.10 for cross-Python test
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: "3.10"
+
       - name: Install dependencies
         run: |
           python${{ matrix.python-version }} -m pip install -U setuptools
       - name: Simple fades run
         run: |
           python${{ matrix.python-version }} bin/fades -v -d pytest -x pytest --version
-      - name: Using a different Python
-        run: |
-          export TEST_PYTHON_VERSION=3.10
-          python${{ matrix.python-version }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
+
+      # XXX Facundo 2024-03-02 - commented out as until we finish issue #411 work we need 'virtualenv' and it's a
+      # hassle to install it in a multiplatform way -- this should be enabled while working on that issue
+      # - name: Using a different Python
+      #   run: |
+      #     export TEST_PYTHON_VERSION=3.10
+      #     python${{ matrix.python-version }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
