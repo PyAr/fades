@@ -81,17 +81,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python3 -c "import sys;print(sys.executable)"
-          python3 -c "import sys, os; print(os.path.dirname(sys.executable)); print('\n'.join(os.listdir(os.path.dirname(sys.executable))))"
-          echo "======== path?" ${{ steps.matrixpy.outputs.python-path }}
           ${{ steps.matrixpy.outputs.python-path }} -m pip install -U setuptools
       - name: Simple fades run
         run: |
-          python${{ matrix.python-version }} bin/fades -v -d pytest -x pytest --version
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version
 
       # XXX Facundo 2024-03-02 - commented out as until we finish issue #411 work we need 'virtualenv' and it's a
       # hassle to install it in a multiplatform way -- this should be enabled while working on that issue
       # - name: Using a different Python
       #   run: |
       #     export TEST_PYTHON_VERSION=3.10
-      #     python${{ matrix.python-version }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
+      #     ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
