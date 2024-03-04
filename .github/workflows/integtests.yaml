@@ -1,0 +1,94 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  archlinux:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      volumes:
+        - ${{ github.workspace }}:/fades
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: |
+          pacman -Sy --noconfirm python3 python-setuptools
+      - name: Simple fades run
+        run: |
+          cd /fades
+          bin/fades -v -d pytest -x pytest --version
+      # XXX Facundo 2024-03-01: "using a different Python" is missing here because Arch is hard
+
+  fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+      volumes:
+        - ${{ github.workspace }}:/fades
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: |
+          yum install --assumeyes python3.12 python3-setuptools
+      - name: Simple fades run
+        run: |
+          cd /fades
+          bin/fades -v -d pytest -x pytest --version
+      - name: Using a different Python
+        run: |
+          # XXX Facundo 2024-02-29 - remove virtualenv in this install as part of issue #411 work
+          yum install --assumeyes python3.9 python3-virtualenv
+          cd /fades
+          export TEST_PYTHON_VERSION=3.9
+          python3.12 bin/fades -v --python=python3.9 -d pytest -x pytest -v tests/integtest.py
+
+  native:
+    strategy:
+      matrix:
+        # just a selection otherwise it's too much
+        # - latest OSes
+        # - oldest and newest Python
+        os: [ubuntu-22.04, macos-12, windows-2022]
+        python-version: [3.8, "3.12"]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
+        uses: actions/setup-python@v5
+        id: matrixpy
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # XXX Facundo 2024-03-02 - disabled until we enable the cross test below
+      # - name: Also set up Python 3.10 for cross-Python test
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          ${{ steps.matrixpy.outputs.python-path }} -m pip install -U setuptools
+      - name: Simple fades run
+        run: |
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version
+
+      # XXX Facundo 2024-03-02 - commented out as until we finish issue #411 work we need 'virtualenv' and it's a
+      # hassle to install it in a multiplatform way -- this should be enabled while working on that issue
+      # - name: Using a different Python
+      #   run: |
+      #     export TEST_PYTHON_VERSION=3.10
+      #     ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
