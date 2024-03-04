@@ -26,7 +26,6 @@ import sys
 
 def test_assert_python_version():
     expected = os.environ["TEST_PYTHON_VERSION"]
-    print("========== expected")
     vi = sys.version_info
     current = f"{vi.major}.{vi.minor}"
     assert current == expected
