@@ -1,4 +1,4 @@
-# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -161,7 +161,7 @@ class EnvCreationTestCase(unittest.TestCase):
                     self.assertEqual(str(cm.exception), 'Dependency installation failed')
                     mock_destroy.assert_called_once_with('env_path')
 
-        self.assertLoggedDebug("Installation Step failed, removing virtualenv")
+        self.assertLoggedDebug("Installation Step failed, removing virtual environment")
 
     def test_different_versions(self):
         requested = {
