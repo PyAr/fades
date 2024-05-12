@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: |
-          pacman -Sy --noconfirm python3.11 python-setuptools
+          pacman -Sy --noconfirm python311 python-setuptools
       - name: Simple fades run
         run: |
           cd /fades
