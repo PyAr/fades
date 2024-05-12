@@ -19,15 +19,15 @@ What is fades?
     :alt: Appveyor Status
 
 
-fades is a system that automatically handles the virtualenvs in the
+fades is a system that automatically handles the virtual environments in the
 cases normally found when writing scripts and simple programs, and
 even helps to administer big projects.
 
 .. image:: resources/logo256.png
 
-*fades* will automagically create a new virtualenv (or reuse a previous
+*fades* will automagically create a new virtual environment (or reuse a previous
 created one), installing the necessary dependencies, and execute
-your script inside that virtualenv, with the only requirement
+your script inside that virtual environment, with the only requirement
 of executing the script with *fades* and also marking the required
 dependencies.
 
@@ -41,7 +41,7 @@ child script.
 
 *fades* can also be executed without passing a child script to execute:
 in this mode it will open a Python interactive interpreter inside the
-created/reused virtualenv (taking dependencies from ``--dependency`` or
+created/reused virtual environment (taking dependencies from ``--dependency`` or
 ``--requirement`` options).
 
 .. contents::
@@ -71,7 +71,7 @@ When you write an script, you have to take two special measures:
 - need to mark those dependencies
 
 At the moment you execute the script, fades will search a
-virtualenv with the marked dependencies, if it doesn't exists
+virtual environment with the marked dependencies, if it doesn't exists
 fades will create it, and execute the script in that environment.
 
 
@@ -119,7 +119,7 @@ The simplest comment is like::
 The ``fades`` is mandatory, in this examples the repository is PyPI,
 see `About different repositories`_ below for other examples.
 
-With that comment, *fades* will install automatically in the virtualenv the
+With that comment, *fades* will install automatically in the virtual environment the
 ``somemodule`` or ``somepackage`` from PyPI.
 
 Also, you can indicate a particular version condition, examples::
@@ -139,9 +139,9 @@ version)::
 What if no script is given to execute?
 --------------------------------------
 
-If no script or program is passed to execute, *fades* will provide a virtualenv 
+If no script or program is passed to execute, *fades* will provide a virtual environment 
 with all the indicated dependencies, and then open an interactive interpreter 
-in the context of that virtualenv.
+in the context of that virtual environment.
 
 Here is where it comes very handy the ``-i/--ipython`` option, if that REPL
 is preferred over the standard one.
@@ -155,7 +155,7 @@ Other ways to specify dependencies
 ----------------------------------
 
 Apart of marking the imports in the source file, there are other ways
-to tell *fades* which dependencies to install in the virtualenv.
+to tell *fades* which dependencies to install in the virtual environment.
 
 One way is through command line, passing the ``--dependency`` parameter.
 This option can be specified multiple times (once per dependency), and
@@ -202,7 +202,7 @@ If you prefer, you can be explicit about which kind of repository *fades* should
     -d pypi::requests
     -d vcs::git+https://github.com/kennethreitz/requests.git#egg=requests
 
-There are two basic repositories: ``pypi`` which will make *fades* to install the desired dependency from PyPI, and ``vcs``, which will make *fades* to treat the dependency as a URL for a version control system site. In the first case, for PyPI, a full range of version comparators can be specified, as usual. For ``vcs`` repositories, though, the comparison is always exact: if the very same dependency is specified, a *virtualenv* is reused, otherwise a new one will be created and populated.
+There are two basic repositories: ``pypi`` which will make *fades* to install the desired dependency from PyPI, and ``vcs``, which will make *fades* to treat the dependency as a URL for a version control system site. In the first case, for PyPI, a full range of version comparators can be specified, as usual. For ``vcs`` repositories, though, the comparison is always exact: if the very same dependency is specified, a *virtual environment* is reused, otherwise a new one will be created and populated.
 
 In both cases (specifying the repository explicitly or implicitly) there is no difference if the dependency is specified in the command line, in a ``requirements.txt`` file, in the script's docstring, etc.  In the case of marking the ``import`` directly in the script, it slightly different.
 
@@ -228,13 +228,13 @@ because we're mixing the protocol indication with the path)::
     fades -d file:///home/crazyuser/myproject/allstars/
 
 
-How to control the virtualenv creation and usage?
--------------------------------------------------
+How to control the virtual environment creation and usage?
+----------------------------------------------------------
 
-You can influence several details of all the virtualenv related process.
+You can influence several details of all the virtual environment related process.
 
 The most important detail is which version of Python will be used in
-the virtualenv. Of course, the corresponding version of Python needs to
+the virtual environment. Of course, the corresponding version of Python needs to
 be installed in your system, but you can control exactly which one to use.
 
 No matter which way you're executing the script (see above), you can
@@ -243,7 +243,7 @@ be used just with the number (``2.7``), the whole name (``python2.7``) or
 the whole path (``/usr/bin/python2.7``).
 
 Other detail is the verbosity of *fades* when telling what is doing. By
-default, *fades* only will use stderr to tell if a virtualenv is being
+default, *fades* only will use stderr to tell if a virtual environment is being
 created, and to let the user know that is doing an operation that
 requires an active network connection (e.g. installing a new dependency).
 
@@ -260,37 +260,37 @@ and it will launch this shell instead of the python one.
 You can also use ``--system-site-packages`` to create a venv with access to
 the system libs.
 
-Finally, no matter how the virtualenv was created, you can always get the
-base directory of the virtualenv in your system using the ``--where`` (or its
+Finally, no matter how the virtual environment was created, you can always get the
+base directory of the virtual environment in your system using the ``--where`` (or its
 alias ``--get-venv-dir``) option.
 
 
-Running programs in the context of the virtualenv
--------------------------------------------------
+Running programs in the context of the virtual environment
+----------------------------------------------------------
 
 The ``-x/--exec`` parameter allows you to execute any program (not just
-a Python one) in the context of the virtualenv.
+a Python one) in the context of the virtual environment.
 
 By default the mandatory given argument is considered the executable 
-name, relative to the virtualenv's ``bin`` directory, so this is 
+name, relative to the environment's ``bin`` directory, so this is 
 specially useful to execute installed scripts/program by the declared 
 dependencies. E.g.::
 
     fades -d flake8 -x flake8 my_script_to_be_verified_by_flake8.py
 
 Take in consideration that you can pass an absolute path and it will be 
-respected (but not a relative path, as it will depend of the virtualenv
+respected (but not a relative path, as it will depend of the virtual environment
 location). 
 
 For example, if you want to run a shell script that in turn runs a Python
-program that needs to be executed in the context of the virtualenv, you 
+program that needs to be executed in the context of the virtual environment, you 
 can do the following::
 
     fades -r requirements.txt --exec /var/lib/foobar/special.sh
 
 Finally, if the intended code to run is prepared to be executed as a module 
 (what you would normally run as `python3 -m some_module`), you can 
-use the same parameter with *fades* to run that module inside the virtualenv::
+use the same parameter with *fades* to run that module inside the virtual environment::
 
     fades -r requirements.txt -m some_module
 
@@ -298,27 +298,27 @@ use the same parameter with *fades* to run that module inside the virtualenv::
 How to deal with packages that are upgraded in PyPI
 ---------------------------------------------------
 
-When you tell *fades* to create a virtualenv using one dependency and
+When you tell *fades* to create a virtual environment using one dependency and
 don't specify a version, it will install the latest one from PyPI.
 
 For example, you do ``fades -d foobar`` and it installs foobar in
 version 7. At some point, there is a new version of foobar in PyPI,
 version 8, but if do ``fades -d foobar`` it will just reuse previously
-created virtualenv, with version 7, not downloading the new version and
-creating a new virtualenv with it!
+created virtual environment, with version 7, not downloading the new version and
+creating a new virtual environment with it!
 
 You can tell fades to do otherwise, just do::
 
     fades -d foobar --check-updates
 
 ...and *fades* will search updates for the package on PyPI, and as it will
-found version 8, will create a new virtualenv using the latest version. You
+found version 8, will create a new virtual environment using the latest version. You
 can also use the ``-U`` option as an alias for ``--check-updates``::
     
     fades -d foobar -U
 
 From this moment on, if you request ``fades -d foobar`` it will bring the
-virtualenv with the new version. If you want to get a virtualenv with
+virtual environment with the new version. If you want to get a virtual environment with
 not-the-latest version for any dependency, just specify the proper versions.
 
 You can even use the ``--check-updates`` parameter when specifying the package
@@ -335,7 +335,7 @@ What about pinning dependencies?
 --------------------------------
 
 One nice benefit of *fades* is that every time dependencies change in your 
-project, you actually get to use a new virtualenv automatically.
+project, you actually get to use a new virtual environment automatically.
 
 If you don't pin the dependencies in your requirements file, this has 
 another nice side effect: everytime you use them in a new environment (or
@@ -380,13 +380,11 @@ pinned, so you will get exactly what you was expecting.
 Under the hood options
 ----------------------
 
-For particular use cases you can send specifics arguments to ``virtualenv``, ``pip`` and ``python``. using the
-``--virtuaenv-options``, ``--pip-options`` and ``--python-options`` respectively. You have to use that argument for each argument
-sent.
+For particular use cases you can send specifics arguments to the ``venv`` module, ``pip`` and ``python`` itself, using the ``--venv-options``, ``--pip-options`` and ``--python-options`` modifiers respectively. You have to use that argument for each argument sent.
 
 Examples:
 
-``fades -d requests --virtualenv-options="--always-copy" --virtualenv-options="--extra-search-dir=/tmp"``
+``fades -d requests --venv-options="--symlinks"``
 
 ``fades -d requests --pip-options="--index-url='http://example.com'"``
 
@@ -420,31 +418,31 @@ options with a dash, it has to be replaced with a underscore.::
     dependency=requests;django>=1.8  # separated by semicolon
 
 There is a little difference in how fades handle these settings: "dependency", "pip-options" and
-"virtualenv-options". In these cases you have to use a semicolon separated list.
+"venv-options". In these cases you have to use a semicolon separated list.
 
 The most important thing is that these options will be merged. So if you configure in
-`/etc/fades/fades.ini` "dependency=requests" you will have requests in all the virtualenvs
+`/etc/fades/fades.ini` "dependency=requests" you will have requests in all the virtual environments
 created by fades.
 
 
-How to clean up old virtualenvs?
---------------------------------
+How to clean up old virtual environments?
+-----------------------------------------
 
 When using *fades* virtual environments are something you should not have to think about.
-*fades* will do the right thing and create a new virtualenv that matches the required
+*fades* will do the right thing and create a new virtual environment that matches the required
 dependencies. There are cases however when you'll want to do some clean up to remove
 unnecessary virtual environments from disk.
 
 By running *fades* with the ``--rm`` argument, *fades* will remove the
-virtualenv matching the provided UUID if such a virtualenv exists (one easy
-way to find out the virtualenv's UUID is calling *fades* with the
+virtual environment matching the provided UUID if such a virtual environment exists (one easy
+way to find out the virtual environment's UUID is calling *fades* with the
 ``--where`` option).
 
 Another way to clean up the cache is to remove all venvs that haven't been used for some time.
 In order to do this you need to call *fades* with ``--clean-unused-venvs``.
 When fades it's called with this option, it runs in mantain mode, this means that fades will exit
 after finished this task.
-All virtualenvs that haven't been used for more days than the value indicated in param will be
+All virtual environments that haven't been used for more days than the value indicated in param will be
 removed.
 
 It is recommended to have some automatically way of run this option;
@@ -456,7 +454,7 @@ ie, add a cron task that perform this command::
 Some command line examples
 --------------------------
 
-Execute ``foo.py`` under *fades*, passing the ``--bar`` parameter to the child program, in a virtualenv with the dependencies indicated in the source code::
+Execute ``foo.py`` under *fades*, passing the ``--bar`` parameter to the child program, in a virtual environment with the dependencies indicated in the source code::
 
     fades foo.py --bar
 
@@ -464,19 +462,19 @@ Execute ``foo.py`` under *fades*, showing all the *fades* messages (verbose mode
 
     fades -v foo.py
 
-Execute ``foo.py`` under *fades* (passing the ``--bar`` parameter to it), in a virtualenv with the dependencies indicated in the source code and also ``dependency1`` and ``dependency2`` (any version > 3.2)::
+Execute ``foo.py`` under *fades* (passing the ``--bar`` parameter to it), in a virtual environment with the dependencies indicated in the source code and also ``dependency1`` and ``dependency2`` (any version > 3.2)::
 
     fades -d dependency1 -d "dependency2>3.2" foo.py --bar
 
-Execute the Python interactive interpreter in a virtualenv with ``dependency1`` installed::
+Execute the Python interactive interpreter in a virtual environment with ``dependency1`` installed::
 
     fades -d dependency1
 
-Execute the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the ``requirements.txt`` file::
+Execute the Python interactive interpreter in a virtual environment after installing there all dependencies taken from the ``requirements.txt`` file::
 
     fades -r requirements.txt
 
-Execute the Python interactive interpreter in a virtualenv after installing there all dependencies taken from files ``requirements.txt`` and ``requirements_devel.txt``::
+Execute the Python interactive interpreter in a virtual environment after installing there all dependencies taken from files ``requirements.txt`` and ``requirements_devel.txt``::
 
     fades -r requirements.txt -r requirements_devel.txt
 
@@ -484,11 +482,11 @@ Use the ``django-admin.py`` script to start a new project named ``foo``, without
 
     fades -d django -x django-admin.py startproject foo
 
-Remove a virtualenv matching the given uuid from disk and cache index::
+Remove a virtual environment matching the given uuid from disk and cache index::
 
     fades --rm 89a2bf83-c280-4918-a78d-c35506efd69d
 
-Download the script from the given pastebin and executes it (previously building a virtualenv for the dependencies indicated in that pastebin, of course)::
+Download the script from the given pastebin and executes it (previously building a virtual environment for the dependencies indicated in that pastebin, of course)::
 
     fades http://linkode.org/#4QI4TrPlGf1gK2V7jPBC47
 
@@ -501,9 +499,9 @@ Some examples using fades in project scripts
 --------------------------------------------
 
 Including *fades* in project helper scripts makes it easy to stop 
-worrying about the virtualenv activation/deactivation when working 
+worrying about the virtual environment activation/deactivation when working 
 in that project, and also solves the problem of needing to 
-update/change/fix an already created virtualenv if the 
+update/change/fix an already created virtual environment if the 
 dependencies change.
 
 This is an example of how a script to run your project may look like::
@@ -515,7 +513,7 @@ This is an example of how a script to run your project may look like::
         fades -r requirements.txt bin/start
     else
         echo 2
-        # hope you are in the correct virtualenv
+        # hope you are in the correct virtual environment
         python3 bin/start
     fi
 
@@ -529,30 +527,30 @@ of the development dependencies::
 What if Python is updated in my system?
 ---------------------------------------
 
-The virtualenvs created by fades depend on the Python version used to
+The virtual environments created by fades depend on the Python version used to
 create them, considering its major and minor version.
 
 This means that if run fades with a Python version and then run it again
-with a different Python version, it may need to create a new virtualenv.
+with a different Python version, it may need to create a new virtual environment.
 
 Let's see some examples. Let's say you run fades with ``python``, which
-is a symlink in your ``/usr/bin/`` to ``python3.4`` (running it directly
+is a symlink in your ``/usr/bin/`` to ``python3.6`` (running it directly
 by hand or because fades is installed to use that Python version).
 
-If you have Python 3.4.2 installed in your system, and it's upgraded to
-Python 3.4.3, fades will keep reusing the already created virtualenvs, as
+If you have Python 3.6.2 installed in your system, and it's upgraded to
+Python 3.6.3, fades will keep reusing the already created virtual environments, as
 only the micro version changed, not minor or major.
 
-But if Python 3.5 is installed in your system, and the default ``python``
+But if Python 3.7 is installed in your system, and the default ``python``
 is pointed to this new one, fades will start creating all the
-virtualenvs again, with this new version.
+virtual environments again, with this new version.
 
 This is a good thing, because you want that the dependencies installed
-with one specific Python in the virtualenv are kept being used by the
+with one specific Python in the virtual environment are kept being used by the
 same Python version.
 
 However, if you want to avoid this behaviour, be sure to always call fades
-with the specific Python version (``/usr/bin/python3.4`` or ``python3.4``,
+with the specific Python version (``/usr/bin/python3.6`` or ``python3.6``,
 for example), so it won't matter if a new version is available in the
 system.
 
@@ -596,7 +594,7 @@ Else, keep reading to know how to install the dependencies first, and
 Dependencies
 ------------
 
-Besides needing Python 3.3 or greater, fades depends also on the
+Besides needing Python 3.6 or greater, fades depends also on the
 ``pkg_resources`` package, that comes in with ``setuptools``.
 It's installed almost everywhere, but in any case,
 you can install it in Ubuntu/Debian with::
@@ -618,10 +616,6 @@ You can install it in Ubuntu/Debian with::
 And on Arch Linux with::
 
     pacman -S python-xdg
-
-Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>`_ 
-package to support different Python versions for child execution. (see the 
-``--python`` option.)
 
 
 For others debian and ubuntu

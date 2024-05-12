@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2014-2017 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -53,7 +53,7 @@ if sys.version_info.major < 3:
 def get_version():
     """Retrieves package version from the file."""
     with open('fades/_version.py') as fh:
-        m = re.search("\(([^']*)\)", fh.read())
+        m = re.search(r"\(([^']*)\)", fh.read())
     if m is None:
         raise ValueError("Unrecognized version in 'fades/_version.py'")
     return m.groups()[0].replace(', ', '.')
@@ -123,7 +123,7 @@ setup(
     install_requires=['setuptools'],
     tests_require=['logassert', 'pyxdg', 'pyuca', 'pytest', 'flake8',
                    'pep257', 'rst2html5'],  # what unittests require
-    python_requires='>=3.3',  # Minimum Python version supported.
+    python_requires='>=3.6',  # Minimum Python version supported.
     extras_require={
         'pyxdg': 'pyxdg',
         'virtualenv': 'virtualenv',
@@ -158,6 +158,8 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',

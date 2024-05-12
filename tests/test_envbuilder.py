@@ -1,4 +1,4 @@
-# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -66,9 +66,7 @@ class EnvCreationTestCase(unittest.TestCase):
         interpreter = 'python3'
         is_current = True
         avoid_pip_upgrade = False
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": [],
-                   }
+        options = {"venv_options": []}
         pip_options = []
         with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
@@ -101,7 +99,7 @@ class EnvCreationTestCase(unittest.TestCase):
         interpreter = 'python3'
         is_current = True
         avoid_pip_upgrade = False
-        options = {"virtualenv_options": [], "pyvenv_options": []}
+        options = {"venv_options": []}
         pip_options = []
         with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
@@ -124,9 +122,7 @@ class EnvCreationTestCase(unittest.TestCase):
         interpreter = 'python3'
         is_current = True
         avoid_pip_upgrade = False
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": [],
-                   }
+        options = {"venv_options": []}
         pip_options = []
         with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
@@ -144,9 +140,7 @@ class EnvCreationTestCase(unittest.TestCase):
         interpreter = 'python3'
         is_current = True
         avoid_pip_upgrade = False
-        options = {'virtualenv_options': [],
-                   'pyvenv_options': [],
-                   }
+        options = {'venv_options': []}
         pip_options = []
 
         with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
@@ -161,7 +155,7 @@ class EnvCreationTestCase(unittest.TestCase):
                     self.assertEqual(str(cm.exception), 'Dependency installation failed')
                     mock_destroy.assert_called_once_with('env_path')
 
-        self.assertLoggedDebug("Installation Step failed, removing virtualenv")
+        self.assertLoggedDebug("Installation Step failed, removing virtual environment")
 
     def test_different_versions(self):
         requested = {
@@ -170,9 +164,7 @@ class EnvCreationTestCase(unittest.TestCase):
         interpreter = 'python3'
         is_current = True
         avoid_pip_upgrade = False
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": [],
-                   }
+        options = {"venv_options": []}
         pip_options = []
         with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
@@ -189,13 +181,11 @@ class EnvCreationTestCase(unittest.TestCase):
             }
         })
 
-    def test_create_system_site_pkgs_pyvenv(self):
+    def test_create_system_site_pkgs_venv(self):
         env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'python3'
         is_current = True
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": ['--system-site-packages'],
-                   }
+        options = {"venv_options": ['--system-site-packages']}
         with patch.object(EnvBuilder, 'create') as mock_create:
             env_builder.create_env(interpreter, is_current, options)
             self.assertTrue(env_builder.system_site_packages)
@@ -205,39 +195,20 @@ class EnvCreationTestCase(unittest.TestCase):
         env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'python3'
         is_current = True
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": [],
-                   }
+        options = {"venv_options": []}
         with patch.object(EnvBuilder, 'create') as mock_create:
             env_builder.create_env(interpreter, is_current, options)
             self.assertFalse(env_builder.system_site_packages)
             self.assertTrue(mock_create.called)
 
-    def test_create_system_site_pkgs_virtualenv(self):
+    def test_create_virtual_environment(self):
         env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'pythonX.Y'
         is_current = False
-        options = {"virtualenv_options": ['--system-site-packages'],
-                   "pyvenv_options": [],
-                   }
-        with patch.object(envbuilder._FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
+        options = {"venv_options": []}
+        with patch.object(envbuilder._FadesEnvBuilder, 'create_with_external_venv') as mock_create:
             env_builder.create_env(interpreter, is_current, options)
-            mock_create.assert_called_with(interpreter, options['virtualenv_options'])
-
-    def test_create_virtualenv(self):
-        env_builder = envbuilder._FadesEnvBuilder()
-        interpreter = 'pythonX.Y'
-        is_current = False
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": [],
-                   }
-        with patch.object(envbuilder._FadesEnvBuilder, 'create_with_virtualenv') as mock_create:
-            env_builder.create_env(interpreter, is_current, options)
-            mock_create.assert_called_with(interpreter, options['virtualenv_options'])
-
-    def test_custom_env_path(self):
-        builder = envbuilder._FadesEnvBuilder('some-path')
-        self.assertEqual(builder.env_path, 'some-path')
+            mock_create.assert_called_with(interpreter, options['venv_options'])
 
 
 class EnvDestructionTestCase(unittest.TestCase):
@@ -245,10 +216,7 @@ class EnvDestructionTestCase(unittest.TestCase):
     def test_destroy_venv(self):
         builder = envbuilder._FadesEnvBuilder()
         # make sure the virtualenv exists on disk
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": ['--system-site-packages'],
-                   "pip-options": [],
-                   }
+        options = {"venv_options": [], "pip-options": []}
 
         def fake_create(*_):
             """Fake venv create.
@@ -260,7 +228,7 @@ class EnvDestructionTestCase(unittest.TestCase):
             builder.env_path = fake_venv_path
 
         fake_venv_path = tempfile.TemporaryDirectory().name
-        builder.create_with_virtualenv = fake_create
+        builder.create_with_external_venv = fake_create
         builder.create_env('python', False, options=options)
         assert os.path.exists(builder.env_path)
 
@@ -360,45 +328,27 @@ class UsageManagerTestCase(unittest.TestCase):
                 else:
                     self.assertEqual(old_date, d, msg="Others envs have old date")
 
-    def test_filenotfound_exception(self):
-        env_builder = envbuilder._FadesEnvBuilder()
-        interpreter = 'python3'
-        is_current = False
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": ['--system-site-packages'],
-                   }
-        with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
-            # mock_lexec.side_effect = envbuilder.helpers.ExecutionError('matanga!')
-            mock_lexec.side_effect = FileNotFoundError('matanga!')
-            with self.assertRaises(FadesError) as cm:
-                env_builder.create_env(interpreter, is_current, options)
-            self.assertEqual(str(cm.exception), 'virtualenv not found')
-
     def test_executionerror_exception(self):
         env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'python3'
         is_current = False
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": ['--system-site-packages'],
-                   }
+        options = {"venv_options": []}
         with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
             mock_lexec.side_effect = envbuilder.helpers.ExecutionError(1, 'cmd', ['stdout'])
             with self.assertRaises(FadesError) as cm:
                 env_builder.create_env(interpreter, is_current, options)
-            self.assertEqual(str(cm.exception), 'virtualenv could not be run')
+            self.assertEqual(str(cm.exception), "Failed to run venv module externally")
 
     def test_general_error_exception(self):
         env_builder = envbuilder._FadesEnvBuilder()
         interpreter = 'python3'
         is_current = False
-        options = {"virtualenv_options": [],
-                   "pyvenv_options": ['--system-site-packages'],
-                   }
+        options = {"venv_options": []}
         with patch('fades.envbuilder.helpers.logged_exec') as mock_lexec:
             mock_lexec.side_effect = Exception()
             with self.assertRaises(FadesError) as cm:
                 env_builder.create_env(interpreter, is_current, options)
-            self.assertEqual(str(cm.exception), 'General error while running virtualenv')
+            self.assertEqual(str(cm.exception), "General error while running external venv")
 
     def test_when_a_venv_is_removed_it_is_removed_from_everywhere(self):
         old_date = datetime.utcnow()

@@ -5,14 +5,14 @@ Build-Depends: debhelper (>= 9),
                dh-python,
                dh-translations | dh-python,
                python3-setuptools,
-               python3-all (>= 3.4),
+               python3-all (>= 3.6),
                python3-xdg
 Maintainer: Facundo Batista <facundo@taniquetil.com.ar>
 Uploaders: Debian Python Modules Team 
            <python-modules-team@lists.alioth.debian.org>
 Homepage: https://github.com/PyAr/fades
 Standards-Version: 3.9.7
-X-Python3-Version: >= 3.4
+X-Python3-Version: >= 3.6
 
 Package: fades
 Architecture: all

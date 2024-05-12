@@ -1,4 +1,4 @@
-# Copyright 2014-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -14,17 +14,11 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-"""Extended class from EnvBuilder to create a venv using a uuid4 id.
-
-NOTE: this class only work in the same python version that Fades is
-running. So, you don't need to have installed a virtualenv tool. For
-other python versions Fades needs a virtualenv tool installed.
-"""
+"""Tools to create, destroy and handle usage of virtual environments."""
 
 import logging
 import os
 import shutil
-import sys
 
 from datetime import datetime
 from venv import EnvBuilder
@@ -39,19 +33,16 @@ logger = logging.getLogger(__name__)
 
 
 class _FadesEnvBuilder(EnvBuilder):
-    """Create always a virtualenv.
+    """Create always a virtual environment.
 
     This is structured as a class mostly to take advantage of EnvBuilder, not because
     it's provides the best interface: external callers should just use module's ``create_env``
     and ``destroy_env``.
     """
 
-    def __init__(self, env_path=None):
-        """Init."""
+    def __init__(self):
         basedir = helpers.get_basedir()
-        if env_path is None:
-            env_path = os.path.join(basedir, str(uuid4()))
-        self.env_path = env_path
+        self.env_path = os.path.join(basedir, str(uuid4()))
         self.env_bin_path = ''
         logger.debug("Env will be created at: %s", self.env_path)
 
@@ -60,9 +51,8 @@ class _FadesEnvBuilder(EnvBuilder):
             # because it doesn't work properly (it does a special magic to run the script
             # and ends up mixing external and internal pips)
             self.pip_installed = False
-            super().__init__(with_pip=False, symlinks=True)
 
-        elif sys.version_info >= (3, 4):
+        else:
             # try to install pip using default machinery (which will work in a lot
             # of systems, noticeably it won't in some debians or ubuntus, like
             # Trusty; in that cases mark it to install manually later)
@@ -72,46 +62,40 @@ class _FadesEnvBuilder(EnvBuilder):
             except ImportError:
                 self.pip_installed = False
 
-            super().__init__(with_pip=self.pip_installed, symlinks=True)
+        super().__init__(with_pip=self.pip_installed, symlinks=True)
 
-        else:
-            # old Python doesn't have integrated pip
-            self.pip_installed = False
-            super().__init__(symlinks=True)
-
-    def create_with_virtualenv(self, interpreter, virtualenv_options):
-        """Create a virtualenv using the virtualenv lib."""
-        args = ['virtualenv', '--python', interpreter, self.env_path]
-        args.extend(virtualenv_options)
+    def create_with_external_venv(self, interpreter, options):
+        """Create a virtual environment using the venv module externally."""
+        args = [interpreter, "-m", "venv", self.env_path]
+        args.extend(options)
         if not self.pip_installed:
-            args.insert(3, '--no-pip')
+            args.insert(3, '--without-pip')
+
         try:
             helpers.logged_exec(args)
-            self.env_bin_path = os.path.join(self.env_path, 'bin')
-        except FileNotFoundError as error:
-            logger.error('Virtualenv is not installed. It is needed to create a virtualenv with '
-                         'a different python version than fades (got {})'.format(error))
-            raise FadesError('virtualenv not found')
         except helpers.ExecutionError as error:
             error.dump_to_log(logger)
-            raise FadesError('virtualenv could not be run')
+            raise FadesError("Failed to run venv module externally")
         except Exception as error:
-            logger.exception("Error creating virtualenv:  %s", error)
-            raise FadesError('General error while running virtualenv')
+            logger.exception("Error creating virtual environment:  %s", error)
+            raise FadesError("General error while running external venv")
+
+        self.env_bin_path = os.path.join(self.env_path, 'bin')
 
     def create_env(self, interpreter, is_current, options):
-        """Create the virtualenv and return its info."""
+        """Create the virtual environment and return its info."""
+        venv_options = options['venv_options']
         if is_current:
-            # apply pyvenv options
-            pyvenv_options = options['pyvenv_options']
-            if "--system-site-packages" in pyvenv_options:
-                self.system_site_packages = True
-            logger.debug("Creating virtualenv with pyvenv. options=%s", pyvenv_options)
+            # apply venv options
+            logger.debug("Creating virtual environment internally; options=%s", venv_options)
+            for option in venv_options:
+                attrname = option[2:].replace("-", "_")  # '--system-packgs' ->  'system_packgs'
+                setattr(self, attrname, True)
             self.create(self.env_path)
         else:
-            virtualenv_options = options['virtualenv_options']
-            logger.debug("Creating virtualenv with virtualenv")
-            self.create_with_virtualenv(interpreter, virtualenv_options)
+            logger.debug(
+                "Creating virtual environment with external venv; options=%s", venv_options)
+            self.create_with_external_venv(interpreter, venv_options)
         logger.debug("env_bin_path: %s", self.env_bin_path)
 
         # Re check if pip was installed (supporting both binary and .exe for Windows)
@@ -130,7 +114,7 @@ class _FadesEnvBuilder(EnvBuilder):
 
 def create_venv(requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade):
     """Create a new virtualvenv with the requirements of this script."""
-    # create virtualenv
+    # create virtual environment
     env = _FadesEnvBuilder()
     env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current, options)
     venv_data = {}
@@ -156,7 +140,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options, a
             try:
                 mgr.install(dependency)
             except Exception:
-                logger.debug("Installation Step failed, removing virtualenv")
+                logger.debug("Installation Step failed, removing virtual environment")
                 destroy_venv(env_path)
                 raise FadesError('Dependency installation failed')
 
@@ -180,7 +164,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options, a
 def destroy_venv(env_path, venvscache=None):
     """Destroy a venv."""
     # remove the venv itself in disk
-    logger.debug("Destroying virtualenv at: %s", env_path)
+    logger.debug("Destroying virtual environment at: %s", env_path)
     shutil.rmtree(env_path, ignore_errors=True)
 
     # remove venv from cache
@@ -245,7 +229,7 @@ class UsageManager:
                         # usage_file wasn't updated.
                         continue
                     env_path = venv_meta['env_path']
-                    logger.info("Destroying virtualenv at: %s", env_path)  # #256
+                    logger.info("Destroying virtual environment at: %s", env_path)
                     destroy_venv(env_path, self.venvscache)
 
             self._write_compacted_dict_usage_to_file(venvs_dict)

@@ -1,4 +1,4 @@
-# Copyright 2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2016-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 CONFIG_FILES = ("/etc/fades/fades.ini", os.path.join(get_confdir(), 'fades.ini'), ".fades.ini")
 
-MERGEABLE_CONFIGS = ("dependency", "pip_options", "virtualenv-options")
+MERGEABLE_CONFIGS = ("dependency", "pip_options", "venv-options")
 
 
 def options_from_file(args):

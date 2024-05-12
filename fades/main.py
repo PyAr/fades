@@ -1,4 +1,4 @@
-# Copyright 2014-2020 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -245,8 +245,9 @@ def go():
         '--system-site-packages', action='store_true', default=False,
         help="give the virtual environment access to the system site-packages dir.")
     parser.add_argument(
-        '--virtualenv-options', action='append', default=[],
-        help="extra options to be supplied to virtualenv (this option can be used multiple times)")
+        '--venv-options', action='append', default=[],
+        help="extra options to be supplied to the venv module "
+             "(this option can be used multiple times)")
     parser.add_argument(
         '-U', '--check-updates', action='store_true', help="check for packages updates")
     parser.add_argument(
@@ -395,11 +396,9 @@ def go():
     pip_options = args.pip_options  # pip_options mustn't store.
     python_options = args.python_options
     options = {}
-    options['pyvenv_options'] = []
-    options['virtualenv_options'] = args.virtualenv_options
+    options['venv_options'] = args.venv_options
     if args.system_site_packages:
-        options['virtualenv_options'].append("--system-site-packages")
-        options['pyvenv_options'] = ["--system-site-packages"]
+        options['venv_options'].append("--system-site-packages")
 
     create_venv = False
     venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
