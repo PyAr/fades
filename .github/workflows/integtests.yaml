@@ -34,7 +34,7 @@ jobs:
           sudo -u nobody curl -L -O https://aur.archlinux.org/cgit/aur.git/snapshot/python39.tar.gz
           sudo -u nobody tar xf python39.tar.gz
           cd python39
-          makepkg --noconfirm
+          sudo -u nobody makepkg --noconfirm
           pacman -U python39* --noconfirm
           cd /fades
           export TEST_PYTHON_VERSION=3.9
