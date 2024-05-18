@@ -34,11 +34,11 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 
 .SH DESCRIPTION
 
-\fBfades\fR will automagically create a new virtualenv (or reuse a previous created one), installing the necessary dependencies, and execute your script inside that virtualenv, with the only requirement of executing the script with \fBfades\fR and also marking the required dependencies.
+\fBfades\fR will automagically create a new virtual environment (or reuse a previous created one), installing the necessary dependencies, and execute your script inside that virtual environment, with the only requirement of executing the script with \fBfades\fR and also marking the required dependencies.
 
 The first non-option parameter (if any) would be then the child program to execute, and any other parameters after that are passed as is to that child script.
 
-\fBfades\fR can also be executed without passing a child script to execute: in this mode it will open a Python interactive interpreter inside the created/reused virtualenv (taking dependencies from \fI--dependency\fR or \fI--requirement\fR options). If \fI--autoimport\fR is given, it will automatically import all the installed dependencies.
+\fBfades\fR can also be executed without passing a child script to execute: in this mode it will open a Python interactive interpreter inside the created/reused virtual environment (taking dependencies from \fI--dependency\fR or \fI--requirement\fR options). If \fI--autoimport\fR is given, it will automatically import all the installed dependencies.
 
 If the \fIchild_program\fR parameter is really an URL, the script will be automatically downloaded from there (supporting also the most common pastebins URLs: pastebin.com, linkode.org, gist, etc.).
 
@@ -88,11 +88,11 @@ The dependencies can be indicated in multiple places (in the Python source file,
 
 .TP
 .BR -x ", " --exec
-Execute the \fIchild_program\fR in the context of the virtualenv. The child_program, which in this case becomes a mandatory parameter, can be just the executable name (relative to the venv's bin directory) or an absolute path.
+Execute the \fIchild_program\fR in the context of the virtual environment. The child_program, which in this case becomes a mandatory parameter, can be just the executable name (relative to the venv's bin directory) or an absolute path.
 
 .TP
 .BR --rm " " \fIUUID\fR
-Remove a virtualenv by UUID.  See \fB--get-venv-dir\fR option to easily find out the UUID.
+Remove a virtual environment by UUID.  See \fB--get-venv-dir\fR option to easily find out the UUID.
 
 .TP
 .BR --system-site-packages ""
@@ -120,7 +120,7 @@ Will remove all virtualenvs that haven't been used for more than MAX_DAYS_TO_KEE
 
 .TP
 .BR --where ", " --get-venv-dir
-Show the virtualenv base directory (which includes the virtualenv UUID) and quit.
+Show the virtual environment base directory (which includes the virtual environment UUID) and quit.
 
 .TP
 .BR --no-precheck-availability
@@ -140,7 +140,7 @@ Run library module as a script (same behaviour than Python's \fB-m\fR parameter)
 
 .TP
 .BR --avoid-pip-upgrade
-Disable the automatic \fBpip\fR upgrade that happens after the virtualenv is created and before the dependencies begin to be installed.
+Disable the automatic \fBpip\fR upgrade that happens after the virtual environment is created and before the dependencies begin to be installed.
 
 
 .SH EXAMPLES
@@ -148,7 +148,7 @@ Disable the automatic \fBpip\fR upgrade that happens after the virtualenv is cre
 .TP
 fades foo.py --bar
 
-Executes foo.py under fades, passing the --bar parameter to the child program, in a virtualenv with the dependencies indicated in the source code.
+Executes foo.py under fades, passing the --bar parameter to the child program, in a virtual environment with the dependencies indicated in the source code.
 
 .TP
 fades -v foo.py
@@ -158,22 +158,22 @@ Executes foo.py under fades, showing all the fades messages (verbose mode).
 .TP
 fades -d dependency1 -d dependency2>3.2 foo.py --bar
 
-Executes foo.py under fades (passing the --bar parameter to it), in a virtualenv with the dependencies indicated in the source code and also dependency1 and dependency2 (any version > 3.2).
+Executes foo.py under fades (passing the --bar parameter to it), in a virtual environment with the dependencies indicated in the source code and also dependency1 and dependency2 (any version > 3.2).
 
 .TP
 fades -d dependency1
 
-Executes the Python interactive interpreter in a virtualenv with dependency1 installed.
+Executes the Python interactive interpreter in a virtual environment with dependency1 installed.
 
 .TP
 fades -r requirements.txt
 
-Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from the requirements.txt file.
+Executes the Python interactive interpreter in a virtual environment after installing there all dependencies taken from the requirements.txt file.
 
 .TP
 fades -r requirements.txt -r requirements_devel.txt
 
-Executes the Python interactive interpreter in a virtualenv after installing there all dependencies taken from files requirements.txt and requirements_devel.txt.
+Executes the Python interactive interpreter in a virtual environment after installing there all dependencies taken from files requirements.txt and requirements_devel.txt.
 
 .SH USING CONFIGURATION FILES
 
