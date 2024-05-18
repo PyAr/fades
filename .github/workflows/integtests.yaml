@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: |
-          pacman -Sy --noconfirm python3 python-setuptools base-devel bluez-libs gdb tk
+          pacman -Suy --noconfirm python3 python-setuptools base-devel bluez-libs gdb tk
       - name: Simple fades run
         run: |
           cd /fades
