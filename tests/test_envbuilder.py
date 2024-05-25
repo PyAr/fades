@@ -161,7 +161,7 @@ class EnvCreationTestCase(unittest.TestCase):
                     self.assertEqual(str(cm.exception), 'Dependency installation failed')
                     mock_destroy.assert_called_once_with('env_path')
 
-        self.assertLoggedDebug("Installation Step failed, removing virtualenv")
+        self.assertLoggedDebug("Installation Step failed, removing virtual environment")
 
     def test_different_versions(self):
         requested = {
