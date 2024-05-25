@@ -1,4 +1,4 @@
-# Copyright 2014-2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -22,11 +22,11 @@ import json
 import logging
 import subprocess
 import tempfile
-
 from urllib import request, parse
 from urllib.error import HTTPError
 
-import pkg_resources
+from packaging.requirements import Requirement
+from packaging.version import Version
 
 from fades import FadesError, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK, _version
 
@@ -183,32 +183,32 @@ def check_pypi_updates(dependencies):
     for dependency in dependencies.get('pypi', []):
         # get latest version from PyPI api
         try:
-            latest_version = get_latest_version_number(dependency.project_name)
+            latest_version = Version(get_latest_version_number(dependency.name))
         except Exception as error:
             logger.warning("--check-updates command will be aborted. Error: %s", error)
             return dependencies
         # get required version
-        required_version = None
-        if dependency.specs:
-            _, required_version = dependency.specs[0]
 
-        if required_version:
+        if dependency.specifier:
+            spec = list(dependency.specifier)[0]
+            required_version = Version(spec.version)
+
             dependencies_up_to_date.append(dependency)
             if latest_version > required_version:
                 logger.info("There is a new version of %s: %s",
-                            dependency.project_name, latest_version)
+                            dependency.name, latest_version)
             elif latest_version < required_version:
                 logger.warning("The requested version for %s is greater "
                                "than latest found in PyPI: %s",
-                               dependency.project_name, latest_version)
+                               dependency.name, latest_version)
             else:
                 logger.info("The requested version for %s is the latest one in PyPI: %s",
-                            dependency.project_name, latest_version)
+                            dependency.name, latest_version)
         else:
-            project_name_plus = "{}=={}".format(dependency.project_name, latest_version)
-            dependencies_up_to_date.append(pkg_resources.Requirement.parse(project_name_plus))
+            name_plus = "{}=={}".format(dependency.name, latest_version)
+            dependencies_up_to_date.append(Requirement(name_plus))
             logger.info("The latest version of %r is %s and will use it.",
-                        dependency.project_name, latest_version)
+                        dependency.name, latest_version)
 
     dependencies["pypi"] = dependencies_up_to_date
     return dependencies
@@ -216,11 +216,12 @@ def check_pypi_updates(dependencies):
 
 def _pypi_head_package(dependency):
     """Hit pypi with a http HEAD to check if pkg_name exists."""
-    if dependency.specs:
-        _, version = dependency.specs[0]
-        url = BASE_PYPI_URL_WITH_VERSION.format(name=dependency.project_name, version=version)
+    if dependency.specifier:
+        spec = list(dependency.specifier)[0]
+        version = spec.version
+        url = BASE_PYPI_URL_WITH_VERSION.format(name=dependency.name, version=version)
     else:
-        url = BASE_PYPI_URL.format(name=dependency.project_name)
+        url = BASE_PYPI_URL.format(name=dependency.name)
     logger.debug("Doing HEAD requests against %s", url)
     req = request.Request(url, method='HEAD')
     try:

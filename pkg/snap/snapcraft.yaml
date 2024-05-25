@@ -40,9 +40,8 @@ parts:
       - python3.8-minimal
       - python3-distutils
       - python3-minimal
-      - python3-pkg-resources
       - python3-pip
-      - python3-setuptools
+      - python3-packaging
       - python3-venv
       - python3-wheel
 

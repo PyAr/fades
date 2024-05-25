@@ -1,4 +1,4 @@
-# Copyright 2015-2019 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -16,9 +16,9 @@
 
 """Helpers for the Cache tests collection."""
 
-from pkg_resources import Distribution
+from fades.parsing import NameVerDependency
 
 
 def get_distrib(*dep_ver_pairs):
     """Build some Distributions with indicated info."""
-    return [Distribution(project_name=dep, version=ver) for dep, ver in dep_ver_pairs]
+    return [NameVerDependency(dep, ver) for dep, ver in dep_ver_pairs]

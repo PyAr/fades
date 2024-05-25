@@ -1,4 +1,4 @@
-# Copyright 2014-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -169,7 +169,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options, a
                 # always store the installed dependency, as in the future we'll select the venv
                 # based on what is installed, not what used requested (remember that user may
                 # request >, >=, etc!)
-                project = dependency.project_name
+                project = dependency.name
                 version = mgr.get_version(project)
             installed[repo][project] = version
 
