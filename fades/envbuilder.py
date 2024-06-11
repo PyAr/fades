@@ -153,7 +153,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options, a
                 # always store the installed dependency, as in the future we'll select the venv
                 # based on what is installed, not what used requested (remember that user may
                 # request >, >=, etc!)
-                project = dependency.project_name
+                project = dependency.name
                 version = mgr.get_version(project)
             installed[repo][project] = version
 

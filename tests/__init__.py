@@ -1,4 +1,4 @@
-# Copyright 2017-2019 Facundo Batista, Nicolás Demarchi
+# Copyright 2017-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -19,7 +19,7 @@
 import os
 from tempfile import mkstemp
 
-from pkg_resources import parse_requirements
+from packaging.requirements import Requirement
 
 
 def get_tempfile(testcase):
@@ -59,5 +59,5 @@ def get_python_filepaths(roots):
 
 
 def get_reqs(*items):
-    """Transform text requirements into pkg_resources objects."""
-    return list(parse_requirements(items))
+    """Transform text requirements into Requirement objects."""
+    return [Requirement(item) for item in items]

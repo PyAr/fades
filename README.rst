@@ -239,8 +239,8 @@ be installed in your system, but you can control exactly which one to use.
 
 No matter which way you're executing the script (see above), you can
 pass a ``-p`` or ``--python`` argument, indicating the Python version to
-be used just with the number (``2.7``), the whole name (``python2.7``) or
-the whole path (``/usr/bin/python2.7``).
+be used just with the number (``3.9``), the whole name (``python3.9``) or
+the whole path (``/usr/bin/python3.9``).
 
 Other detail is the verbosity of *fades* when telling what is doing. By
 default, *fades* only will use stderr to tell if a virtual environment is being
@@ -434,14 +434,15 @@ dependencies. There are cases however when you'll want to do some clean up to re
 unnecessary virtual environments from disk.
 
 By running *fades* with the ``--rm`` argument, *fades* will remove the
-virtual environment matching the provided UUID if such a virtual environment exists (one easy
-way to find out the virtual environment's UUID is calling *fades* with the
+virtual environment matching the provided UUID if such environment exists (one easy
+way to find out the environment's UUID is calling *fades* with the
 ``--where`` option).
 
 Another way to clean up the cache is to remove all venvs that haven't been used for some time.
 In order to do this you need to call *fades* with ``--clean-unused-venvs``.
 When fades it's called with this option, it runs in mantain mode, this means that fades will exit
 after finished this task.
+
 All virtual environments that haven't been used for more days than the value indicated in param will be
 removed.
 
@@ -594,20 +595,7 @@ Else, keep reading to know how to install the dependencies first, and
 Dependencies
 ------------
 
-Besides needing Python 3.6 or greater, fades depends also on the
-``pkg_resources`` package, that comes in with ``setuptools``.
-It's installed almost everywhere, but in any case,
-you can install it in Ubuntu/Debian with::
-
-    apt-get install python3-setuptools
-
-And on Arch Linux with::
-
-    pacman -S python-setuptools
-
-It also depends on ``python-xdg`` package. This package should be
-installed on any GNU/Linux OS wiht a freedesktop.org GUI. However it
-is an **optional** dependency.
+Besides needing Python 3.6 or greater, fades depends on the ``python-xdg`` package. This package should be installed on any GNU/Linux OS wiht a freedesktop.org GUI. However it is an **optional** dependency.
 
 You can install it in Ubuntu/Debian with::
 

@@ -1,4 +1,4 @@
-# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -23,11 +23,8 @@ import os
 import time
 
 from fades import REPO_VCS
-
-from pkg_resources import Distribution
-
 from fades.multiplatform import filelock
-from fades.parsing import VCSDependency
+from fades.parsing import VCSDependency, NameVerDependency
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +41,10 @@ class VEnvsCache:
     def _venv_match(self, installed, requirements):
         """Return True if what is installed satisfies the requirements.
 
-        This method has multiple exit-points, but only for False (because
+        This method has multiple exit-points, but only for None (because
         if *anything* is not satisified, the venv is no good). Only after
-        all was checked, and it didn't exit, the venv is ok so return True.
+        all was checked, and it didn't exit, the venv is ok and it so
+        returns the satisfying dependencies.
         """
         if not requirements:
             # special case for no requirements, where we can't actually
@@ -61,22 +59,28 @@ class VEnvsCache:
                 return None
 
             if repo == REPO_VCS:
-                inst_deps = {VCSDependency(url) for url in installed[repo].keys()}
+                inst_namevers = {(url, None) for url in installed[repo].keys()}
             else:
-                inst_deps = {Distribution(project_name=dep, version=ver)
-                             for (dep, ver) in installed[repo].items()}
+                inst_namevers = {(dep, ver) for (dep, ver) in installed[repo].items()}
+
             for req in req_deps:
-                for inst in inst_deps:
-                    if inst in req:
-                        useful_inst.add(inst)
+                for inst_name, inst_ver in inst_namevers:
+                    if req.name == inst_name and req.specifier.contains(inst_ver):
+                        useful_inst.add((inst_name, inst_ver))
                         break
                 else:
                     # nothing installed satisfied that requirement
                     return None
 
             # assure *all* that is installed is useful for the requirements
-            if useful_inst == inst_deps:
-                satisfying_deps.extend(inst_deps)
+            if useful_inst == inst_namevers:
+                inst_reqs = set()
+                for name, ver in inst_namevers:
+                    if ver is None:
+                        inst_reqs.add(VCSDependency(name))
+                    else:
+                        inst_reqs.add(NameVerDependency(name, ver))
+                satisfying_deps.extend(inst_reqs)
             else:
                 return None
 
@@ -106,7 +110,7 @@ class VEnvsCache:
         # position of the winner
         scores = [0] * len(venvs)
         for dependencies in zip(*to_compare):
-            if not isinstance(dependencies[0], Distribution):
+            if not isinstance(dependencies[0], NameVerDependency):
                 # only distribution URLs can be compared
                 continue
 

@@ -22,8 +22,6 @@ Needed packages to run (using Debian/Ubuntu package names):
 
     python3
     python3-xdg   (optional)
-    python3-pkg-resources
-    python3-setuptools
 """
 
 import os
@@ -127,7 +125,7 @@ setup(
     extras_require={
         'pyxdg': 'pyxdg',
         'virtualenv': 'virtualenv',
-        'setuptools': 'setuptools',
+        'packaging': 'packaging',
     },
 
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers

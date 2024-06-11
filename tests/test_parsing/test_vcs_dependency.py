@@ -11,10 +11,8 @@ def test_string_representation():
 def test_contains():
     """This is particularly tested because it's how fulfilling is tested."""
     dep1 = parsing.VCSDependency("testurl")
-    dep2 = parsing.VCSDependency("testurl")
-    dep3 = parsing.VCSDependency("otherurl")
-    assert dep1 in dep2
-    assert dep1 not in dep3
+    assert dep1.specifier.contains(None)
+    assert not dep1.specifier.contains("123")
 
 
 def test_equality():

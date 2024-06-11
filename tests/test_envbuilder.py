@@ -23,7 +23,7 @@ import unittest
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch, call
 
-from pkg_resources import parse_requirements
+from packaging.requirements import Requirement
 
 import logassert
 
@@ -33,8 +33,8 @@ from venv import EnvBuilder
 
 
 def get_req(text):
-    """Transform a text requirement into the pkg_resources object."""
-    return list(parse_requirements(text))[0]
+    """Transform a text requirement into the Requirement object."""
+    return Requirement(text)
 
 
 class EnvCreationTestCase(unittest.TestCase):
