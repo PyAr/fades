@@ -124,7 +124,6 @@ setup(
     python_requires='>=3.6',  # Minimum Python version supported.
     extras_require={
         'pyxdg': 'pyxdg',
-        'virtualenv': 'virtualenv',
         'packaging': 'packaging',
     },
 
