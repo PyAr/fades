@@ -29,7 +29,6 @@ jobs:
           bin/fades -v -d pytest -x pytest --version
       - name: Using a different Python
         run: |
-          pacman -S --noconfirm python-virtualenv
           export TEST_PYTHON_VERSION=3.9
           python bin/fades -v --python=python3.9 -d pytest -x pytest -v tests/integtest.py
 
@@ -53,8 +52,7 @@ jobs:
           bin/fades -v -d pytest -x pytest --version
       - name: Using a different Python
         run: |
-          # XXX Facundo 2024-02-29 - remove virtualenv in this install as part of issue #411 work
-          yum install --assumeyes python3.9 python3-virtualenv
+          yum install --assumeyes python3.9
           cd /fades
           export TEST_PYTHON_VERSION=3.9
           python3.12 bin/fades -v --python=python3.9 -d pytest -x pytest -v tests/integtest.py
