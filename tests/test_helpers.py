@@ -1,4 +1,4 @@
-# Copyright 2015 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -183,9 +183,6 @@ class CheckPyPIUpdatesTestCase(unittest.TestCase):
 
     def setUp(self):
         logassert.setup(self, 'fades.helpers')
-        self.deps = parsing.parse_manual(["django==1.7.5", "requests"])
-        self.deps_higher = parsing.parse_manual(["django==100.1.1"])
-        self.deps_same_than_latest = parsing.parse_manual(["django==1.9"])
 
     def test_check_pypi_updates_with_and_without_version(self):
         with patch('urllib.request.urlopen') as mock_urlopen:
@@ -193,29 +190,39 @@ class CheckPyPIUpdatesTestCase(unittest.TestCase):
                 mock_http_response.read.side_effect = [b'{"info": {"version": "1.9"}}',
                                                        b'{"info": {"version": "2.1"}}']
                 mock_urlopen.return_value = mock_http_response
-                dependencies = helpers.check_pypi_updates(self.deps)
+                requested = parsing.parse_manual(["django==1.7.5", "requests"])
+                dependencies = helpers.check_pypi_updates(requested)
                 dep_django = dependencies['pypi'][0]
                 dep_request = dependencies['pypi'][1]
                 self.assertLoggedInfo('There is a new version of django: 1.9')
-                self.assertEqual(dep_request.specs, [('==', '2.1')])
-                self.assertEqual(dep_django.specs, [('==', '1.7.5')])
+                self.assertEqual(str(dep_request.specifier), "==2.1")
+                self.assertEqual(str(dep_django.specifier), "==1.7.5")
                 self.assertLoggedInfo("The latest version of 'requests' is 2.1 and will use it.")
 
-    def test_check_pypi_updates_with_a_higher_version_of_a_package(self):
+    def test_check_pypi_updates_with_a_higher_version_of_a_package_simple(self):
         with patch('urllib.request.urlopen') as mock_urlopen:
             with patch('http.client.HTTPResponse') as mock_http_response:
                 mock_http_response.read.side_effect = [b'{"info": {"version": "1.9"}}']
                 mock_urlopen.return_value = mock_http_response
-                helpers.check_pypi_updates(self.deps_higher)
+                helpers.check_pypi_updates(parsing.parse_manual(["django==100.1.1"]))
                 self.assertLoggedWarning(
                     "The requested version for django is greater than latest found in PyPI: 1.9")
+
+    def test_check_pypi_updates_with_a_higher_version_of_a_package_real_order(self):
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.read.side_effect = [b'{"info": {"version": "2.9"}}']
+                mock_urlopen.return_value = mock_http_response
+                helpers.check_pypi_updates(parsing.parse_manual(["django==10.1"]))
+                self.assertLoggedWarning(
+                    "The requested version for django is greater than latest found in PyPI: 2.9")
 
     def test_check_pypi_updates_with_the_latest_version_of_a_package(self):
         with patch('urllib.request.urlopen') as mock_urlopen:
             with patch('http.client.HTTPResponse') as mock_http_response:
                 mock_http_response.read.side_effect = [b'{"info": {"version": "1.9"}}']
                 mock_urlopen.return_value = mock_http_response
-                helpers.check_pypi_updates(self.deps_same_than_latest)
+                helpers.check_pypi_updates(parsing.parse_manual(["django==1.9"]))
                 self.assertLoggedInfo(
                     "The requested version for django is the latest one in PyPI: 1.9")
 

@@ -1,4 +1,4 @@
-# Copyright 2017-2022 Facundo Batista, Nicolás Demarchi
+# Copyright 2017-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -49,7 +49,12 @@ def test_flake8_pytest(capsys):
 
 def test_pep257_pytest():
     python_filepaths = get_python_filepaths(PEP257_ROOTS)
-    result = list(pydocstyle.check(python_filepaths))
+    to_ignore = {
+        "D105",  # Missing docstring in magic method
+        "D107",  # Missing docstring in __init__
+    }
+    to_include = pydocstyle.violations.conventions.pep257 - to_ignore
+    result = list(pydocstyle.check(python_filepaths, select=to_include))
     assert len(result) == 0, "There are issues!\n" + '\n'.join(map(str, result))
 
 

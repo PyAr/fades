@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2014-2017 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -22,8 +22,6 @@ Needed packages to run (using Debian/Ubuntu package names):
 
     python3
     python3-xdg   (optional)
-    python3-pkg-resources
-    python3-setuptools
 """
 
 import os
@@ -53,7 +51,7 @@ if sys.version_info.major < 3:
 def get_version():
     """Retrieves package version from the file."""
     with open('fades/_version.py') as fh:
-        m = re.search("\(([^']*)\)", fh.read())
+        m = re.search(r"\(([^']*)\)", fh.read())
     if m is None:
         raise ValueError("Unrecognized version in 'fades/_version.py'")
     return m.groups()[0].replace(', ', '.')
@@ -127,7 +125,7 @@ setup(
     extras_require={
         'pyxdg': 'pyxdg',
         'virtualenv': 'virtualenv',
-        'setuptools': 'setuptools',
+        'packaging': 'packaging',
     },
 
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers

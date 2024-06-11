@@ -1,5 +1,6 @@
 flake8
 logassert
+packaging
 pydocstyle
 pytest
 pyuca

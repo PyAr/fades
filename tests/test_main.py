@@ -1,4 +1,4 @@
-# Copyright 2015-2019 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -20,7 +20,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from pkg_resources import Requirement
+from packaging.requirements import Requirement
 
 from fades import VERSION, FadesError, __version__, main, parsing, REPO_PYPI, REPO_VCS
 from tests import create_tempfile
@@ -53,7 +53,7 @@ class DepsGatheringTestCase(unittest.TestCase):
         d = main.consolidate_dependencies(needs_ipython=True, child_program=None,
                                           requirement_files=None, manual_dependencies=None)
 
-        self.assertDictEqual(d, {'pypi': {Requirement.parse('ipython')}})
+        self.assertDictEqual(d, {'pypi': {Requirement('ipython')}})
 
     def test_child_program(self):
         child_program = 'tests/test_files/req_module.py'
@@ -61,7 +61,7 @@ class DepsGatheringTestCase(unittest.TestCase):
         d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
                                           requirement_files=None, manual_dependencies=None)
 
-        self.assertDictEqual(d, {'pypi': {Requirement.parse('foo'), Requirement.parse('bar')}})
+        self.assertDictEqual(d, {'pypi': {Requirement('foo'), Requirement('bar')}})
 
     def test_requirement_files(self):
         requirement_files = [create_tempfile(self, ['dep'])]
@@ -70,7 +70,7 @@ class DepsGatheringTestCase(unittest.TestCase):
                                           requirement_files=requirement_files,
                                           manual_dependencies=None)
 
-        self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
+        self.assertDictEqual(d, {'pypi': {Requirement('dep')}})
 
     def test_manual_dependencies(self):
         manual_dependencies = ['dep']
@@ -79,7 +79,7 @@ class DepsGatheringTestCase(unittest.TestCase):
                                           requirement_files=None,
                                           manual_dependencies=manual_dependencies)
 
-        self.assertDictEqual(d, {'pypi': {Requirement.parse('dep')}})
+        self.assertDictEqual(d, {'pypi': {Requirement('dep')}})
 
 
 class DepsMergingTestCase(unittest.TestCase):
@@ -94,7 +94,7 @@ class DepsMergingTestCase(unittest.TestCase):
                                           manual_dependencies=manual_dependencies)
 
         self.assertEqual(d, {
-            'pypi': {Requirement.parse('1'), Requirement.parse('2')},
+            'pypi': {Requirement('1'), Requirement('2')},
             'vcs': {parsing.VCSDependency('3'), parsing.VCSDependency('4')}
         })
 
@@ -107,8 +107,7 @@ class DepsMergingTestCase(unittest.TestCase):
                                           manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {
-            'pypi': {Requirement.parse('1'), Requirement.parse('2'), Requirement.parse('3'),
-                     Requirement.parse('4')}
+            'pypi': {Requirement('1'), Requirement('2'), Requirement('3'), Requirement('4')}
         })
 
     def test_complex_case(self):
@@ -121,7 +120,7 @@ class DepsMergingTestCase(unittest.TestCase):
                                           manual_dependencies=manual_dependencies)
 
         self.assertEqual(d, {
-            'pypi': {Requirement.parse('1'), Requirement.parse('2'), Requirement.parse('3')},
+            'pypi': {Requirement('1'), Requirement('2'), Requirement('3')},
             'vcs': {parsing.VCSDependency('5'), parsing.VCSDependency('4'),
                     parsing.VCSDependency('6')}
         })
@@ -135,7 +134,7 @@ class DepsMergingTestCase(unittest.TestCase):
                                           manual_dependencies=manual_dependencies)
 
         self.assertDictEqual(d, {
-            'pypi': {Requirement.parse('2')}
+            'pypi': {Requirement('2')}
         })
 
     def test_two_different_with_dups(self):
@@ -147,7 +146,7 @@ class DepsMergingTestCase(unittest.TestCase):
                                           manual_dependencies=manual_dependencies)
 
         self.assertEqual(d, {
-            'pypi': {Requirement.parse('1'), Requirement.parse('2')},
+            'pypi': {Requirement('1'), Requirement('2')},
             'vcs': {parsing.VCSDependency('1'), parsing.VCSDependency('2'),
                     parsing.VCSDependency('3'), parsing.VCSDependency('4')}
         })
@@ -250,7 +249,7 @@ def _autoimport_safe_call(*args, **kwargs):
 def test_autoimport_simple():
     """Simplest autoimport call."""
     dependencies = {
-        REPO_PYPI: {Requirement.parse('mymod')},
+        REPO_PYPI: {Requirement('mymod')},
     }
     content = _autoimport_safe_call(dependencies, is_ipython=False)
 
@@ -261,7 +260,7 @@ def test_autoimport_simple():
 def test_autoimport_several_dependencies():
     """Indicate several dependencies."""
     dependencies = {
-        REPO_PYPI: {Requirement.parse('mymod1'), Requirement.parse('mymod2')},
+        REPO_PYPI: {Requirement('mymod1'), Requirement('mymod2')},
     }
     content = _autoimport_safe_call(dependencies, is_ipython=False)
 
@@ -274,8 +273,8 @@ def test_autoimport_including_ipython():
     """Call with ipython modifier."""
     dependencies = {
         REPO_PYPI: {
-            Requirement.parse('mymod'),
-            Requirement.parse('ipython'),  # this one is automatically added
+            Requirement('mymod'),
+            Requirement('ipython'),  # this one is automatically added
         },
     }
     content = _autoimport_safe_call(dependencies, is_ipython=True)
@@ -288,7 +287,7 @@ def test_autoimport_including_ipython():
 def test_autoimport_no_pypi_dep():
     """Case with no pypi dependencies."""
     dependencies = {
-        REPO_PYPI: {Requirement.parse('my_pypi_mod')},
+        REPO_PYPI: {Requirement('my_pypi_mod')},
         REPO_VCS: {'my_vcs_dependency'},
     }
     content = _autoimport_safe_call(dependencies, is_ipython=False)

@@ -597,20 +597,7 @@ Else, keep reading to know how to install the dependencies first, and
 Dependencies
 ------------
 
-Besides needing Python 3.3 or greater, fades depends also on the
-``pkg_resources`` package, that comes in with ``setuptools``.
-It's installed almost everywhere, but in any case,
-you can install it in Ubuntu/Debian with::
-
-    apt-get install python3-setuptools
-
-And on Arch Linux with::
-
-    pacman -S python-setuptools
-
-It also depends on ``python-xdg`` package. This package should be
-installed on any GNU/Linux OS wiht a freedesktop.org GUI. However it
-is an **optional** dependency.
+Besides needing Python 3.3 or greater, fades depends on the ``python-xdg`` package. This package should be installed on any GNU/Linux OS wiht a freedesktop.org GUI. However it is an **optional** dependency.
 
 You can install it in Ubuntu/Debian with::
 

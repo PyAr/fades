@@ -1,4 +1,4 @@
-# Copyright 2014-2019 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -20,12 +20,21 @@ import logging
 import os
 import re
 
-from pkg_resources import parse_requirements
+from packaging.requirements import Requirement
+from packaging.version import Version
 
 from fades import REPO_PYPI, REPO_VCS
 from fades.pkgnamesdb import MODULE_TO_PACKAGE
 
 logger = logging.getLogger(__name__)
+
+
+class _VCSSpecifier:
+    """A simple specifier that works with VCSDependency."""
+
+    def contains(self, other):
+        """VCS dependency does not handle versions."""
+        return other is None
 
 
 class VCSDependency:
@@ -39,7 +48,8 @@ class VCSDependency:
 
     def __init__(self, url):
         """Init."""
-        self.url = url
+        self.url = self.name = self.project_name = self.version = url
+        self.specifier = _VCSSpecifier()
 
     def __str__(self):
         """Return the URL as this is the interface to get what pip will use."""
@@ -48,10 +58,6 @@ class VCSDependency:
     def __repr__(self):
         """Repr."""
         return "<VCSDependency: {!r}>".format(self.url)
-
-    def __contains__(self, other):
-        """Tell if requirement is satisfied."""
-        return other.url == self.url
 
     def __eq__(self, other):
         """Tell if one VCSDependency is equal to other."""
@@ -62,6 +68,24 @@ class VCSDependency:
     def __hash__(self):
         """Pair to __eq__ to make this hashable."""
         return hash(self.url)
+
+
+class NameVerDependency:
+    """A dependency indicated by name and version."""
+
+    def __init__(self, name, version):
+        self.name = name
+        self.version = Version(version)
+
+    def __eq__(self, other):
+        return self.name == other.name and self.version == other.version
+
+    def __hash__(self):
+        return hash((self.name, self.version))
+
+    def __lt__(self, other):
+        assert not isinstance(self.version, str)
+        return (self.name, self.version) < (other.name, other.version)
 
 
 def parse_fade_requirement(text):
@@ -85,7 +109,7 @@ def parse_fade_requirement(text):
     if repo == REPO_VCS:
         dependency = VCSDependency(requirement)
     else:
-        dependency = list(parse_requirements(requirement))[0]
+        dependency = Requirement(requirement)
     return repo, dependency
 
 
@@ -147,7 +171,7 @@ def _parse_content(fh):
         else:
             package = module
 
-        # To match the "safe" name that pkg_resources creates:
+        # To match the "safe" name
         package = package.replace('_', '-')
 
         # get the fades info after 'fades' mark, if any
@@ -218,7 +242,9 @@ def _parse_requirement(iterable):
     deps = {}
     for line in iterable:
         line = line.strip()
-        if not line or line[0] == '#':
+        if "#" in line:
+            line = line[:line.index("#")]
+        if not line:
             continue
 
         parsed_req = parse_fade_requirement(line)

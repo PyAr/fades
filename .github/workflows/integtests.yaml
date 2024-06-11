@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: |
-          pacman -Suy --noconfirm python3 python-setuptools
+          pacman -Suy --noconfirm python3 python-packaging
       - name: Simple fades run
         run: |
           cd /fades
@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: |
-          yum install --assumeyes python3.12 python3-setuptools
+          yum install --assumeyes python3.12 python-packaging
       - name: Simple fades run
         run: |
           cd /fades
@@ -86,7 +86,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} -m pip install -U setuptools
+          ${{ steps.matrixpy.outputs.python-path }} -m pip install -U packaging
       - name: Simple fades run
         run: |
           ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version

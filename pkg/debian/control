@@ -4,7 +4,7 @@ Priority: extra
 Build-Depends: debhelper (>= 9),
                dh-python,
                dh-translations | dh-python,
-               python3-setuptools,
+               python3-packaging,
                python3-all (>= 3.4),
                python3-xdg
 Maintainer: Facundo Batista <facundo@taniquetil.com.ar>
