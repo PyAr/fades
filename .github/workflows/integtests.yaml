@@ -78,6 +78,7 @@ jobs:
 
       - name: Also set up Python 3.10 for cross-Python test
         uses: actions/setup-python@v5
+        id: otherpy
         with:
           python-version: "3.10"
 
@@ -91,7 +92,7 @@ jobs:
       - name: Using a different Python
         run: |
           set TEST_PYTHON_VERSION=3.10
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v tests/integtest.py
 
   native-generic:
     strategy:
