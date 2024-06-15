@@ -57,13 +57,49 @@ jobs:
           export TEST_PYTHON_VERSION=3.9
           python3.12 bin/fades -v --python=python3.9 -d pytest -x pytest -v tests/integtest.py
 
-  native:
+  native-windows:
+    strategy:
+      matrix:
+        # just a selection otherwise it's too much
+        # - latest OS (left here even if it's only one to simplify upgrading later)
+        # - oldest and newest Python
+        os: [windows-2022]
+        python-version: [3.8, "3.12"]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
+        uses: actions/setup-python@v5
+        id: matrixpy
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Also set up Python 3.10 for cross-Python test
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          ${{ steps.matrixpy.outputs.python-path }} -m pip install -U packaging
+      - name: Simple fades run
+        run: |
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version
+
+      - name: Using a different Python
+        run: |
+          set TEST_PYTHON_VERSION=3.10
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
+
+  native-generic:
     strategy:
       matrix:
         # just a selection otherwise it's too much
         # - latest OSes
         # - oldest and newest Python
-        os: [ubuntu-22.04, macos-12, windows-2022]
+        os: [ubuntu-22.04, macos-12]
         python-version: [3.8, "3.12"]
 
     runs-on: ${{ matrix.os }}
