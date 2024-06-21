@@ -16,7 +16,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB-p\fR \fIversion\fR][\fB--python\fR=\fIversion\fR]
 [\fB--rm\fR=\fIUUID\fR]
 [\fB--system-site-packages\fR]
-[\fB--virtualenv-options\fR=\fIoptions\fR]
+[\fB--venv-options\fR=\fIoptions\fR]
 [\fB--pip-options\fR=\fIoptions\fR]
 [\fB--python-options\fR=\fIoptions\fR]
 [\fB-U\fR][\fB--check-updates\fR]
@@ -99,8 +99,8 @@ Remove a virtual environment by UUID.  See \fB--get-venv-dir\fR option to easily
 Give the virtual environment access to thesystem site-packages dir 
 
 .TP 
-.BR --virtualenv-options=\fIVIRTUALENV_OPTION\fR
-Extra options to be supplied to virtualenv. (this option can be used multiple times)
+.BR --venv-options=\fIVIRTUALENV_OPTION\fR
+Extra options to be supplied to the venv module (this option can be used multiple times)
 
 .TP 
 .BR --pip-options=\fIPIP_OPTION\fR

@@ -380,13 +380,11 @@ pinned, so you will get exactly what you was expecting.
 Under the hood options
 ----------------------
 
-For particular use cases you can send specifics arguments to ``virtualenv``, ``pip`` and ``python``. using the
-``--virtuaenv-options``, ``--pip-options`` and ``--python-options`` respectively. You have to use that argument for each argument
-sent.
+For particular use cases you can send specifics arguments to the ``venv`` module, ``pip`` and ``python`` itself, using the ``--venv-options``, ``--pip-options`` and ``--python-options`` modifiers respectively. You have to use that argument for each argument sent.
 
 Examples:
 
-``fades -d requests --virtualenv-options="--always-copy" --virtualenv-options="--extra-search-dir=/tmp"``
+``fades -d requests --venv-options="--symlinks"``
 
 ``fades -d requests --pip-options="--index-url='http://example.com'"``
 
@@ -420,7 +418,7 @@ options with a dash, it has to be replaced with a underscore.::
     dependency=requests;django>=1.8  # separated by semicolon
 
 There is a little difference in how fades handle these settings: "dependency", "pip-options" and
-"virtualenv-options". In these cases you have to use a semicolon separated list.
+"venv-options". In these cases you have to use a semicolon separated list.
 
 The most important thing is that these options will be merged. So if you configure in
 `/etc/fades/fades.ini` "dependency=requests" you will have requests in all the virtual environments
@@ -436,7 +434,7 @@ dependencies. There are cases however when you'll want to do some clean up to re
 unnecessary virtual environments from disk.
 
 By running *fades* with the ``--rm`` argument, *fades* will remove the
-virtual environment matching the provided UUID if such a environment exists (one easy
+virtual environment matching the provided UUID if such environment exists (one easy
 way to find out the environment's UUID is calling *fades* with the
 ``--where`` option).
 
@@ -537,23 +535,23 @@ This means that if run fades with a Python version and then run it again
 with a different Python version, it may need to create a new virtual environment.
 
 Let's see some examples. Let's say you run fades with ``python``, which
-is a symlink in your ``/usr/bin/`` to ``python3.4`` (running it directly
+is a symlink in your ``/usr/bin/`` to ``python3.6`` (running it directly
 by hand or because fades is installed to use that Python version).
 
-If you have Python 3.4.2 installed in your system, and it's upgraded to
-Python 3.4.3, fades will keep reusing the already created virtualenvs, as
+If you have Python 3.6.2 installed in your system, and it's upgraded to
+Python 3.6.3, fades will keep reusing the already created virtual environments, as
 only the micro version changed, not minor or major.
 
-But if Python 3.5 is installed in your system, and the default ``python``
+But if Python 3.7 is installed in your system, and the default ``python``
 is pointed to this new one, fades will start creating all the
-virtualenvs again, with this new version.
+virtual environments again, with this new version.
 
 This is a good thing, because you want that the dependencies installed
 with one specific Python in the virtual environment are kept being used by the
 same Python version.
 
 However, if you want to avoid this behaviour, be sure to always call fades
-with the specific Python version (``/usr/bin/python3.4`` or ``python3.4``,
+with the specific Python version (``/usr/bin/python3.6`` or ``python3.6``,
 for example), so it won't matter if a new version is available in the
 system.
 
@@ -597,7 +595,7 @@ Else, keep reading to know how to install the dependencies first, and
 Dependencies
 ------------
 
-Besides needing Python 3.3 or greater, fades depends on the ``python-xdg`` package. This package should be installed on any GNU/Linux OS wiht a freedesktop.org GUI. However it is an **optional** dependency.
+Besides needing Python 3.6 or greater, fades depends on the ``python-xdg`` package. This package should be installed on any GNU/Linux OS wiht a freedesktop.org GUI. However it is an **optional** dependency.
 
 You can install it in Ubuntu/Debian with::
 
@@ -606,10 +604,6 @@ You can install it in Ubuntu/Debian with::
 And on Arch Linux with::
 
     pacman -S python-xdg
-
-Fades also needs the `virtualenv <https://virtualenv.pypa.io/en/latest/>`_ 
-package to support different Python versions for child execution. (see the 
-``--python`` option.)
 
 
 For others debian and ubuntu

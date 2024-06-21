@@ -121,10 +121,9 @@ setup(
     install_requires=['setuptools'],
     tests_require=['logassert', 'pyxdg', 'pyuca', 'pytest', 'flake8',
                    'pep257', 'rst2html5'],  # what unittests require
-    python_requires='>=3.3',  # Minimum Python version supported.
+    python_requires='>=3.6',  # Minimum Python version supported.
     extras_require={
         'pyxdg': 'pyxdg',
-        'virtualenv': 'virtualenv',
         'packaging': 'packaging',
     },
 
@@ -156,6 +155,8 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
