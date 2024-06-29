@@ -358,3 +358,12 @@ def download_remote_script(url):
     temp_fh.write(content)
     temp_fh.close()
     return temp_fh.name
+
+
+def get_env_bin_path(base_env_path):
+    """Find and return the environment's binary path in a multiplatformy way."""
+    for subdir in ("bin", "Scripts"):
+        binpath = base_env_path / subdir
+        if binpath.exists():
+            return binpath
+    raise ValueError(f"Binary subdir not found in {base_env_path!r}")

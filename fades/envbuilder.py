@@ -18,6 +18,7 @@
 
 import logging
 import os
+import pathlib
 import shutil
 
 from datetime import datetime
@@ -80,7 +81,9 @@ class _FadesEnvBuilder(EnvBuilder):
             logger.exception("Error creating virtual environment:  %s", error)
             raise FadesError("General error while running external venv")
 
-        self.env_bin_path = os.path.join(self.env_path, 'bin')
+        # XXX Facundo 2024-06-29: the helper uses pathlib; eventually everything will be
+        # pathlib (see #435), so these translations will be cleaned up
+        self.env_bin_path = str(helpers.get_env_bin_path(pathlib.Path(self.env_path)))
 
     def create_env(self, interpreter, is_current, options):
         """Create the virtual environment and return its info."""
