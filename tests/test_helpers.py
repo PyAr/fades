@@ -28,7 +28,7 @@ from urllib.error import HTTPError
 from urllib.request import Request
 
 import logassert
-
+import pytest
 from xdg import BaseDirectory
 
 from fades import HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK, helpers
@@ -563,3 +563,22 @@ class ScriptDownloaderTestCase(unittest.TestCase):
         self.assertEqual(content, raw_service_response.decode("utf8"))
 
         self.assertLoggedInfo("Download redirect detect, now downloading from", final_url)
+
+
+def test_getbinpath_posix(tmp_path):
+    realbin = tmp_path / "bin"
+    realbin.mkdir()
+    path = helpers.get_env_bin_path(tmp_path)
+    assert path == realbin
+
+
+def test_getbinpath_windows(tmp_path):
+    realbin = tmp_path / "Scripts"
+    realbin.mkdir()
+    path = helpers.get_env_bin_path(tmp_path)
+    assert path == realbin
+
+
+def test_getbinpath_missing(tmp_path):
+    with pytest.raises(ValueError):
+        helpers.get_env_bin_path(tmp_path)
