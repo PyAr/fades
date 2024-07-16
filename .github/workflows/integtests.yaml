@@ -91,8 +91,7 @@ jobs:
 
       - name: Using a different Python
         run: |
-          setx TEST_PYTHON_VERSION 3.10
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v tests/integtest.py
+          TEST_PYTHON_VERSION=3.10 ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v tests/integtest.py
 
   native-generic:
     strategy:
