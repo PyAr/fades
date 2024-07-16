@@ -31,6 +31,9 @@ if os.path.basename(parent_dir).startswith('fades'):
 
 from fades import main, FadesError  # noqa (imports after fixing the path, not at the top)
 
+# DEBUG!
+print("=================== TPV", os.environ.get("TEST_PYTHON_VERSION"))
+
 try:
     rc = main.go()
 except FadesError:
