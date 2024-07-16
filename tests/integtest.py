@@ -24,8 +24,8 @@ import os
 import sys
 
 
-def test_assert_python_version():
-    expected = os.environ.get("TEST_PYTHON_VERSION")
+def test_assert_python_version(pytestconfig):
+    expected = pytestconfig.getoption("integtest_pyversion")
     vi = sys.version_info
     current = f"{vi.major}.{vi.minor}"
     assert current == expected

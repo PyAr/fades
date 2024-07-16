@@ -29,8 +29,7 @@ jobs:
           bin/fades -v -d pytest -x pytest --version
       - name: Using a different Python
         run: |
-          export TEST_PYTHON_VERSION=3.9
-          python bin/fades -v --python=python3.9 -d pytest -x pytest -v tests/integtest.py
+          python bin/fades -v --python=python3.9 -d pytest -x pytest -v --integtest-pyversion=3.9 tests/integtest.py
 
   fedora:
     runs-on: ubuntu-latest
@@ -54,8 +53,7 @@ jobs:
         run: |
           yum install --assumeyes python3.9
           cd /fades
-          export TEST_PYTHON_VERSION=3.9
-          python3.12 bin/fades -v --python=python3.9 -d pytest -x pytest -v tests/integtest.py
+          python3.12 bin/fades -v --python=python3.9 -d pytest -x pytest -v --integtest-pyversion=3.9 tests/integtest.py
 
   native-windows:
     strategy:
@@ -91,7 +89,7 @@ jobs:
 
       - name: Using a different Python
         run: |
-          TEST_PYTHON_VERSION=3.10 ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v tests/integtest.py
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py
 
   native-generic:
     strategy:
@@ -126,5 +124,4 @@ jobs:
 
       - name: Using a different Python
         run: |
-          export TEST_PYTHON_VERSION=3.10
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.10 -d pytest -x pytest -v tests/integtest.py
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.10 -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py

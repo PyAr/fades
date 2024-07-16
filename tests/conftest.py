@@ -29,3 +29,8 @@ def create_tmpfile(tmpdir_factory):
 
     yield add_content
     shutil.rmtree(str(dir_path))
+
+
+def pytest_addoption(parser):
+    """Define new pytest command line argument to be used by integration tests."""
+    parser.addoption("--integtest-pyversion", action="store")
