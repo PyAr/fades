@@ -20,7 +20,6 @@ This is not part of the regular test suite, but a test that is used in a very sp
 way from the integration tests defined in the Github CI infrastructure.
 """
 
-import os
 import sys
 
 
