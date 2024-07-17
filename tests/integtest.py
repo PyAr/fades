@@ -20,12 +20,11 @@ This is not part of the regular test suite, but a test that is used in a very sp
 way from the integration tests defined in the Github CI infrastructure.
 """
 
-import os
 import sys
 
 
-def test_assert_python_version():
-    expected = os.environ["TEST_PYTHON_VERSION"]
+def test_assert_python_version(pytestconfig):
+    expected = pytestconfig.getoption("integtest_pyversion")
     vi = sys.version_info
     current = f"{vi.major}.{vi.minor}"
     assert current == expected
