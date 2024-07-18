@@ -14,29 +14,23 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-import shutil
 import uuid
 
 from pytest import fixture
 
 
 @fixture(scope="function")
-def tmp_file(tmpdir_factory):
+def tmp_file(tmp_path):
     """Fixture for a unique tmpfile for each test."""
-    dir_path = tmpdir_factory.mktemp("test")
-    yield str(dir_path.join("testfile"))  # Converted to str to support python <3.6 versions
-    shutil.rmtree(str(dir_path))
+    yield str(tmp_path / "testfile")  # XXX Facundo 2024-04-17: remove str() after #435
 
 
 @fixture(scope="function")
-def create_tmpfile(tmpdir_factory):
-    dir_path = tmpdir_factory.mktemp("test")
+def create_tmpfile(tmp_path):
 
     def add_content(lines):
         """Fixture for a unique tmpfile for each test."""
-        namefile = str(
-            dir_path.join("testfile_{}".format(uuid.uuid4()))
-        )  # Converted to str to support python <3.6 versions
+        namefile = tmp_path / f"testfile_{uuid.uuid4()}"
         with open(namefile, "w", encoding="utf-8") as f:
             for line in lines:
                 f.write(line + "\n")
@@ -44,7 +38,6 @@ def create_tmpfile(tmpdir_factory):
         return namefile
 
     yield add_content
-    shutil.rmtree(str(dir_path))
 
 
 def pytest_addoption(parser):

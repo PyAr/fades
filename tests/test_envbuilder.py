@@ -296,11 +296,11 @@ class UsageManagerTestCase(unittest.TestCase):
                          msg="Selected uuid is two times in file")
 
     def test_usage_file_is_compacted_when_though_no_venv_is_removed(self):
-        old_date = datetime.utcnow()
+        old_date = datetime.now()
         new_date = old_date + timedelta(days=1)
 
         with patch('fades.envbuilder.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value = old_date
+            mock_datetime.now.return_value = old_date
             mock_datetime.strptime.side_effect = lambda *args, **kw: datetime.strptime(*args, **kw)
             mock_datetime.strftime.side_effect = lambda *args, **kw: datetime.strftime(*args, **kw)
 
@@ -312,7 +312,7 @@ class UsageManagerTestCase(unittest.TestCase):
             venv = self.venvscache.get_venv(uuid=self.uuids[0])
             manager.store_usage_stat(venv, self.venvscache)
 
-            mock_datetime.utcnow.return_value = new_date
+            mock_datetime.now.return_value = new_date
             manager.store_usage_stat(venv, self.venvscache)
 
             lines = self.get_usage_lines(manager)
@@ -351,11 +351,11 @@ class UsageManagerTestCase(unittest.TestCase):
             self.assertEqual(str(cm.exception), "General error while running external venv")
 
     def test_when_a_venv_is_removed_it_is_removed_from_everywhere(self):
-        old_date = datetime.utcnow()
+        old_date = datetime.now()
         new_date = old_date + timedelta(days=5)
 
         with patch('fades.envbuilder.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value = old_date
+            mock_datetime.now.return_value = old_date
             mock_datetime.strptime.side_effect = lambda *args, **kw: datetime.strptime(*args, **kw)
             mock_datetime.strftime.side_effect = lambda *args, **kw: datetime.strftime(*args, **kw)
 
@@ -367,7 +367,7 @@ class UsageManagerTestCase(unittest.TestCase):
             venv = self.venvscache.get_venv(uuid=self.uuids[0])
             manager.store_usage_stat(venv, self.venvscache)
 
-            mock_datetime.utcnow.return_value = new_date
+            mock_datetime.now.return_value = new_date
             manager.store_usage_stat(venv, self.venvscache)
 
             lines = self.get_usage_lines(manager)

@@ -21,7 +21,7 @@ import os
 import pathlib
 import shutil
 
-from datetime import datetime
+from datetime import datetime, UTC
 from venv import EnvBuilder
 from uuid import uuid4
 
@@ -199,7 +199,7 @@ class UsageManager:
 
     def _write_venv_usage(self, file_, venv_data):
         _, uuid = os.path.split(venv_data['env_path'])
-        file_.write('{} {}\n'.format(uuid, self._datetime_to_str(datetime.utcnow())))
+        file_.write('{} {}\n'.format(uuid, self._datetime_to_str(datetime.now(UTC))))
 
     def _datetime_to_str(self, datetime_):
         return datetime.strftime(datetime_, "%Y-%m-%dT%H:%M:%S.%f")
@@ -219,7 +219,7 @@ class UsageManager:
         called, this records will be deleted.
         """
         with filelock(self.stat_file_lock):
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
             venvs_dict = self._get_compacted_dict_usage_from_file()
             for venv_uuid, usage_date in venvs_dict.copy().items():
                 usage_date = self._str_to_datetime(usage_date)
