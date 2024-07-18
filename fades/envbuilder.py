@@ -21,7 +21,7 @@ import os
 import pathlib
 import shutil
 
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from venv import EnvBuilder
 from uuid import uuid4
 
@@ -31,6 +31,9 @@ from fades.pipmanager import PipManager
 from fades.multiplatform import filelock
 
 logger = logging.getLogger(__name__)
+
+# UTC can be imported directly from datetime from Python 3.11
+UTC = timezone.utc
 
 
 class _FadesEnvBuilder(EnvBuilder):
