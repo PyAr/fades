@@ -82,7 +82,7 @@ Read the dependencies from a file. Format in each line is the same than dependen
 
 .TP
 .BR -p " " \fIversion\fR ", " --python=\fIversion\fR
-Select which Python version to be used; the argument can be just the number (2.7), the whole name (python2.7) or the whole path (/usr/bin/python2.7).  Of course, the corresponding version of Python needs to be installed in your system.
+Select which Python version to be used; the argument can be just the number (3.9), the whole name (python3.9) or the whole path (/usr/bin/python3.9).  Of course, the corresponding version of Python needs to be installed in your system.
 
 The dependencies can be indicated in multiple places (in the Python source file, with a comment besides the import, in a \fIrequirements\fRfile, and/or through command line. In case of multiple definitions of the same dependency, command line overrides everything else, and requirements file overrides what is specified in the source code.
 
@@ -96,13 +96,13 @@ Remove a virtual environment by UUID.  See \fB--get-venv-dir\fR option to easily
 
 .TP
 .BR --system-site-packages ""
-Give the virtual environment access to thesystem site-packages dir 
+Give the virtual environment access to thesystem site-packages dir
 
-.TP 
+.TP
 .BR --venv-options=\fIVIRTUALENV_OPTION\fR
 Extra options to be supplied to the venv module (this option can be used multiple times)
 
-.TP 
+.TP
 .BR --pip-options=\fIPIP_OPTION\fR
 Extra options to be supplied to pip. (this option can be used multiple times)
 
@@ -110,7 +110,7 @@ Extra options to be supplied to pip. (this option can be used multiple times)
 .BR --python-options=\fIPYTHON_OPTION\fR
 Extra options to be supplied to python. (this option can be used multiple times)
 
-.TP 
+.TP
 .BR -U ", " --check-updates
 Will check for updates in PyPI to verify if there are new versions for the requested dependencies. If a new version is available for a dependency, it will use it (if the dependency was requested without version) or just inform which new version is available (if the dependency was requested with a specific version).
 
@@ -177,13 +177,13 @@ Executes the Python interactive interpreter in a virtual environment after insta
 
 .SH USING CONFIGURATION FILES
 
-You can also configure fades using \fB.ini\fR config files. fades will search config files in 
-\fB/etc/fades/fades.ini\fR, the path indicated by \fBxdg\fR for your system 
-(for example ~/config/fades/fades.ini) and .fades.ini. 
+You can also configure fades using \fB.ini\fR config files. fades will search config files in
+\fB/etc/fades/fades.ini\fR, the path indicated by \fBxdg\fR for your system
+(for example ~/config/fades/fades.ini) and .fades.ini.
 So you can have different settings at system, user and project level.
 
 The config files are in .ini format. (configparser) and fades will search for a [fades] section.
-You have to use the same configurations that in the CLI. The only difference is with the config 
+You have to use the same configurations that in the CLI. The only difference is with the config
 options with a dash, it has to be replaced with a underscore.
 
 Check http://fades.readthedocs.org/en/latest/readme.html#setting-options-using-config-files for full examples.
