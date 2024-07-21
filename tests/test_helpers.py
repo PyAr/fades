@@ -22,7 +22,7 @@ import os
 import sys
 import tempfile
 import unittest
-
+from http.server import HTTPStatus
 from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request
@@ -31,8 +31,7 @@ import logassert
 import pytest
 from xdg import BaseDirectory
 
-from fades import HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK, helpers
-from fades import parsing
+from fades import helpers, parsing
 
 
 PATH_TO_EXAMPLES = "tests/examples/"
@@ -307,7 +306,7 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
 
         with patch('urllib.request.urlopen') as mock_urlopen:
             with patch('http.client.HTTPResponse') as mock_http_response:
-                mock_http_response.status = HTTP_STATUS_OK
+                mock_http_response.status = HTTPStatus.OK
                 mock_urlopen.return_value = mock_http_response
 
                 exists = helpers.check_pypi_exists(deps)
@@ -319,7 +318,7 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
 
         with patch('urllib.request.urlopen') as mock_urlopen:
             with patch('http.client.HTTPResponse') as mock_http_response:
-                mock_http_response.status = HTTP_STATUS_OK
+                mock_http_response.status = HTTPStatus.OK
                 mock_urlopen.side_effect = [mock_http_response] * 3
 
                 exists = helpers.check_pypi_exists(dependencies)
@@ -330,7 +329,7 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
         dependency = parsing.parse_manual(["foo"])
 
         with patch('urllib.request.urlopen') as mock_urlopen:
-            mock_http_error = HTTPError("url", HTTP_STATUS_NOT_FOUND, "mgs", {}, io.BytesIO())
+            mock_http_error = HTTPError("url", HTTPStatus.NOT_FOUND, "mgs", {}, io.BytesIO())
             mock_urlopen.side_effect = mock_http_error
 
             exists = helpers.check_pypi_exists(dependency)
@@ -343,8 +342,8 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
 
         with patch('urllib.request.urlopen') as mock_urlopen:
             with patch('http.client.HTTPResponse') as mock_http_response:
-                mock_http_error = HTTPError("url", HTTP_STATUS_NOT_FOUND, "mgs", {}, io.BytesIO())
-                mock_http_response.status = HTTP_STATUS_OK
+                mock_http_error = HTTPError("url", HTTPStatus.NOT_FOUND, "mgs", {}, io.BytesIO())
+                mock_http_response.status = HTTPStatus.OK
                 mock_urlopen.side_effect = [mock_http_response, mock_http_error]
 
                 exists = helpers.check_pypi_exists(dependencies)

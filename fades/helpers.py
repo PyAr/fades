@@ -22,13 +22,14 @@ import json
 import logging
 import subprocess
 import tempfile
+from http.server import HTTPStatus
 from urllib import request, parse
 from urllib.error import HTTPError
 
 from packaging.requirements import Requirement
 from packaging.version import Version
 
-from fades import FadesError, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_OK, _version
+from fades import FadesError, _version
 
 logger = logging.getLogger(__name__)
 
@@ -227,20 +228,19 @@ def _pypi_head_package(dependency):
     try:
         response = request.urlopen(req)
     except HTTPError as http_error:
-        if http_error.code == HTTP_STATUS_NOT_FOUND:
+        if http_error.code == HTTPStatus.NOT_FOUND:
             return False
         else:
             raise
-    if response.status == HTTP_STATUS_OK:
+    if response.status == HTTPStatus.OK:
         logger.debug("%r exists in PyPI.", dependency)
-        return True
     else:
         # Maybe we are getting somethink like a redirect. In this case we are only
         # warning to the user and trying to install the dependency.
         # In the worst scenery fades will fail to install it.
         logger.warning("Got a (unexpected) HTTP_STATUS=%r and reason=%r checking if %r exists",
                        response.status, response.reason, dependency)
-        return True
+    return True
 
 
 def check_pypi_exists(dependencies):

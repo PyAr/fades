@@ -1,4 +1,4 @@
-# Copyright 2015-2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -26,7 +26,3 @@ class FadesError(Exception):
 
 REPO_PYPI = 'pypi'
 REPO_VCS = 'vcs'
-
-# Not using http.server.HTTPStatus to support python < 3.5
-HTTP_STATUS_NOT_FOUND = 404
-HTTP_STATUS_OK = 200
