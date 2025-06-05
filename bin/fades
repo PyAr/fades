@@ -22,6 +22,12 @@
 import os
 import sys
 
+try:
+    import packaging
+except ImportError:
+    print("Import failed for `packaging` dependency. Please do `pip3 install packaging` and try again")
+    exit(-1)
+
 # small hack to allow fades to be run directly from the project, using code
 # from project itself, not anything already installed in the system
 parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0])))
