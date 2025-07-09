@@ -13,8 +13,8 @@ jobs:
   run-tests:
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, macos-12, macos-13, windows-2019, windows-2022]
-        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, windows-2022, windows-2025]
+        python-version: [3.8, 3.9, "3.10", "3.11", "3.12", "3.13"]
 
     runs-on: ${{ matrix.os }}
     steps:

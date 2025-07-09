@@ -44,7 +44,7 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: |
-          yum install --assumeyes python3.12 python-packaging
+          yum install --assumeyes python3.13 python-packaging
       - name: Simple fades run
         run: |
           cd /fades
@@ -53,7 +53,7 @@ jobs:
         run: |
           yum install --assumeyes python3.9
           cd /fades
-          python3.12 bin/fades -v --python=python3.9 -d pytest -x pytest -v --integtest-pyversion=3.9 tests/integtest.py
+          python3.13 bin/fades -v --python=python3.9 -d pytest -x pytest -v --integtest-pyversion=3.9 tests/integtest.py
 
   native-windows:
     strategy:
@@ -61,8 +61,8 @@ jobs:
         # just a selection otherwise it's too much
         # - latest OS (left here even if it's only one to simplify upgrading later)
         # - oldest and newest Python
-        os: [windows-2022]
-        python-version: [3.8, "3.12"]
+        os: [windows-2025]
+        python-version: [3.8, "3.13"]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -97,8 +97,8 @@ jobs:
         # just a selection otherwise it's too much
         # - latest OSes
         # - oldest and newest Python
-        os: [ubuntu-22.04, macos-12]
-        python-version: [3.8, "3.12"]
+        os: [ubuntu-24.04, macos-15]
+        python-version: [3.8, "3.13"]
 
     runs-on: ${{ matrix.os }}
     steps:
