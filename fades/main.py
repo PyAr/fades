@@ -38,7 +38,7 @@ from fades import (
     pkgnamesdb,
 )
 from fades.logger import set_up as logger_set_up
-
+from pathlib import Path
 
 # Get the logger here; it will be properly setup at bootstrap, but can be used from
 # the rest of the module just fine
@@ -346,10 +346,11 @@ def go():
         logger.warning("Overriding 'quiet' option ('verbose' also requested)")
 
     # start the virtualenvs manager
-    venvscache = cache.VEnvsCache(os.path.join(helpers.get_basedir(), 'venvs.idx'))
+    venvscache = cache.VEnvsCache(helpers.get_basedir() / 'venvs.idx')
     # start usage manager
     usage_manager = envbuilder.UsageManager(
-        os.path.join(helpers.get_basedir(), 'usage_stats'), venvscache)
+        helpers.get_basedir() / 'usage_stats', venvscache)
+
 
     if args.clean_unused_venvs:
         try:
@@ -405,7 +406,7 @@ def go():
     if venv_data:
         env_path = venv_data['env_path']
         # A venv was found in the cache check if its valid or re-generate it.
-        if not os.path.exists(env_path):
+        if not Path(env_path).exists():
             logger.warning("Missing directory (the virtualenv will be re-created): %r", env_path)
             venvscache.remove(env_path)
             create_venv = True
@@ -440,7 +441,7 @@ def go():
 
     # run forest run!!
     python_exe = 'ipython' if args.ipython else 'python'
-    python_exe = os.path.join(venv_data['env_bin_path'], python_exe)
+    python_exe = Path(venv_data['env_bin_path']) / python_exe
 
     # add the virtualenv /bin path to the child PATH.
     environ_path = venv_data['env_bin_path']
@@ -468,7 +469,7 @@ def go():
             # Build the exec path relative to 'bin' dir; note that if child_program's path
             # is absolute (starting with '/') the resulting exec_path will be just it,
             # which is something fades supports
-            exec_path = os.path.join(venv_data['env_bin_path'], child_program)
+            exec_path = Path(venv_data['env_bin_path']) / child_program
             cmd = [exec_path]
         elif args.module:
             cmd = [python_exe, '-m'] + python_options + [child_program]
