@@ -22,6 +22,7 @@ import os
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from http.server import HTTPStatus
 from unittest.mock import patch
 from urllib.error import HTTPError
@@ -233,7 +234,7 @@ class GetDirsTestCase(unittest.TestCase):
 
     def test_basedir_xdg(self):
         direct = helpers.get_basedir()
-        self.assertEqual(direct, os.path.join(BaseDirectory.xdg_data_home, 'fades'))
+        self.assertEqual(direct, Path(BaseDirectory.xdg_data_home) / 'fades')
 
     def _fake_snap_env_dir(self, direct):
         """Fake Snap's environment variable."""
@@ -244,13 +245,13 @@ class GetDirsTestCase(unittest.TestCase):
         with tempfile.TemporaryDirectory() as dirname:
             self._fake_snap_env_dir(dirname)
             direct = helpers.get_basedir()
-            self.assertEqual(direct, os.path.join(dirname, 'data'))
+            self.assertEqual(direct, Path(dirname) / 'data')
 
     def test_basedir_default(self):
         with patch.object(helpers, "_get_basedirectory") as mock:
             mock.side_effect = ImportError()
             direct = helpers.get_basedir()
-            self.assertEqual(direct, os.path.join(self._home, '.fades'))
+            self.assertEqual(direct, Path(self._home) / '.fades')
 
     def test_basedir_xdg_nonexistant(self):
         with patch("xdg.BaseDirectory") as mock:
@@ -267,19 +268,19 @@ class GetDirsTestCase(unittest.TestCase):
 
     def test_confdir_xdg(self):
         direct = helpers.get_confdir()
-        self.assertEqual(direct, os.path.join(BaseDirectory.xdg_config_home, 'fades'))
+        self.assertEqual(direct, Path(BaseDirectory.xdg_config_home) / 'fades')
 
     def test_confdir_snap(self):
         with tempfile.TemporaryDirectory() as dirname:
             self._fake_snap_env_dir(dirname)
             direct = helpers.get_confdir()
-            self.assertEqual(direct, os.path.join(dirname, 'config'))
+            self.assertEqual(direct, Path(dirname) / 'config')
 
     def test_confdir_default(self):
         with patch.object(helpers, "_get_basedirectory") as mock:
             mock.side_effect = ImportError()
             direct = helpers.get_confdir()
-            self.assertEqual(direct, os.path.join(self._home, '.fades'))
+            self.assertEqual(direct, Path(self._home) / '.fades')
 
     def test_confdir_xdg_nonexistant(self):
         with patch("xdg.BaseDirectory") as mock:

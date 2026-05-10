@@ -17,6 +17,7 @@
 """A collection of utilities for fades."""
 
 import os
+from pathlib import Path
 import sys
 import json
 import logging
@@ -96,20 +97,19 @@ def _get_specific_dir(dir_type):
     """Get a specific directory, using some XDG base, with sensible default."""
     if SNAP_BASEDIR_NAME in os.environ:
         logger.debug("Getting base dir information from SNAP_BASEDIR_NAME env var.")
-        direct = os.path.join(os.environ[SNAP_BASEDIR_NAME], dir_type)
+        direct = Path(os.environ[SNAP_BASEDIR_NAME]) / dir_type
     else:
         try:
             basedirectory = _get_basedirectory()
         except ImportError:
             logger.debug("Using last resort base dir: ~/.fades")
-            from os.path import expanduser
-            direct = os.path.join(expanduser("~"), ".fades")
+            direct = Path.home() / ".fades"
         else:
             xdg_attrib = 'xdg_{}_home'.format(dir_type)
             base = getattr(basedirectory, xdg_attrib)
-            direct = os.path.join(base, 'fades')
+            direct = Path(base) / 'fades'
 
-    if not os.path.exists(direct):
+    if not direct.exists():
         os.makedirs(direct)
     return direct
 
