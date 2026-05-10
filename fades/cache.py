@@ -22,6 +22,7 @@ import logging
 import os
 import time
 
+from pathlib import Path
 from fades import REPO_VCS
 from fades.multiplatform import filelock
 from fades.parsing import VCSDependency, NameVerDependency
@@ -92,7 +93,7 @@ class VEnvsCache:
         for venv_str in current_venvs:
             venv = json.loads(venv_str)
             env_path = venv.get('metadata', {}).get('env_path')
-            _, env_uuid = os.path.split(env_path)
+            env_uuid = Path(env_path).name
             if env_uuid == uuid:
                 return venv
 
