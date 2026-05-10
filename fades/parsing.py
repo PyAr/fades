@@ -20,6 +20,7 @@ import logging
 import os
 import re
 
+from pathlib import Path
 from packaging.requirements import Requirement
 from packaging.version import Version
 
@@ -276,8 +277,7 @@ def _read_lines(filepath):
                     logger.warning(
                         "Invalid format to indicate a nested requirements file: '%r'", line)
                 else:
-                    nested_filepath = os.path.join(
-                        os.path.dirname(filepath), nested_filename)
+                    nested_filepath = Path(filepath).parent / nested_filename
                     yield from _read_lines(nested_filepath)
             else:
                 yield line
