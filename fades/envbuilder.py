@@ -21,6 +21,7 @@ import os
 import pathlib
 import shutil
 
+from pathlib import Path
 from datetime import datetime, timezone
 from venv import EnvBuilder
 from uuid import uuid4
@@ -46,7 +47,7 @@ class _FadesEnvBuilder(EnvBuilder):
 
     def __init__(self):
         basedir = helpers.get_basedir()
-        self.env_path = os.path.join(basedir, str(uuid4()))
+        self.env_path = Path(basedir) / str(uuid4())
         self.env_bin_path = ''
         logger.debug("Env will be created at: %s", self.env_path)
 
@@ -105,9 +106,9 @@ class _FadesEnvBuilder(EnvBuilder):
         logger.debug("env_bin_path: %s", self.env_bin_path)
 
         # Re check if pip was installed (supporting both binary and .exe for Windows)
-        pip_bin = os.path.join(self.env_bin_path, "pip")
-        pip_exe = os.path.join(self.env_bin_path, "pip.exe")
-        if not (os.path.exists(pip_bin) or os.path.exists(pip_exe)):
+        pip_bin = Path(self.env_bin_path) / "pip"
+        pip_exe = Path(self.env_bin_path) / "pip.exe"
+        if not (pip_bin.exists() or pip_exe.exists()):
             logger.debug("pip isn't installed in the venv, setting pip_installed=False")
             self.pip_installed = False
 
@@ -201,7 +202,7 @@ class UsageManager:
                     self._write_venv_usage(f, venv_data)
 
     def _write_venv_usage(self, file_, venv_data):
-        _, uuid = os.path.split(venv_data['env_path'])
+        uuid = Path(venv_data['env_path']).name
         file_.write('{} {}\n'.format(uuid, self._datetime_to_str(datetime.now(UTC))))
 
     def _datetime_to_str(self, datetime_):
