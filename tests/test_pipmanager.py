@@ -21,6 +21,7 @@ import io
 import pytest
 from unittest.mock import patch, call
 
+from pathlib import Path
 from fades.pipmanager import PipManager
 from fades import pipmanager
 from fades import helpers
@@ -74,12 +75,12 @@ def test_real_case_levenshtein():
 
 def test_install():
     mgr = PipManager(BIN_PATH, pip_installed=True)
-    pip_path = os.path.join(BIN_PATH, "pip")
+    pip_path = Path(BIN_PATH) / "pip"
     with patch.object(helpers, "logged_exec") as mock:
         mgr.install("foo")
 
     # check it always upgrades pip, and then the proper install
-    python_path = os.path.join(BIN_PATH, "python")
+    python_path = Path(BIN_PATH) / "python"
     c1 = call([python_path, "-m", "pip", "install", "pip", "--upgrade"])
     c2 = call([pip_path, "install", "foo"])
     assert mock.call_args_list == [c1, c2]
@@ -87,7 +88,7 @@ def test_install():
 
 def test_install_without_pip_upgrade():
     mgr = PipManager(BIN_PATH, pip_installed=True, avoid_pip_upgrade=True)
-    pip_path = os.path.join(BIN_PATH, "pip")
+    pip_path = Path(BIN_PATH) / "pip"
     with patch.object(helpers, "logged_exec") as mock:
         mgr.install("foo")
     mock.assert_called_with([pip_path, "install", "foo"])
@@ -95,7 +96,7 @@ def test_install_without_pip_upgrade():
 
 def test_install_multiword_dependency():
     mgr = PipManager(BIN_PATH, pip_installed=True)
-    pip_path = os.path.join(BIN_PATH, "pip")
+    pip_path = Path(BIN_PATH) / "pip"
     with patch.object(helpers, "logged_exec") as mock:
         mgr.install("foo bar")
     mock.assert_called_with([pip_path, "install", "foo", "bar"])
@@ -103,7 +104,7 @@ def test_install_multiword_dependency():
 
 def test_install_with_options():
     mgr = PipManager(BIN_PATH, pip_installed=True, options=["--bar baz"])
-    pip_path = os.path.join(BIN_PATH, "pip")
+    pip_path = Path(BIN_PATH) / "pip"
     with patch.object(helpers, "logged_exec") as mock:
         mgr.install("foo")
     mock.assert_called_with([pip_path, "install", "foo", "--bar", "baz"])
@@ -111,7 +112,7 @@ def test_install_with_options():
 
 def test_install_with_options_using_equal():
     mgr = PipManager(BIN_PATH, pip_installed=True, options=["--bar=baz"])
-    pip_path = os.path.join(BIN_PATH, "pip")
+    pip_path = Path(BIN_PATH) / "pip"
     with patch.object(helpers, "logged_exec") as mock:
         mgr.install("foo")
     mock.assert_called_with([pip_path, "install", "foo", "--bar=baz"])
@@ -128,7 +129,7 @@ def test_install_raise_error(logs):
 
 def test_install_without_pip():
     mgr = PipManager(BIN_PATH, pip_installed=False)
-    pip_path = os.path.join(BIN_PATH, "pip")
+    pip_path = Path(BIN_PATH) / "pip"
     with patch.object(helpers, "logged_exec") as mocked_exec:
         with patch.object(mgr, "_brute_force_install_pip") as mocked_install_pip:
             mgr.install("foo")
@@ -139,11 +140,11 @@ def test_install_without_pip():
 def test_brute_force_install_pip_installer_exists(tmp_path):
     tmp_file = str(tmp_path / "hello.txt")
     mgr = PipManager(BIN_PATH, pip_installed=False)
-    python_path = os.path.join(BIN_PATH, "python")
+    python_path = Path(BIN_PATH) / "python"
 
     # get the tempfile but leave it there to be found
     open(tmp_file, 'wt', encoding='utf8').close()
-    mgr.pip_installer_fname = tmp_file
+    mgr.pip_installer_fname = Path(tmp_file)
 
     with patch.object(helpers, "logged_exec") as mocked_exec:
         with patch.object(mgr, "_download_pip_installer") as download_installer:
@@ -157,9 +158,9 @@ def test_brute_force_install_pip_installer_exists(tmp_path):
 def test_brute_force_install_pip_no_installer(tmp_path):
     tmp_file = str(tmp_path / "hello.txt")
     mgr = PipManager(BIN_PATH, pip_installed=False)
-    python_path = os.path.join(BIN_PATH, "python")
+    python_path = Path(BIN_PATH) / "python"
 
-    mgr.pip_installer_fname = tmp_file
+    mgr.pip_installer_fname = Path(tmp_file)
     with patch.object(helpers, "logged_exec") as mocked_exec:
         with patch.object(mgr, "_download_pip_installer") as download_installer:
             mgr._brute_force_install_pip()
@@ -189,7 +190,7 @@ def test_freeze(tmp_path):
         mock.return_value = ['moño>11', 'foo==1.2']  # "bad" order, on purpose
         mgr.freeze(tmp_file)
 
-    pip_path = os.path.join(BIN_PATH, "pip")
+    pip_path = Path(BIN_PATH) / "pip"
     mock.assert_called_with([pip_path, "freeze", "--all", "--local"])
 
     # check results were stored properly
