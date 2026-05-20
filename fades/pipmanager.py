@@ -1,4 +1,4 @@
-# Copyright 2014-2020 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -25,7 +25,6 @@ import os
 import logging
 import shutil
 import contextlib
-
 from pathlib import Path
 
 from urllib import request
@@ -40,14 +39,19 @@ PIP_INSTALLER = "https://bootstrap.pypa.io/get-pip.py"
 class PipManager():
     """A manager for all PIP related actions."""
 
-    def __init__(self, env_bin_path, pip_installed=False, options=None, avoid_pip_upgrade=False):
-        """Init."""
+    def __init__(
+        self,
+        env_bin_path: Path,
+        pip_installed: bool = False,
+        options: bool = None,
+        avoid_pip_upgrade: bool = False
+    ):
         self.env_bin_path = env_bin_path
         self.pip_installed = pip_installed
         self.options = options
-        self.pip_exe = Path(self.env_bin_path) / "pip"
+        self.pip_exe = self.env_bin_path / "pip"
         basedir = helpers.get_basedir()
-        self.pip_installer_fname = Path(basedir) / "get-pip.py"
+        self.pip_installer_fname = basedir / "get-pip.py"
         self.avoid_pip_upgrade = avoid_pip_upgrade
 
     def install(self, dependency):
@@ -60,7 +64,7 @@ class PipManager():
         # Always update pip to get latest behaviours (specially regarding security); this has
         # the nice side effect of getting logged the pip version that is used.
         if not self.avoid_pip_upgrade:
-            python_exe = Path(self.env_bin_path) / "python"
+            python_exe = self.env_bin_path / "python"
             helpers.logged_exec([python_exe, '-m', 'pip', 'install', 'pip', '--upgrade'])
 
         # split to pass several tokens on multiword dependency (this is very specific for '-e' on
@@ -114,7 +118,7 @@ class PipManager():
             self._download_pip_installer()
 
         logger.debug("Installing PIP manually in the virtualenv")
-        python_exe = Path(self.env_bin_path) / "python"
+        python_exe = self.env_bin_path / "python"
         helpers.logged_exec([python_exe, self.pip_installer_fname, '-I'])
         self.pip_installed = True
 

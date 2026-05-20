@@ -1,4 +1,4 @@
-# Copyright 2015-2022 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -20,7 +20,7 @@ from fades import cache
 
 
 def test_missing_file_pytest(tmp_file):
-    venvscache = cache.VEnvsCache(str(tmp_file))
+    venvscache = cache.VEnvsCache(tmp_file)
     with patch.object(venvscache, '_select', return_value=None) as mock:
         resp = venvscache.get_venv('requirements', 'interpreter', uuid='', options='options')
     mock.assert_called_with([], 'requirements', 'interpreter', uuid='', options='options')

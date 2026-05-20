@@ -1,4 +1,4 @@
-# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -17,10 +17,10 @@
 """Script parsing to get needed dependencies."""
 
 import logging
-import os
 import re
-
 from pathlib import Path
+from typing import Generator
+
 from packaging.requirements import Requirement
 from packaging.version import Version
 
@@ -264,7 +264,7 @@ def parse_manual(dependencies):
     return _parse_requirement(dependencies)
 
 
-def _read_lines(filepath):
+def _read_lines(filepath: Path) -> Generator[str, None, None]:
     """Read a req file to a list to support nested requirement files."""
     with open(filepath, 'rt', encoding='utf8') as fh:
         for line in fh:
@@ -277,20 +277,20 @@ def _read_lines(filepath):
                     logger.warning(
                         "Invalid format to indicate a nested requirements file: '%r'", line)
                 else:
-                    nested_filepath = Path(filepath).parent / nested_filename
+                    nested_filepath = filepath.parent / nested_filename
                     yield from _read_lines(nested_filepath)
             else:
                 yield line
 
 
-def parse_reqfile(filepath):
+def parse_reqfile(filepath: Path):
     """Parse a requirement file and return the indicated dependencies."""
     if filepath is None:
         return {}
     return _parse_requirement(_read_lines(filepath))
 
 
-def parse_srcfile(filepath):
+def parse_srcfile(filepath: Path):
     """Parse a source file and return its marked dependencies."""
     if filepath is None:
         return {}
@@ -298,7 +298,7 @@ def parse_srcfile(filepath):
         return _parse_content(fh)
 
 
-def parse_docstring(filepath):
+def parse_docstring(filepath: Path):
     """Parse a source file and return its dependencies specified into docstrings."""
     if filepath is None:
         return {}

@@ -1,4 +1,4 @@
-# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -16,14 +16,14 @@
 
 """A collection of utilities for fades."""
 
-import os
-from pathlib import Path
-import sys
 import json
 import logging
+import os
 import subprocess
+import sys
 import tempfile
 from http.server import HTTPStatus
+from pathlib import Path
 from urllib import request, parse
 from urllib.error import HTTPError
 
@@ -93,7 +93,7 @@ def _get_basedirectory():
     return BaseDirectory
 
 
-def _get_specific_dir(dir_type):
+def _get_specific_dir(dir_type: str) -> Path:
     """Get a specific directory, using some XDG base, with sensible default."""
     if SNAP_BASEDIR_NAME in os.environ:
         logger.debug("Getting base dir information from SNAP_BASEDIR_NAME env var.")
@@ -114,12 +114,12 @@ def _get_specific_dir(dir_type):
     return direct
 
 
-def get_basedir():
+def get_basedir() -> Path:
     """Get the base fades directory, from xdg or kinda hardcoded."""
     return _get_specific_dir('data')
 
 
-def get_confdir():
+def get_confdir() -> Path:
     """Get the config fades directory, from xdg or kinda hardcoded."""
     return _get_specific_dir('config')
 
@@ -357,7 +357,7 @@ def download_remote_script(url):
     content = downloader.get()
     temp_fh.write(content)
     temp_fh.close()
-    return temp_fh.name
+    return Path(temp_fh.name)
 
 
 def get_env_bin_path(base_env_path):

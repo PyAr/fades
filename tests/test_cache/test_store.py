@@ -1,4 +1,4 @@
-# Copyright 2015-2019 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -21,15 +21,16 @@ from fades import cache
 
 def test_missing_file(tmp_file):
     venvscache = cache.VEnvsCache(tmp_file)
-    venvscache.store('installed', 'metadata', 'interpreter', 'options')
+    metadata = {"env_path": "some/path", "env_bin_path": "other/path", "extra": "foobar"}
+    venvscache.store('installed', metadata, 'interpreter', 'options')
 
     with open(tmp_file, 'rt', encoding='utf8') as fh:
         data = json.loads(fh.readline())
         assert 'timestamp' in data
-        assert data['installed'], 'installed'
-        assert data['metadata'], 'metadata'
-        assert data['interpreter'], 'interpreter'
-        assert data['options'], 'options'
+        assert data['installed'] == 'installed'
+        assert data['metadata'] == metadata
+        assert data['interpreter'] == 'interpreter'
+        assert data['options'] == 'options'
 
 
 def test_with_previous_content(tmp_file):
@@ -37,7 +38,8 @@ def test_with_previous_content(tmp_file):
         fh.write(json.dumps({'foo': 'bar'}) + '\n')
 
     venvscache = cache.VEnvsCache(tmp_file)
-    venvscache.store('installed', 'metadata', 'interpreter', 'options')
+    metadata = {"env_path": "some/path", "env_bin_path": "other/path", "extra": "foobar"}
+    venvscache.store('installed', metadata, 'interpreter', 'options')
 
     with open(tmp_file, 'rt', encoding='utf8') as fh:
         data = json.loads(fh.readline())
@@ -45,7 +47,7 @@ def test_with_previous_content(tmp_file):
 
         data = json.loads(fh.readline())
         assert 'timestamp' in data
-        assert data['installed'], 'installed'
-        assert data['metadata'], 'metadata'
-        assert data['interpreter'], 'interpreter'
-        assert data['options'], 'options'
+        assert data['installed'] == 'installed'
+        assert data['metadata'] == metadata
+        assert data['interpreter'] == 'interpreter'
+        assert data['options'] == 'options'

@@ -1,4 +1,4 @@
-# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -17,12 +17,12 @@
 
 """The cache manager for virtualenvs."""
 
+import copy
 import json
 import logging
-import os
 import time
-
 from pathlib import Path
+
 from fades import REPO_VCS
 from fades.multiplatform import filelock
 from fades.parsing import VCSDependency, NameVerDependency
@@ -30,14 +30,32 @@ from fades.parsing import VCSDependency, NameVerDependency
 logger = logging.getLogger(__name__)
 
 
+def load_venv(src: str) -> dict:
+    """Load virtualenv information from the stored string."""
+    venv = json.loads(src)
+    metadata = venv["metadata"]
+    for key in ("env_path", "env_bin_path"):
+        metadata[key] = Path(metadata[key])
+    return venv
+
+
+def dump_venv(venv: dict) -> str:
+    """Dump virtualenv information to a string."""
+    venv = copy.deepcopy(venv)  # avoid changing the external dict
+    metadata = venv["metadata"]
+    for key in ("env_path", "env_bin_path"):
+        metadata[key] = str(metadata[key])
+    return json.dumps(venv)
+
+
 class VEnvsCache:
     """A cache for virtualenvs."""
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: Path):
         """Init."""
         logger.debug("Using cache index: %r", filepath)
         self.filepath = filepath
-        self.lockpath = filepath + ".lock"
+        self.lockpath = filepath.with_name(filepath.name + ".lock")
 
     def _venv_match(self, installed, requirements):
         """Return True if what is installed satisfies the requirements.
@@ -91,8 +109,8 @@ class VEnvsCache:
     def _match_by_uuid(self, current_venvs, uuid):
         """Select a venv matching exactly by uuid."""
         for venv_str in current_venvs:
-            venv = json.loads(venv_str)
-            env_path = venv.get('metadata', {}).get('env_path')
+            venv = load_venv(venv_str)
+            env_path = venv['metadata']['env_path']
             env_uuid = Path(env_path).name
             if env_uuid == uuid:
                 return venv
@@ -134,7 +152,7 @@ class VEnvsCache:
         """
         matching_venvs = []
         for venv_str in current_venvs:
-            venv = json.loads(venv_str)
+            venv = load_venv(venv_str)
 
             # simple filter, need to have exactly same options and interpreter
             if venv.get('options') != options or venv.get('interpreter') != interpreter:
@@ -175,7 +193,7 @@ class VEnvsCache:
     def get_venvs_metadata(self):
         """Yield metadata of each existing venv."""
         for line in self._read_cache():
-            yield json.loads(line)['metadata']
+            yield load_venv(line)['metadata']
 
     def store(self, installed_stuff, metadata, interpreter, options):
         """Store the virtualenv metadata for the indicated installed_stuff."""
@@ -189,22 +207,19 @@ class VEnvsCache:
         logger.debug("Storing installed=%s metadata=%s interpreter=%s options=%s",
                      installed_stuff, metadata, interpreter, options)
         with filelock(self.lockpath):
-            self._write_cache([json.dumps(new_content)], append=True)
+            self._write_cache([dump_venv(new_content)], append=True)
 
-    def remove(self, env_path):
+    def remove(self, env_path: Path):
         """Remove metadata for a given virtualenv from cache."""
         with filelock(self.lockpath):
             cache = self._read_cache()
-            logger.debug("Removing virtualenv from cache: %s" % env_path)
-            lines = [
-                line for line in cache
-                if json.loads(line).get('metadata', {}).get('env_path') != env_path
-            ]
+            logger.debug("Removing virtualenv from cache: %s", env_path)
+            lines = [line for line in cache if load_venv(line)["metadata"]["env_path"] != env_path]
             self._write_cache(lines)
 
     def _read_cache(self):
         """Read virtualenv metadata from cache."""
-        if os.path.exists(self.filepath):
+        if self.filepath.exists():
             with open(self.filepath, 'rt', encoding='utf8') as fh:
                 lines = [x.strip() for x in fh]
         else:

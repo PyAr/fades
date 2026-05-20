@@ -1,4 +1,4 @@
-# Copyright 2015-2019 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -14,17 +14,13 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-import shutil
-
 from pytest import fixture
 
 from fades import cache
 
 
 @fixture(scope="function")
-def venvscache(tmpdir_factory):
+def venvscache(tmp_path):
     """Fixture for a cache file for virtualenvs."""
-    dir_path = tmpdir_factory.mktemp("test")
-    venvs_cache = cache.VEnvsCache(dir_path.join("test_venv_cache"))
-    yield venvs_cache
-    shutil.rmtree(str(dir_path))
+    venvs_cache = cache.VEnvsCache(tmp_path / "test_venv_cache")
+    return venvs_cache

@@ -1,4 +1,4 @@
-# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -22,8 +22,8 @@ import os
 import sys
 import tempfile
 import unittest
-from pathlib import Path
 from http.server import HTTPStatus
+from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request
@@ -406,7 +406,7 @@ class ScriptDownloaderTestCase(unittest.TestCase):
         mock_downloader_class.assert_called_with(test_url)
         self.assertLoggedInfo(
             "Downloading remote script from {!r}".format(test_url),
-            repr(filepath), "(using 'mock downloader' downloader)")
+            str(filepath), "(using 'mock downloader' downloader)")
         with open(filepath, "rt", encoding='utf8') as fh:
             self.assertEqual(fh.read(), test_content)
 

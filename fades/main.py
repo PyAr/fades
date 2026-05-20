@@ -1,4 +1,4 @@
-# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -25,6 +25,7 @@ import signal
 import sys
 import subprocess
 import tempfile
+from pathlib import Path
 
 import fades
 from fades import (
@@ -38,7 +39,7 @@ from fades import (
     pkgnamesdb,
 )
 from fades.logger import set_up as logger_set_up
-from pathlib import Path
+
 
 # Get the logger here; it will be properly setup at bootstrap, but can be used from
 # the rest of the module just fine
@@ -118,8 +119,7 @@ def get_autoimport_scriptname(dependencies, is_ipython):
     return tempfilepath
 
 
-def consolidate_dependencies(needs_ipython, child_program,
-                             requirement_files, manual_dependencies):
+def consolidate_dependencies(needs_ipython, child_program, requirement_files, manual_dependencies):
     """Parse files, get deps and merge them. Deps read later overwrite those read earlier."""
     if needs_ipython:
         logger.debug("Adding ipython dependency because --ipython was detected")
@@ -157,7 +157,7 @@ def consolidate_dependencies(needs_ipython, child_program,
     return indicated_deps
 
 
-def decide_child_program(args_executable, args_module, args_child_program):
+def decide_child_program(args_executable: str, args_module: str, args_child_program: str):
     """Decide which the child program really is (if any)."""
     if args_executable:
         # If --exec given, check that it's just the executable name or an absolute path;
@@ -188,7 +188,7 @@ def decide_child_program(args_executable, args_module, args_child_program):
                              "check the `--exec` option in the help.",
                              args_child_program)
                 raise FadesError("child program  not found.")
-        analyzable_child_program = args_child_program
+        analyzable_child_program = Path(args_child_program)
         child_program = args_child_program
     else:
         # not indicated executable, not child program, "interpreter" mode
@@ -234,7 +234,7 @@ def go():
         '-d', '--dependency', action='append',
         help="specify dependencies through command line (this option can be used multiple times)")
     parser.add_argument(
-        '-r', '--requirement', action='append',
+        '-r', '--requirement', type=Path, action='append',
         help="indicate files to read dependencies from (this option can be used multiple times)")
     parser.add_argument(
         '-p', '--python', action='store',
@@ -348,9 +348,7 @@ def go():
     # start the virtualenvs manager
     venvscache = cache.VEnvsCache(helpers.get_basedir() / 'venvs.idx')
     # start usage manager
-    usage_manager = envbuilder.UsageManager(
-        helpers.get_basedir() / 'usage_stats', venvscache)
-
+    usage_manager = envbuilder.UsageManager(helpers.get_basedir() / 'usage_stats', venvscache)
 
     if args.clean_unused_venvs:
         try:
@@ -441,13 +439,13 @@ def go():
 
     # run forest run!!
     python_exe = 'ipython' if args.ipython else 'python'
-    python_exe = Path(venv_data['env_bin_path']) / python_exe
+    python_exe = venv_data['env_bin_path'] / python_exe
 
     # add the virtualenv /bin path to the child PATH.
-    environ_path = venv_data['env_bin_path']
+    str_environ_path = str(venv_data['env_bin_path'])
     if 'PATH' in os.environ:
-        environ_path += os.pathsep + os.environ['PATH']
-    os.environ['PATH'] = environ_path
+        str_environ_path += os.pathsep + os.environ['PATH']
+    os.environ['PATH'] = str_environ_path
 
     # store usage information
     usage_manager.store_usage_stat(venv_data, venvscache)
@@ -469,7 +467,7 @@ def go():
             # Build the exec path relative to 'bin' dir; note that if child_program's path
             # is absolute (starting with '/') the resulting exec_path will be just it,
             # which is something fades supports
-            exec_path = Path(venv_data['env_bin_path']) / child_program
+            exec_path = venv_data['env_bin_path'] / child_program
             cmd = [exec_path]
         elif args.module:
             cmd = [python_exe, '-m'] + python_options + [child_program]

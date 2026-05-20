@@ -1,4 +1,4 @@
-# Copyright 2015-2022 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -19,14 +19,14 @@
 import os
 import io
 import pytest
+from pathlib import Path
 from unittest.mock import patch, call
 
-from pathlib import Path
 from fades.pipmanager import PipManager
 from fades import pipmanager
 from fades import helpers
 
-BIN_PATH = "somepath"
+BIN_PATH = Path("somepath")
 
 
 def test_get_parsing_ok_pytest():
