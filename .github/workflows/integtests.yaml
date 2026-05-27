@@ -44,16 +44,16 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: |
-          yum install --assumeyes python3.13 python-packaging
+          yum install --assumeyes python3.14 python-packaging
       - name: Simple fades run
         run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
       - name: Using a different Python
         run: |
-          yum install --assumeyes python3.9
+          yum install --assumeyes python3.13
           cd /fades
-          python3.13 bin/fades -v --python=python3.9 -d pytest -x pytest -v --integtest-pyversion=3.9 tests/integtest.py
+          python3.14 bin/fades -v --python=python3.13 -d pytest -x pytest -v --integtest-pyversion=3.13 tests/integtest.py
 
   native-windows:
     strategy:
@@ -62,7 +62,7 @@ jobs:
         # - latest OS (left here even if it's only one to simplify upgrading later)
         # - oldest and newest Python
         os: [windows-2025]
-        python-version: [3.8, "3.13"]
+        python-version: ["3.10", "3.15"]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -74,11 +74,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Also set up Python 3.10 for cross-Python test
+      - name: Also set up Python 3.13 for cross-Python test
         uses: actions/setup-python@v5
         id: otherpy
         with:
-          python-version: "3.10"
+          python-version: "3.13"
 
       - name: Install dependencies
         run: |
@@ -89,7 +89,7 @@ jobs:
 
       - name: Using a different Python
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=3.13 tests/integtest.py
 
   native-generic:
     strategy:
@@ -97,8 +97,8 @@ jobs:
         # just a selection otherwise it's too much
         # - latest OSes
         # - oldest and newest Python
-        os: [ubuntu-24.04, macos-15]
-        python-version: [3.8, "3.13"]
+        os: [ubuntu-26.04, macos-15]
+        python-version: ["3.10", "3.14"]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -110,10 +110,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Also set up Python 3.10 for cross-Python test
+      - name: Also set up Python 3.13 for cross-Python test
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.13"
 
       - name: Install dependencies
         run: |
@@ -124,4 +124,4 @@ jobs:
 
       - name: Using a different Python
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.10 -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.13 -d pytest -x pytest -v --integtest-pyversion=3.13 tests/integtest.py
