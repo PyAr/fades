@@ -1,4 +1,4 @@
-# Copyright 2016-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2016-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -17,7 +17,7 @@
 """Parse fades options from config files."""
 
 import logging
-import os
+from pathlib import Path
 
 from configparser import ConfigParser, NoSectionError
 
@@ -25,7 +25,7 @@ from fades.helpers import get_confdir
 
 logger = logging.getLogger(__name__)
 
-CONFIG_FILES = ("/etc/fades/fades.ini", os.path.join(get_confdir(), 'fades.ini'), ".fades.ini")
+CONFIG_FILES = (Path("/etc/fades/fades.ini"), get_confdir() / 'fades.ini', Path(".fades.ini"))
 
 MERGEABLE_CONFIGS = ("dependency", "pip_options", "venv-options")
 

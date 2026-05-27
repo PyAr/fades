@@ -138,7 +138,7 @@ def test_install_without_pip():
 
 
 def test_brute_force_install_pip_installer_exists(tmp_path):
-    tmp_file = str(tmp_path / "hello.txt")
+    tmp_file = tmp_path / "hello.txt"
     mgr = PipManager(BIN_PATH, pip_installed=False)
     python_path = Path(BIN_PATH) / "python"
 
@@ -156,7 +156,7 @@ def test_brute_force_install_pip_installer_exists(tmp_path):
 
 
 def test_brute_force_install_pip_no_installer(tmp_path):
-    tmp_file = str(tmp_path / "hello.txt")
+    tmp_file = tmp_path / "hello.txt"
     mgr = PipManager(BIN_PATH, pip_installed=False)
     python_path = Path(BIN_PATH) / "python"
 
@@ -171,7 +171,7 @@ def test_brute_force_install_pip_no_installer(tmp_path):
 
 
 def test_download_pip_installer(tmp_path):
-    tmp_file = str(tmp_path / "hello.txt")
+    tmp_file = tmp_path / "hello.txt"
     mgr = PipManager(BIN_PATH, pip_installed=False)
 
     mgr.pip_installer_fname = tmp_file
@@ -182,7 +182,7 @@ def test_download_pip_installer(tmp_path):
 
 
 def test_freeze(tmp_path):
-    tmp_file = str(tmp_path / "reqtest.txt")
+    tmp_file = tmp_path / "reqtest.txt"
 
     # call and check pip was executed ok
     mgr = PipManager(BIN_PATH)

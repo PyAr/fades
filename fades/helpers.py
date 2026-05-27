@@ -110,7 +110,7 @@ def _get_specific_dir(dir_type: str) -> Path:
             direct = Path(base) / 'fades'
 
     if not direct.exists():
-        os.makedirs(direct)
+        direct.mkdir(parents=True)
     return direct
 
 

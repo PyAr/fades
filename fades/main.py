@@ -274,7 +274,7 @@ def go():
         help="automatically import the specified dependencies in the interactive mode "
              "(ignored otherwise).")
     parser.add_argument(
-        '--freeze', action='store', metavar='FILEPATH',
+        '--freeze', action='store', metavar='FILEPATH', type=Path,
         help="dump all the dependencies and its versions to the specified filepath "
              "(operating normally beyond that)")
     parser.add_argument(
@@ -404,7 +404,7 @@ def go():
     if venv_data:
         env_path = venv_data['env_path']
         # A venv was found in the cache check if its valid or re-generate it.
-        if not Path(env_path).exists():
+        if not env_path.exists():
             logger.warning("Missing directory (the virtualenv will be re-created): %r", env_path)
             venvscache.remove(env_path)
             create_venv = True

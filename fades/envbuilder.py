@@ -45,7 +45,7 @@ class _FadesEnvBuilder(EnvBuilder):
 
     def __init__(self):
         basedir = helpers.get_basedir()
-        self.env_path = Path(basedir) / str(uuid4())
+        self.env_path = basedir / str(uuid4())
         self.env_bin_path = Path(".")
         logger.debug("Env will be created at: %s", self.env_path)
 

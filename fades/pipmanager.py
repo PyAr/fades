@@ -21,7 +21,6 @@ env that the child program. So we have to call the pip binary that is inside
 the created virtualenv.
 """
 
-import os
 import logging
 import shutil
 import contextlib
@@ -103,10 +102,10 @@ class PipManager():
 
     def _download_pip_installer(self):
         u = request.urlopen(PIP_INSTALLER)
-        temp_location = self.pip_installer_fname + '.temp'
+        temp_location = self.pip_installer_fname.with_name(self.pip_installer_fname.name + '.temp')
         with contextlib.closing(u), open(temp_location, 'wb') as f:
             shutil.copyfileobj(u, f)
-        os.rename(temp_location, self.pip_installer_fname)
+        temp_location.replace(self.pip_installer_fname)
 
     def _brute_force_install_pip(self):
         """Check a brute force install of pip itself."""
@@ -122,7 +121,7 @@ class PipManager():
         helpers.logged_exec([python_exe, self.pip_installer_fname, '-I'])
         self.pip_installed = True
 
-    def freeze(self, filepath):
+    def freeze(self, filepath: Path):
         """Dump venv contents to the indicated filepath."""
         logger.debug("running freeze to store in %r", filepath)
         stdout = helpers.logged_exec([self.pip_exe, "freeze", "--all", "--local"])
