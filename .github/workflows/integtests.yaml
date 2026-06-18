@@ -8,7 +8,24 @@ on:
 
 jobs:
 
+  # Single source of truth: the oldest supported Python is whatever setup.py
+  # declares in `python_requires`. Every job below derives its cross-version
+  # target from this output instead of hardcoding a version.
+  min-python:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.minpy.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read minimum supported Python from setup.py
+        id: minpy
+        run: |
+          version=$(grep python_requires setup.py | grep -oE '[0-9]+\.[0-9]+' | head -1)
+          echo "Minimum supported Python: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
   archlinux:
+    needs: min-python
     runs-on: ubuntu-latest
     container:
       # archlinux:latest ships the newest CPython (rolling release), so this
@@ -29,14 +46,17 @@ jobs:
         run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
-      - name: Using a different (older) Python
+      - name: Using the oldest supported Python
+        env:
+          OLDEST: ${{ needs.min-python.outputs.version }}
         run: |
           cd /fades
-          uv python install 3.11
-          OLD=$(uv python find 3.11)
-          python bin/fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion=3.11 tests/integtest.py
+          uv python install "$OLDEST"
+          OLD=$(uv python find "$OLDEST")
+          python bin/fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion="$OLDEST" tests/integtest.py
 
   fedora:
+    needs: min-python
     runs-on: ubuntu-latest
     container:
       image: fedora:latest
@@ -54,21 +74,24 @@ jobs:
         run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
-      - name: Using a different (older) Python
+      - name: Using the oldest supported Python
+        env:
+          OLDEST: ${{ needs.min-python.outputs.version }}
         run: |
           cd /fades
-          uv python install 3.11
-          OLD=$(uv python find 3.11)
-          python3 bin/fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion=3.11 tests/integtest.py
+          uv python install "$OLDEST"
+          OLD=$(uv python find "$OLDEST")
+          python3 bin/fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion="$OLDEST" tests/integtest.py
 
   native-windows:
+    needs: min-python
     strategy:
       matrix:
         # just a selection otherwise it's too much
         # - latest OS (left here even if it's only one to simplify upgrading later)
-        # - oldest and newest Python
+        # - oldest (from setup.py) and newest Python
         os: [windows-2025]
-        python-version: [3.8, "3.13"]
+        python-version: ["${{ needs.min-python.outputs.version }}", "3.13"]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -80,11 +103,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Also set up Python 3.10 for cross-Python test
+      - name: Also set up the oldest supported Python for cross-Python test
         uses: actions/setup-python@v5
         id: otherpy
         with:
-          python-version: "3.10"
+          python-version: ${{ needs.min-python.outputs.version }}
 
       - name: Install dependencies
         run: |
@@ -95,16 +118,17 @@ jobs:
 
       - name: Using a different Python
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=${{ needs.min-python.outputs.version }} tests/integtest.py
 
   native-generic:
+    needs: min-python
     strategy:
       matrix:
         # just a selection otherwise it's too much
         # - latest OSes
-        # - oldest and newest Python
+        # - oldest (from setup.py) and newest Python
         os: [ubuntu-24.04, macos-15]
-        python-version: [3.8, "3.13"]
+        python-version: ["${{ needs.min-python.outputs.version }}", "3.13"]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -116,10 +140,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Also set up Python 3.10 for cross-Python test
+      - name: Also set up the oldest supported Python for cross-Python test
         uses: actions/setup-python@v5
+        id: otherpy
         with:
-          python-version: "3.10"
+          python-version: ${{ needs.min-python.outputs.version }}
 
       - name: Install dependencies
         run: |
@@ -130,4 +155,4 @@ jobs:
 
       - name: Using a different Python
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.10 -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=${{ needs.min-python.outputs.version }} tests/integtest.py
