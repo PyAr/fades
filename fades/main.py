@@ -132,11 +132,14 @@ def consolidate_dependencies(needs_ipython, child_program, requirement_files, ma
         logger.debug("Dependencies from source file: %s", srcfile_deps)
         docstring_deps = parsing.parse_docstring(child_program)
         logger.debug("Dependencies from docstrings: %s", docstring_deps)
+        pep723_deps, _ = parsing.parse_pep723(child_program)
+        logger.debug("Dependencies from PEP 723 metadata: %s", pep723_deps)
     else:
         srcfile_deps = {}
         docstring_deps = {}
+        pep723_deps = {}
 
-    all_dependencies = [ipython_dep, srcfile_deps, docstring_deps]
+    all_dependencies = [ipython_dep, srcfile_deps, docstring_deps, pep723_deps]
 
     if requirement_files is not None:
         for rf_path in requirement_files:
@@ -388,8 +391,13 @@ def go():
     if args.check_updates:
         helpers.check_pypi_updates(indicated_deps)
 
+    # honor a PEP 723 'requires-python' (this may pick a different interpreter than the one
+    # explicitly requested with --python or fades' own)
+    _, requires_python = parsing.parse_pep723(analyzable_child_program)
+    python_interpreter = helpers.get_interpreter_for_requirement(requires_python, args.python)
+
     # get the interpreter version requested for the child_program
-    interpreter, is_current = helpers.get_interpreter_version(args.python)
+    interpreter, is_current = helpers.get_interpreter_version(python_interpreter)
 
     # options
     pip_options = args.pip_options  # pip_options mustn't store.
@@ -423,7 +431,8 @@ def go():
 
         # Create a new venv
         venv_data, installed = envbuilder.create_venv(
-            indicated_deps, args.python, is_current, options, pip_options, args.avoid_pip_upgrade)
+            indicated_deps, python_interpreter, is_current, options, pip_options,
+            args.avoid_pip_upgrade)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
 
