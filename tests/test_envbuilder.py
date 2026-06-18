@@ -1,4 +1,4 @@
-# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -21,9 +21,9 @@ import shutil
 import tempfile
 import unittest
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, call
-
 from packaging.requirements import Requirement
+from pathlib import Path
+from unittest.mock import Mock, patch, call
 
 import logassert
 
@@ -253,15 +253,16 @@ class UsageManagerTestCase(unittest.TestCase):
         temp_file_descriptor, self.tempfile = tempfile.mkstemp(prefix="test-temp-file")
         os.close(temp_file_descriptor)
         self.temp_folder = tempfile.mkdtemp()
-        self.file_path = os.path.join(self.temp_folder, 'usage_stats')
+        self.file_path = Path(self.temp_folder) / 'usage_stats'
         self.addCleanup(lambda: os.path.exists(self.tempfile) and os.remove(self.tempfile))
         self.addCleanup(shutil.rmtree, self.temp_folder, ignore_errors=True)
 
         self.uuids = ['env1', 'env2', 'env3']
 
-        self.venvscache = cache.VEnvsCache(self.tempfile)
+        self.venvscache = cache.VEnvsCache(Path(self.tempfile))
         for uuid in self.uuids:
-            self.venvscache.store('', {'env_path': os.path.join(self.temp_folder, uuid)}, '', '')
+            metadata = {'env_path': os.path.join(self.temp_folder, uuid), "env_bin_path": ""}
+            self.venvscache.store('', metadata, '', '')
 
     def get_usage_lines(self, manager):
         self.assertTrue(os.path.exists(self.file_path), msg="File usage exists")

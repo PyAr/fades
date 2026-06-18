@@ -1,4 +1,4 @@
-# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -18,6 +18,7 @@
 
 import os
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from packaging.requirements import Requirement
@@ -178,7 +179,7 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
     def test_normal_child_program(self):
         child_path = create_tempfile(self, "")
         analyzable, child = main.decide_child_program(False, False, child_path)
-        self.assertEqual(analyzable, child_path)
+        self.assertEqual(analyzable, Path(child_path))
         self.assertEqual(child, child_path)
 
     def test_normal_child_program_not_found(self):
@@ -200,7 +201,7 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
             mock.assert_called_with("http://scripts.com/foobar.py")
 
         # check that analyzable and child are the same, and that its content is the remote one
-        self.assertEqual(analyzable, "new_path_script")
+        self.assertEqual(analyzable, Path("new_path_script"))
         self.assertEqual(child, "new_path_script")
 
     def test_remote_child_program_ssl(self):
@@ -211,7 +212,7 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
             mock.assert_called_with("https://scripts.com/foobar.py")
 
         # check that analyzable and child are the same, and that its content is the remote one
-        self.assertEqual(analyzable, "new_path_script")
+        self.assertEqual(analyzable, Path("new_path_script"))
         self.assertEqual(child, "new_path_script")
 
     def test_indicated_with_executable_flag_with_relative_path(self):

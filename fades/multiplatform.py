@@ -1,4 +1,4 @@
-# Copyright 2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2016-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -17,28 +17,29 @@
 
 """Platform agnostic collection of utilities."""
 
-import os
-
 from contextlib import contextmanager
+from pathlib import Path
 
 try:
     import fcntl
 
     @contextmanager
-    def filelock(filepath):
+    def filelock(filepath: Path):
         """Context manager to lock over a file using best method: fcntl."""
         with open(filepath, 'w') as fh:
             fcntl.flock(fh, fcntl.LOCK_EX)
             yield
             fcntl.flock(fh, fcntl.LOCK_UN)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        try:
+            filepath.unlink()
+        except FileNotFoundError:
+            pass
 
 except ImportError:
     import time
 
     @contextmanager
-    def filelock(filepath):
+    def filelock(filepath: Path):
         """Context manager to lock over a file where fcntl doesn't exist."""
         try:
             while True:
@@ -49,5 +50,7 @@ except ImportError:
                 except FileExistsError:
                     time.sleep(.5)
         finally:
-            if os.path.exists(filepath):
-                os.remove(filepath)
+            try:
+                filepath.unlink()
+            except FileNotFoundError:
+                pass

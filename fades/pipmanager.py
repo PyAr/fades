@@ -1,4 +1,4 @@
-# Copyright 2014-2020 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -21,10 +21,10 @@ env that the child program. So we have to call the pip binary that is inside
 the created virtualenv.
 """
 
-import os
 import logging
 import shutil
 import contextlib
+from pathlib import Path
 
 from urllib import request
 
@@ -38,14 +38,19 @@ PIP_INSTALLER = "https://bootstrap.pypa.io/get-pip.py"
 class PipManager():
     """A manager for all PIP related actions."""
 
-    def __init__(self, env_bin_path, pip_installed=False, options=None, avoid_pip_upgrade=False):
-        """Init."""
+    def __init__(
+        self,
+        env_bin_path: Path,
+        pip_installed: bool = False,
+        options: bool = None,
+        avoid_pip_upgrade: bool = False
+    ):
         self.env_bin_path = env_bin_path
         self.pip_installed = pip_installed
         self.options = options
-        self.pip_exe = os.path.join(self.env_bin_path, "pip")
+        self.pip_exe = self.env_bin_path / "pip"
         basedir = helpers.get_basedir()
-        self.pip_installer_fname = os.path.join(basedir, "get-pip.py")
+        self.pip_installer_fname = basedir / "get-pip.py"
         self.avoid_pip_upgrade = avoid_pip_upgrade
 
     def install(self, dependency):
@@ -58,7 +63,7 @@ class PipManager():
         # Always update pip to get latest behaviours (specially regarding security); this has
         # the nice side effect of getting logged the pip version that is used.
         if not self.avoid_pip_upgrade:
-            python_exe = os.path.join(self.env_bin_path, "python")
+            python_exe = self.env_bin_path / "python"
             helpers.logged_exec([python_exe, '-m', 'pip', 'install', 'pip', '--upgrade'])
 
         # split to pass several tokens on multiword dependency (this is very specific for '-e' on
@@ -97,14 +102,14 @@ class PipManager():
 
     def _download_pip_installer(self):
         u = request.urlopen(PIP_INSTALLER)
-        temp_location = self.pip_installer_fname + '.temp'
+        temp_location = self.pip_installer_fname.with_name(self.pip_installer_fname.name + '.temp')
         with contextlib.closing(u), open(temp_location, 'wb') as f:
             shutil.copyfileobj(u, f)
-        os.rename(temp_location, self.pip_installer_fname)
+        temp_location.replace(self.pip_installer_fname)
 
     def _brute_force_install_pip(self):
         """Check a brute force install of pip itself."""
-        if os.path.exists(self.pip_installer_fname):
+        if self.pip_installer_fname.exists():
             logger.debug("Using pip installer from %r", self.pip_installer_fname)
         else:
             logger.debug(
@@ -112,11 +117,11 @@ class PipManager():
             self._download_pip_installer()
 
         logger.debug("Installing PIP manually in the virtualenv")
-        python_exe = os.path.join(self.env_bin_path, "python")
+        python_exe = self.env_bin_path / "python"
         helpers.logged_exec([python_exe, self.pip_installer_fname, '-I'])
         self.pip_installed = True
 
-    def freeze(self, filepath):
+    def freeze(self, filepath: Path):
         """Dump venv contents to the indicated filepath."""
         logger.debug("running freeze to store in %r", filepath)
         stdout = helpers.logged_exec([self.pip_exe, "freeze", "--all", "--local"])

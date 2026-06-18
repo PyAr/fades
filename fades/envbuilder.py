@@ -1,4 +1,4 @@
-# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -18,15 +18,14 @@
 
 import logging
 import os
-import pathlib
 import shutil
-
 from datetime import datetime, timezone
-from venv import EnvBuilder
+from pathlib import Path
 from uuid import uuid4
+from venv import EnvBuilder
 
 from fades import FadesError, REPO_PYPI, REPO_VCS
-from fades import helpers
+from fades import helpers, cache
 from fades.pipmanager import PipManager
 from fades.multiplatform import filelock
 
@@ -46,8 +45,8 @@ class _FadesEnvBuilder(EnvBuilder):
 
     def __init__(self):
         basedir = helpers.get_basedir()
-        self.env_path = os.path.join(basedir, str(uuid4()))
-        self.env_bin_path = ''
+        self.env_path = basedir / str(uuid4())
+        self.env_bin_path = Path(".")
         logger.debug("Env will be created at: %s", self.env_path)
 
         if os.environ.get("SNAP"):
@@ -84,9 +83,7 @@ class _FadesEnvBuilder(EnvBuilder):
             logger.exception("Error creating virtual environment:  %s", error)
             raise FadesError("General error while running external venv")
 
-        # XXX Facundo 2024-06-29: the helper uses pathlib; eventually everything will be
-        # pathlib (see #435), so these translations will be cleaned up
-        self.env_bin_path = str(helpers.get_env_bin_path(pathlib.Path(self.env_path)))
+        self.env_bin_path = helpers.get_env_bin_path(self.env_path)
 
     def create_env(self, interpreter, is_current, options):
         """Create the virtual environment and return its info."""
@@ -105,9 +102,9 @@ class _FadesEnvBuilder(EnvBuilder):
         logger.debug("env_bin_path: %s", self.env_bin_path)
 
         # Re check if pip was installed (supporting both binary and .exe for Windows)
-        pip_bin = os.path.join(self.env_bin_path, "pip")
-        pip_exe = os.path.join(self.env_bin_path, "pip.exe")
-        if not (os.path.exists(pip_bin) or os.path.exists(pip_exe)):
+        pip_bin = self.env_bin_path / "pip"
+        pip_exe = self.env_bin_path / "pip.exe"
+        if not (pip_bin.exists() or pip_exe.exists()):
             logger.debug("pip isn't installed in the venv, setting pip_installed=False")
             self.pip_installed = False
 
@@ -115,7 +112,7 @@ class _FadesEnvBuilder(EnvBuilder):
 
     def post_setup(self, context):
         """Get the bin path from context."""
-        self.env_bin_path = context.bin_path
+        self.env_bin_path = Path(context.bin_path)
 
 
 def create_venv(requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade):
@@ -181,10 +178,9 @@ def destroy_venv(env_path, venvscache=None):
 class UsageManager:
     """Class to handle usage file and venv cleanning."""
 
-    def __init__(self, stat_file_path, venvscache):
-        """Init."""
+    def __init__(self, stat_file_path: Path, venvscache: cache.VEnvsCache):
         self.stat_file_path = stat_file_path
-        self.stat_file_lock = stat_file_path + '.lock'
+        self.stat_file_lock = stat_file_path.with_name(stat_file_path.name + ".lock")
         self.venvscache = venvscache
         self._create_initial_usage_file_if_not_exists()
 
@@ -194,14 +190,14 @@ class UsageManager:
             self._write_venv_usage(f, venv_data)
 
     def _create_initial_usage_file_if_not_exists(self):
-        if not os.path.exists(self.stat_file_path):
+        if not self.stat_file_path.exists():
             existing_venvs = self.venvscache.get_venvs_metadata()
             with open(self.stat_file_path, 'wt') as f:
                 for venv_data in existing_venvs:
                     self._write_venv_usage(f, venv_data)
 
     def _write_venv_usage(self, file_, venv_data):
-        _, uuid = os.path.split(venv_data['env_path'])
+        uuid = venv_data['env_path'].name
         file_.write('{} {}\n'.format(uuid, self._datetime_to_str(datetime.now(UTC))))
 
     def _datetime_to_str(self, datetime_):

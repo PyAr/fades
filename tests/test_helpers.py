@@ -1,4 +1,4 @@
-# Copyright 2015-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -23,6 +23,7 @@ import sys
 import tempfile
 import unittest
 from http.server import HTTPStatus
+from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request
@@ -233,7 +234,7 @@ class GetDirsTestCase(unittest.TestCase):
 
     def test_basedir_xdg(self):
         direct = helpers.get_basedir()
-        self.assertEqual(direct, os.path.join(BaseDirectory.xdg_data_home, 'fades'))
+        self.assertEqual(direct, Path(BaseDirectory.xdg_data_home) / 'fades')
 
     def _fake_snap_env_dir(self, direct):
         """Fake Snap's environment variable."""
@@ -244,13 +245,13 @@ class GetDirsTestCase(unittest.TestCase):
         with tempfile.TemporaryDirectory() as dirname:
             self._fake_snap_env_dir(dirname)
             direct = helpers.get_basedir()
-            self.assertEqual(direct, os.path.join(dirname, 'data'))
+            self.assertEqual(direct, Path(dirname) / 'data')
 
     def test_basedir_default(self):
         with patch.object(helpers, "_get_basedirectory") as mock:
             mock.side_effect = ImportError()
             direct = helpers.get_basedir()
-            self.assertEqual(direct, os.path.join(self._home, '.fades'))
+            self.assertEqual(direct, Path(self._home) / '.fades')
 
     def test_basedir_xdg_nonexistant(self):
         with patch("xdg.BaseDirectory") as mock:
@@ -267,19 +268,19 @@ class GetDirsTestCase(unittest.TestCase):
 
     def test_confdir_xdg(self):
         direct = helpers.get_confdir()
-        self.assertEqual(direct, os.path.join(BaseDirectory.xdg_config_home, 'fades'))
+        self.assertEqual(direct, Path(BaseDirectory.xdg_config_home) / 'fades')
 
     def test_confdir_snap(self):
         with tempfile.TemporaryDirectory() as dirname:
             self._fake_snap_env_dir(dirname)
             direct = helpers.get_confdir()
-            self.assertEqual(direct, os.path.join(dirname, 'config'))
+            self.assertEqual(direct, Path(dirname) / 'config')
 
     def test_confdir_default(self):
         with patch.object(helpers, "_get_basedirectory") as mock:
             mock.side_effect = ImportError()
             direct = helpers.get_confdir()
-            self.assertEqual(direct, os.path.join(self._home, '.fades'))
+            self.assertEqual(direct, Path(self._home) / '.fades')
 
     def test_confdir_xdg_nonexistant(self):
         with patch("xdg.BaseDirectory") as mock:
@@ -405,7 +406,7 @@ class ScriptDownloaderTestCase(unittest.TestCase):
         mock_downloader_class.assert_called_with(test_url)
         self.assertLoggedInfo(
             "Downloading remote script from {!r}".format(test_url),
-            repr(filepath), "(using 'mock downloader' downloader)")
+            str(filepath), "(using 'mock downloader' downloader)")
         with open(filepath, "rt", encoding='utf8') as fh:
             self.assertEqual(fh.read(), test_content)
 

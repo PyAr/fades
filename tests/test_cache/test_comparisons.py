@@ -1,4 +1,4 @@
-# Copyright 2015-2019 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -14,7 +14,6 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-import json
 import pytest
 
 from fades import parsing
@@ -54,19 +53,17 @@ from tests.test_cache import get_distrib
     (">1.6,<1.9,!=1.8.6", "1.8.7", "ok"),
     (">1.6,<1.9,!=1.9.6", "1.9.6", None),
 ])
-def test_check_versions(venvscache, req, installed, expected):
+def test_check_versions(venvscache, fake_venv, req, installed, expected):
     """The comparison in the selection."""
     reqs = {"pypi": get_reqs("dep" + req)}
     interpreter = "pythonX.Y"
     options = {"foo": "bar"}
-    venv = json.dumps({
-        "metadata": "ok",
-        "installed": {"pypi": {"dep": installed}},
-        "interpreter": "pythonX.Y",
-        "options": {"foo": "bar"}
-    })
+    venv = fake_venv("ok", installed={"pypi": {"dep": installed}})
     resp = venvscache._select([venv], reqs, interpreter, uuid="", options=options)
-    assert resp == expected
+    if expected is None:
+        assert resp is None
+    else:
+        assert resp["extra"] == expected
 
 
 @pytest.mark.parametrize("possible_venvs", [

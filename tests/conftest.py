@@ -1,4 +1,4 @@
-# Copyright 2019-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2019-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -14,6 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
+import json
 import uuid
 
 from pytest import fixture
@@ -22,7 +23,7 @@ from pytest import fixture
 @fixture(scope="function")
 def tmp_file(tmp_path):
     """Fixture for a unique tmpfile for each test."""
-    yield str(tmp_path / "testfile")  # XXX Facundo 2024-04-17: remove str() after #435
+    yield tmp_path / "testfile"
 
 
 @fixture(scope="function")
@@ -43,3 +44,20 @@ def create_tmpfile(tmp_path):
 def pytest_addoption(parser):
     """Define new pytest command line argument to be used by integration tests."""
     parser.addoption("--integtest-pyversion", action="store")
+
+
+@fixture
+def fake_venv():
+    """Provides a fake venv data."""
+
+    def gen(extra="extra metadata", **kwargs):
+        base = {
+            "metadata": {"env_path": "foo", "env_bin_path": "bar", "extra": extra},
+            "installed": {},
+            "interpreter": "pythonX.Y",
+            "options": {"foo": "bar"},
+        }
+        base.update(kwargs)
+        return json.dumps(base)
+
+    return gen

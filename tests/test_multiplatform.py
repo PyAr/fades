@@ -1,4 +1,4 @@
-# Copyright 2016 Facundo Batista, Nicolás Demarchi
+# Copyright 2016-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General
@@ -17,10 +17,10 @@
 
 """Tests for the helpers in multiplatform."""
 
-import os
 import threading
 import time
 import unittest
+from pathlib import Path
 
 from fades.multiplatform import filelock
 
@@ -50,11 +50,11 @@ class LockCacheTestCase(unittest.TestCase):
     """Tests for the locking utility."""
 
     def setUp(self):
-        self.test_path = "test_filelock"
+        self.test_path = Path("test_filelock")
 
     def tearDown(self):
-        if os.path.exists(self.test_path):
-            os.remove(self.test_path)
+        if self.test_path.exists():
+            self.test_path.unlink()
 
     def wait(self, lock_checker, attr_name):
         """Wait at most a second for the LockChecker to end."""
