@@ -49,16 +49,17 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: |
-          yum install --assumeyes python3.13 python-packaging
+          dnf install --assumeyes python3 python3-packaging uv git
       - name: Simple fades run
         run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
-      - name: Using a different Python
+      - name: Using a different (older) Python
         run: |
-          yum install --assumeyes python3.9
           cd /fades
-          python3.13 bin/fades -v --python=python3.9 -d pytest -x pytest -v --integtest-pyversion=3.9 tests/integtest.py
+          uv python install 3.11
+          OLD=$(uv python find 3.11)
+          python3 bin/fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion=3.11 tests/integtest.py
 
   native-windows:
     strategy:
@@ -73,28 +74,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
-        uses: actions/setup-python@v5
-        id: matrixpy
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
-      - name: Also set up Python 3.10 for cross-Python test
-        uses: actions/setup-python@v5
-        id: otherpy
-        with:
-          python-version: "3.10"
+      - name: Set up Pythons
+        run: uv python install ${{ matrix.python-version }} 3.10
 
-      - name: Install dependencies
-        run: |
-          ${{ steps.matrixpy.outputs.python-path }} -m pip install -U packaging
       - name: Simple fades run
-        run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version
+        run: uv run --no-project --python ${{ matrix.python-version }} --with packaging -- python bin/fades -v -d pytest -x pytest --version
 
       - name: Using a different Python
+        shell: bash
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py
+          OTHER=$(uv python find 3.10)
+          uv run --no-project --python ${{ matrix.python-version }} --with packaging -- python bin/fades -v --python="$OTHER" -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py
 
   native-generic:
     strategy:
@@ -109,24 +102,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
-        uses: actions/setup-python@v5
-        id: matrixpy
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
-      - name: Also set up Python 3.10 for cross-Python test
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
+      - name: Set up Pythons
+        run: uv python install ${{ matrix.python-version }} 3.10
 
-      - name: Install dependencies
-        run: |
-          ${{ steps.matrixpy.outputs.python-path }} -m pip install -U packaging
       - name: Simple fades run
-        run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version
+        run: uv run --no-project --python ${{ matrix.python-version }} --with packaging -- python bin/fades -v -d pytest -x pytest --version
 
       - name: Using a different Python
+        shell: bash
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=python3.10 -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py
+          OTHER=$(uv python find 3.10)
+          uv run --no-project --python ${{ matrix.python-version }} --with packaging -- python bin/fades -v --python="$OTHER" -d pytest -x pytest -v --integtest-pyversion=3.10 tests/integtest.py
