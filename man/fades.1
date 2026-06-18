@@ -86,6 +86,8 @@ Select which Python version to be used; the argument can be just the number (3.1
 
 The dependencies can be indicated in multiple places (in the Python source file, with a comment besides the import, in a \fIrequirements\fRfile, and/or through command line. In case of multiple definitions of the same dependency, command line overrides everything else, and requirements file overrides what is specified in the source code.
 
+\fBfades\fR also understands the inline script metadata defined by PEP 723 (a \fB# /// script\fR block at the top of the script); its \fBdependencies\fR are installed, and if \fBrequires-python\fR is present it is used to select a suitable Python interpreter (failing if none is available).
+
 .TP
 .BR -x ", " --exec
 Execute the \fIchild_program\fR in the context of the virtual environment. The child_program, which in this case becomes a mandatory parameter, can be just the executable name (relative to the venv's bin directory) or an absolute path.

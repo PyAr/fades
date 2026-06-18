@@ -1,4 +1,4 @@
-# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -63,6 +63,14 @@ class DepsGatheringTestCase(unittest.TestCase):
                                           requirement_files=None, manual_dependencies=None)
 
         self.assertDictEqual(d, {'pypi': {Requirement('foo'), Requirement('bar')}})
+
+    def test_child_program_pep723(self):
+        child_program = 'tests/test_files/pep723_basic.py'
+
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
+                                          requirement_files=None, manual_dependencies=None)
+
+        self.assertDictEqual(d, {'pypi': {Requirement('requests<3'), Requirement('rich')}})
 
     def test_requirement_files(self):
         requirement_files = [create_tempfile(self, ['dep'])]

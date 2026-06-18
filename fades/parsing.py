@@ -21,13 +21,26 @@ import re
 from pathlib import Path
 from typing import Generator
 
-from packaging.requirements import Requirement
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11
+    try:
+        import tomli as tomllib
+    except ModuleNotFoundError:
+        tomllib = None  # PEP 723 support degrades gracefully; warned at use site
+
+from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
 
-from fades import REPO_PYPI, REPO_VCS
+from fades import FadesError, REPO_PYPI, REPO_VCS
 from fades.pkgnamesdb import MODULE_TO_PACKAGE
 
 logger = logging.getLogger(__name__)
+
+# Canonical regular expression to find a PEP 723 metadata block (see
+# https://peps.python.org/pep-0723/#reference-implementation).
+PEP723_REGEX = re.compile(
+    r'(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$')
 
 
 class _VCSSpecifier:
@@ -304,3 +317,64 @@ def parse_docstring(filepath: Path):
         return {}
     with open(filepath, 'rt', encoding='utf8') as fh:
         return _parse_docstring(fh)
+
+
+def _parse_pep723(content):
+    """Parse a PEP 723 inline metadata block.
+
+    Return a tuple ``(deps, requires_python)`` where ``deps`` is the usual repo->deps
+    mapping and ``requires_python`` is the raw 'requires-python' specifier (or None).
+    """
+    matches = [m for m in PEP723_REGEX.finditer(content) if m.group('type') == 'script']
+    if not matches:
+        return {}, None
+    if len(matches) > 1:
+        # The PEP mandates that tools error when several blocks of the same type exist.
+        logger.error("Found %d PEP 723 'script' blocks, but only one is allowed", len(matches))
+        raise FadesError("Multiple PEP 723 'script' blocks found")
+    logger.debug("Found a PEP 723 'script' metadata block")
+
+    if tomllib is None:
+        logger.warning(
+            "Found a PEP 723 metadata block but no TOML parser is available; "
+            "install the 'tomli' package to enable PEP 723 support in Python <3.11")
+        return {}, None
+
+    # Rebuild the TOML content stripping the comment prefix of each line, as per the PEP.
+    toml_content = ''.join(
+        line[2:] if line.startswith('# ') else line[1:]
+        for line in matches[0].group('content').splitlines(keepends=True))
+    try:
+        metadata = tomllib.loads(toml_content)
+    except tomllib.TOMLDecodeError as error:
+        logger.error("Invalid TOML in the PEP 723 metadata block: %s", error)
+        raise FadesError("Invalid TOML in the PEP 723 metadata block")
+    logger.debug("Parsed PEP 723 metadata: %s", metadata)
+
+    deps = {}
+    dependencies = metadata.get('dependencies', [])
+    if not isinstance(dependencies, list):
+        logger.error(
+            "PEP 723 'dependencies' must be a list, got %s", type(dependencies).__name__)
+        raise FadesError("PEP 723 'dependencies' must be a list")
+    if dependencies:
+        # PEP 723 dependencies are standard PEP 508 strings (including 'name @ url' direct
+        # references that pip understands), so they all go to the PyPI repo.
+        try:
+            deps[REPO_PYPI] = [Requirement(dep) for dep in dependencies]
+        except InvalidRequirement as error:
+            logger.error("Invalid dependency in the PEP 723 metadata block: %s", error)
+            raise FadesError("Invalid dependency in the PEP 723 metadata block")
+
+    return deps, metadata.get('requires-python')
+
+
+def parse_pep723(filepath):
+    """Parse a source file's PEP 723 metadata block.
+
+    Return a tuple ``(deps, requires_python)``; see ``_parse_pep723``.
+    """
+    if filepath is None:
+        return {}, None
+    with open(filepath, 'rt', encoding='utf8') as fh:
+        return _parse_pep723(fh.read())
