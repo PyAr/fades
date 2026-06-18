@@ -11,8 +11,10 @@ jobs:
   archlinux:
     runs-on: ubuntu-latest
     container:
-      # Use https://github.com/gilgamezh/archlinux-python39 to save the python build time
-      image: gilgamezh/archlinux-python39:latest
+      # archlinux:latest ships the newest CPython (rolling release), so this
+      # job exercises fades against the bleeding-edge Python. An older
+      # interpreter for the cross-version test is provided via uv at runtime.
+      image: archlinux:latest
       volumes:
         - ${{ github.workspace }}:/fades
     steps:
@@ -22,14 +24,17 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: |
-          pacman -Suy --noconfirm python3 python-packaging
-      - name: Simple fades run
+          pacman -Suy --noconfirm python3 python-packaging uv git
+      - name: Simple fades run (newest Python)
         run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
-      - name: Using a different Python
+      - name: Using a different (older) Python
         run: |
-          python bin/fades -v --python=python3.9 -d pytest -x pytest -v --integtest-pyversion=3.9 tests/integtest.py
+          cd /fades
+          uv python install 3.11
+          OLD=$(uv python find 3.11)
+          python bin/fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion=3.11 tests/integtest.py
 
   fedora:
     runs-on: ubuntu-latest
