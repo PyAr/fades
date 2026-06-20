@@ -17,6 +17,7 @@
 """A collection of utilities for fades."""
 
 import json
+import shutil
 import logging
 import os
 import subprocess
@@ -28,11 +29,16 @@ from urllib import request, parse
 from urllib.error import HTTPError
 
 from packaging.requirements import Requirement
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
 
 from fades import FadesError, _version
 
 logger = logging.getLogger(__name__)
+
+# range of CPython 3 minor versions probed when auto-selecting an interpreter to
+# satisfy a PEP 723 'requires-python' specifier
+PYTHON_MINOR_RANGE = range(6, 30)
 
 # command to retrieve the version from an external Python
 SHOW_VERSION_CMD = """
@@ -162,6 +168,93 @@ def get_interpreter_version(requested_interpreter):
     return (requested_interpreter, is_current)
 
 
+def _get_interpreter_full_version(interpreter=None):
+    """Return the (major, minor, micro) version tuple of an interpreter."""
+    if interpreter is None:
+        return tuple(sys.version_info[:3])
+    args = [interpreter, '-c', SHOW_VERSION_CMD]
+    try:
+        raw = logged_exec(args)
+        # parse inside the try: a noisy interpreter (e.g. a shim printing to stderr, which
+        # logged_exec merges into stdout) can make raw[0] not be the expected JSON; turning
+        # any such failure into a FadesError lets _find_interpreter skip that candidate
+        info = json.loads(raw[0])
+        return (info['major'], info['minor'], info['micro'])
+    except Exception as error:
+        logger.error("Error getting requested interpreter version: %s", error)
+        raise FadesError("Could not get interpreter version")
+
+
+def _find_interpreter(specifier):
+    """Search PATH for a python interpreter whose version satisfies the specifier."""
+    candidate_names = ["python3.{}".format(minor) for minor in PYTHON_MINOR_RANGE]
+    candidate_names += ["python3", "python"]
+
+    found = {}  # path -> Version, to avoid probing the same interpreter twice
+    for name in candidate_names:
+        path = shutil.which(name)
+        if path is None or path in found:
+            continue
+        try:
+            major, minor, micro = _get_interpreter_full_version(path)
+        except FadesError:
+            continue
+        found[path] = Version("{}.{}.{}".format(major, minor, micro))
+
+    candidates = sorted(
+        (version, path) for path, version in found.items()
+        if specifier.contains(version, prereleases=True))
+    if not candidates:
+        return None
+    # pick the highest satisfying version
+    return candidates[-1][1]
+
+
+def get_interpreter_for_requirement(requires_python, requested_python):
+    """Honor a PEP 723 'requires-python' specifier, returning the interpreter to use.
+
+    The returned value is the python executable/path to use, which may be
+    'requested_python' unchanged or an auto-discovered one. Raises FadesError if no
+    available interpreter satisfies the specifier.
+    """
+    if not requires_python:
+        return requested_python
+
+    try:
+        specifier = SpecifierSet(requires_python)
+    except (InvalidSpecifier, TypeError) as error:
+        # TypeError happens when requires-python is not a string (e.g. a TOML number)
+        logger.error("Invalid PEP 723 requires-python %r: %s", requires_python, error)
+        raise FadesError("Invalid PEP 723 requires-python")
+    logger.debug("Honoring PEP 723 requires-python %r", requires_python)
+
+    # check the currently selected interpreter (explicit -p or fades' own)
+    major, minor, micro = _get_interpreter_full_version(requested_python)
+    current_version = Version("{}.{}.{}".format(major, minor, micro))
+    if specifier.contains(current_version, prereleases=True):
+        return requested_python
+
+    if requested_python is not None:
+        # the user explicitly chose an interpreter that conflicts with the script; don't
+        # silently override that choice, fail so they can resolve it
+        msg = ("The chosen Python interpreter (version {}) does not satisfy the script's "
+               "requires-python ({!r})".format(current_version, requires_python))
+        logger.error(msg)
+        raise FadesError(msg)
+
+    # nothing was explicitly requested and fades' own python doesn't satisfy the spec:
+    # try to discover a suitable interpreter in PATH
+    discovered = _find_interpreter(specifier)
+    if discovered is None:
+        msg = ("No available Python interpreter satisfies the script's requires-python "
+               "({!r})".format(requires_python))
+        logger.error(msg)
+        raise FadesError(msg)
+    logger.info("Using Python interpreter %r to satisfy requires-python %r",
+                discovered, requires_python)
+    return discovered
+
+
 def get_latest_version_number(project_name):
     """Return latest version of a package."""
     try:
@@ -217,9 +310,12 @@ def check_pypi_updates(dependencies):
 
 def _pypi_head_package(dependency):
     """Hit pypi with a http HEAD to check if pkg_name exists."""
-    if dependency.specifier:
-        spec = list(dependency.specifier)[0]
-        version = spec.version
+    # Only an exact pin (== or ===) maps to a version-specific URL; range specifiers
+    # like '<3' or '>=2' must be checked by package name, otherwise we'd query a
+    # non-existent "version" and wrongly conclude the package is missing.
+    exact_specs = [spec for spec in dependency.specifier if spec.operator in ("==", "===")]
+    if exact_specs:
+        version = exact_specs[0].version
         url = BASE_PYPI_URL_WITH_VERSION.format(name=dependency.name, version=version)
     else:
         url = BASE_PYPI_URL.format(name=dependency.name)

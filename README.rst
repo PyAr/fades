@@ -173,7 +173,7 @@ In case of multiple definitions of the same dependency, command line
 overrides everything else, and requirements file overrides what is
 specified in the source code.
 
-Finally, you can include package names in the script docstring, after
+You can also include package names in the script docstring, after
 a line where "fades" is written, until the end of the docstring;
 for example::
 
@@ -185,6 +185,29 @@ for example::
         request
         otherpackage
     """
+
+Finally, *fades* understands the inline script metadata defined by
+`PEP 723 <https://peps.python.org/pep-0723/>`_, so it can run scripts written
+for other runners (like ``pipx`` or ``pip-run``) and vice versa. Just add a
+``# /// script`` block at the top of the script::
+
+    # /// script
+    # requires-python = ">=3.11"
+    # dependencies = [
+    #   "requests<3",
+    #   "rich",
+    # ]
+    # ///
+
+    import requests
+    from rich.pretty import pprint
+
+The ``dependencies`` are installed like any other dependency. If
+``requires-python`` is present, *fades* will use it to pick a suitable Python
+interpreter: if the one in use (the default, or the one given with
+``--python``) does not satisfy the requirement, *fades* will try to find an
+appropriate interpreter in the system, and fail if none is available (in that
+case, adjust the script's ``requires-python`` or install a matching Python).
 
 
 About different repositories

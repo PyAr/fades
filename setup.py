@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2014-2024 Facundo Batista, Nicolás Demarchi
+# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -103,7 +103,7 @@ setup(
     cmdclass={
         'install': CustomInstall,
     },
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'tomli; python_version < "3.11"'],
     tests_require=['logassert', 'pyxdg', 'pyuca', 'pytest', 'flake8',
                    'pep257', 'rst2html5'],  # what unittests require
     python_requires='>=3.10',  # Minimum Python version supported.
