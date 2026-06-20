@@ -125,7 +125,10 @@ def create_with_uv(interpreter, is_current, venv_options, uv_exe):
     # when there's no explicitly requested interpreter (current Python), point uv at fades'
     # own interpreter so the venv matches what the cache was keyed on
     python = interpreter if (interpreter is not None and not is_current) else sys.executable
-    args = [uv_exe, "venv", str(env_path), "--python", str(python)]
+    # '--seed' installs pip + setuptools (+ wheel) like the classic 'python -m venv' backend,
+    # so packages that expect those to be present in the venv keep working (uv seeds nothing
+    # by default); the cost is negligible
+    args = [uv_exe, "venv", "--seed", str(env_path), "--python", str(python)]
     args.extend(venv_options)
 
     try:

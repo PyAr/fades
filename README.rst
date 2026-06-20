@@ -398,9 +398,17 @@ If a `uv <https://github.com/astral-sh/uv>`_ binary is found in ``PATH``, fades 
 
 uv is detected as a binary in ``PATH`` (installed via your system package manager, the standalone installer, etc.); fades does not depend on the ``uv`` PyPI package.
 
+fades runs ``uv venv --seed``, so the virtual environment ships ``pip`` and ``setuptools`` just like the classic ``venv`` backend, keeping packages that expect them present working.
+
 If you want to force the classic ``pip`` backend even when uv is available, use ``--no-uv``:
 
 ``fades --no-uv -d requests -x python``
+
+A note about ``pkg_resources``: some packages (e.g. ``azure-cli``) still import the long-deprecated ``pkg_resources``, which was **removed** in ``setuptools >= 81``. uv (and the classic backend on Python 3.12+) installs a recent ``setuptools`` that no longer provides it, so those imports fail. This is not specific to the uv backend; if you hit it, add an older setuptools as an explicit dependency::
+
+    fades -d azure-cli -d "setuptools<81" -x az --help
+
+(or use ``--no-uv`` on a Python version old enough to seed an old setuptools).
 
 
 Setting options using config files
