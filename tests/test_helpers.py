@@ -654,6 +654,32 @@ class GetInterpreterForRequirementTestCase(unittest.TestCase):
                 with pytest.raises(FadesError):
                     helpers.get_interpreter_for_requirement('>=3.11', None)
 
+    def test_bounded_range_current_satisfies(self):
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 11, 0)):
+            result = helpers.get_interpreter_for_requirement('>=3.10,<3.12', None)
+        assert result is None
+
+    def test_bounded_range_current_excluded_discovers(self):
+        # the current interpreter is above the upper bound, so a suitable one is discovered
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
+            with patch.object(helpers, '_find_interpreter',
+                              return_value='/usr/bin/python3.11') as mock_find:
+                result = helpers.get_interpreter_for_requirement('>=3.10,<3.12', None)
+        assert result == '/usr/bin/python3.11'
+        assert mock_find.call_count == 1
+
+    def test_micro_version_pin_satisfies(self):
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 11, 4)):
+            result = helpers.get_interpreter_for_requirement('==3.11.4', None)
+        assert result is None
+
+    def test_micro_version_pin_does_not_satisfy(self):
+        # same major.minor but a different micro must not satisfy an exact pin
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 11, 5)):
+            with patch.object(helpers, '_find_interpreter', return_value=None):
+                with pytest.raises(FadesError):
+                    helpers.get_interpreter_for_requirement('==3.11.4', None)
+
     def test_invalid_requires_python_string(self):
         logassert.setup(self, 'fades.helpers')
         with pytest.raises(FadesError):
@@ -687,6 +713,24 @@ class FindInterpreterTestCase(unittest.TestCase):
                               side_effect=lambda p: versions[p]):
                 result = helpers._find_interpreter(SpecifierSet('>=3.11'))
         assert result == '/usr/bin/python3.12'
+
+    def test_picks_highest_within_bounded_range(self):
+        # with an upper bound, the highest *satisfying* one is picked, not the highest overall
+        whiches = {
+            'python3.10': '/usr/bin/python3.10',
+            'python3.11': '/usr/bin/python3.11',
+            'python3.12': '/usr/bin/python3.12',
+        }
+        versions = {
+            '/usr/bin/python3.10': (3, 10, 5),
+            '/usr/bin/python3.11': (3, 11, 2),
+            '/usr/bin/python3.12': (3, 12, 1),
+        }
+        with patch.object(helpers.shutil, 'which', side_effect=whiches.get):
+            with patch.object(helpers, '_get_interpreter_full_version',
+                              side_effect=lambda p: versions[p]):
+                result = helpers._find_interpreter(SpecifierSet('>=3.10,<3.12'))
+        assert result == '/usr/bin/python3.11'
 
     def test_none_found(self):
         with patch.object(helpers.shutil, 'which', return_value=None):

@@ -58,6 +58,18 @@ def test_requires_python():
     assert requires_python == ">=3.11"
 
 
+def test_requires_python_bounded_range():
+    content = (
+        "# /// script\n"
+        '# requires-python = ">=3.10,<3.12"\n'
+        "# dependencies = []\n"
+        "# ///\n"
+    )
+    deps, requires_python = parsing._parse_pep723(content)
+    assert deps == {}
+    assert requires_python == ">=3.10,<3.12"
+
+
 def test_empty_dependencies():
     content = (
         "# /// script\n"
