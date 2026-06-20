@@ -37,7 +37,6 @@ from fades import (
     parsing,
     pipmanager,
     pkgnamesdb,
-    uvmanager,
 )
 from fades.logger import set_up as logger_set_up
 
@@ -224,6 +223,33 @@ def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
     return prefix != base_prefix
 
 
+def _resolve_uv_backend(args):
+    """Decide whether to use the uv backend, validating the related options.
+
+    Return a tuple ``(use_uv, uv_exe, uv_pip_options)``. uv is used only when explicitly
+    requested (``--use-uv``, ``--uv-path`` or ``use_uv`` in a config file). Raise FadesError if
+    uv is requested but can't be found, or if incompatible options were given.
+    """
+    use_uv = bool(args.use_uv or args.uv_path)
+    if not use_uv:
+        return False, None, []
+
+    uv_exe = helpers.get_uv_exe(args.uv_path)
+    if not uv_exe:
+        msg = ("uv was requested (--use-uv) but no usable uv binary was found; install uv or "
+               "indicate its location with --uv-path")
+        logger.error(msg)
+        raise FadesError(msg)
+
+    if args.pip_options or args.venv_options:
+        msg = ("--pip-options/--venv-options can't be used together with --use-uv; "
+               "use --uv-pip-options to pass options to uv")
+        logger.error(msg)
+        raise FadesError(msg)
+
+    return True, uv_exe, args.uv_pip_options
+
+
 def go():
     """Make the magic happen."""
     parser = argparse.ArgumentParser(
@@ -283,9 +309,17 @@ def go():
         help="disable the automatic pip upgrade that happens after the virtualenv is created "
              "and before the dependencies begin to be installed.")
     parser.add_argument(
-        '--no-uv', action='store_true',
-        help="don't use uv as the backend to create the virtualenv and install dependencies, "
-             "even if a uv binary is available in PATH (use pip instead).")
+        '--use-uv', action='store_true',
+        help="use uv (instead of venv/pip) to create the virtualenv and install dependencies; "
+             "uv must be available in PATH or indicated with --uv-path.")
+    parser.add_argument(
+        '--uv-path', action='store', metavar='UV_PATH',
+        help="path to the uv executable to use (implies --use-uv); if not given, uv is looked up "
+             "in PATH.")
+    parser.add_argument(
+        '--uv-pip-options', action='append', default=[],
+        help="extra options to be supplied to 'uv pip install' (this option can be used multiple "
+             "times); only valid together with --use-uv.")
 
     mutexg = parser.add_mutually_exclusive_group()
     mutexg.add_argument(
@@ -404,19 +438,8 @@ def go():
     if args.system_site_packages:
         options['venv_options'].append("--system-site-packages")
 
-    # use uv as the backend when it's available and the user didn't opt out
-    uv_exe = None if args.no_uv else helpers.get_uv_exe()
-    use_uv = uv_exe is not None
-    if use_uv:
-        # 'uv venv' only understands a subset of the stdlib venv flags (e.g. it rejects
-        # --symlinks/--copies/--without-pip), so if the user passed venv options beyond
-        # --system-site-packages, fall back to pip to keep those working
-        unsupported = [o for o in options['venv_options'] if o != "--system-site-packages"]
-        if unsupported:
-            logger.info(
-                "Using pip backend instead of uv: 'uv venv' does not support %s", unsupported)
-            use_uv = False
-            uv_exe = None
+    # use uv as the backend only when explicitly requested (flag, --uv-path or config)
+    use_uv, uv_exe, uv_pip_options = _resolve_uv_backend(args)
     if use_uv:
         logger.debug("Using uv backend found at %r", uv_exe)
 
@@ -433,8 +456,9 @@ def go():
         create_venv = True
 
     if create_venv:
-        # Check if the requested packages exists in pypi.
-        if not args.no_precheck_availability and indicated_deps.get('pypi'):
+        # Check if the requested packages exists in pypi. uv resolves directly and fails early
+        # by itself, so this extra check is skipped when using the uv backend.
+        if not args.no_precheck_availability and not use_uv and indicated_deps.get('pypi'):
             logger.info(
                 "Checking the availabilty of dependencies in PyPI. "
                 "You can use '--no-precheck-availability' to avoid it.")
@@ -445,7 +469,7 @@ def go():
         # Create a new venv
         venv_data, installed = envbuilder.create_venv(
             indicated_deps, args.python, is_current, options, pip_options,
-            args.avoid_pip_upgrade, use_uv)
+            args.avoid_pip_upgrade, use_uv, uv_exe, uv_pip_options)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
 
@@ -455,19 +479,10 @@ def go():
         return 0
 
     if args.freeze:
-        # beyond all the rest of work, dump the dependencies versions to a file. Decide the
-        # freeze backend from the venv itself, not the current run's flags: a venv built by uv
-        # has no pip to run 'pip freeze' with, and it may be reused on a later run where uv is
-        # absent or --no-uv was passed (the cache key doesn't include the backend)
-        if venv_data.get('pip_installed'):
-            mgr = pipmanager.PipManager(venv_data['env_bin_path'])
-        else:
-            freeze_uv = uv_exe or helpers.get_uv_exe()
-            if freeze_uv is None:
-                raise FadesError(
-                    "Cannot freeze: this venv was built with uv (no pip) but no uv binary is "
-                    "available; install uv or recreate the venv with --no-uv")
-            mgr = uvmanager.UvManager(venv_data['env_bin_path'], uv_exe=freeze_uv)
+        # beyond all the rest of work, dump the dependencies versions to a file; all venvs have
+        # pip available (the uv backend seeds it via 'uv venv --seed'), so a plain pip freeze
+        # gives a consistent requirements format regardless of the backend used
+        mgr = pipmanager.PipManager(venv_data['env_bin_path'])
         mgr.freeze(args.freeze)
 
     # run forest run!!

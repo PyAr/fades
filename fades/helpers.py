@@ -89,14 +89,15 @@ def logged_exec(cmd):
     return stdout
 
 
-def get_uv_exe():
-    """Return the path to the ``uv`` binary if available on PATH, else None.
+def get_uv_exe(uv_path=None):
+    """Return the path to the ``uv`` binary, or None if it can't be found.
 
-    fades runs against the system Python (it is not installed inside a venv), so we rely on a
-    ``uv`` *binary* found in PATH rather than the ``uv`` PyPI package, which would require
-    polluting the system Python.
+    If ``uv_path`` is given that exact location is validated (it must exist and be executable),
+    otherwise ``uv`` is looked up in PATH. fades runs against the system Python (it is not
+    installed inside a venv), so we rely on a ``uv`` *binary* rather than the ``uv`` PyPI package,
+    which would require polluting the system Python.
     """
-    return shutil.which("uv")
+    return shutil.which(uv_path) if uv_path else shutil.which("uv")
 
 
 def _get_basedirectory():

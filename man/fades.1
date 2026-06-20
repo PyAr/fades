@@ -27,7 +27,9 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB--freeze\fR]
 [\fB-m\fR][\fB--module\fR]
 [\fB--avoid-pip-upgrade\fR]
-[\fB--no-uv\fR]
+[\fB--use-uv\fR]
+[\fB--uv-path\fR=\fIUV_PATH\fR]
+[\fB--uv-pip-options\fR=\fIoptions\fR]
 [child_program [child_options]]
 
 \fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
@@ -144,8 +146,16 @@ Run library module as a script (same behaviour than Python's \fB-m\fR parameter)
 Disable the automatic \fBpip\fR upgrade that happens after the virtual environment is created and before the dependencies begin to be installed.
 
 .TP
-.BR --no-uv
-Don't use \fBuv\fR as the backend to create the virtual environment and install dependencies, even if a \fBuv\fR binary is available in \fBPATH\fR (use \fBpip\fR instead). By default, when a \fBuv\fR binary is found in \fBPATH\fR, fades uses it as a faster backend.
+.BR --use-uv
+Use \fBuv\fR (instead of \fBvenv\fR/\fBpip\fR) as the backend to create the virtual environment and install dependencies. This is opt-in: fades uses \fBpip\fR by default even when \fBuv\fR is installed. \fBuv\fR must be available in \fBPATH\fR (or indicated with \fB--uv-path\fR), otherwise fades errors out. It can also be enabled permanently with \fBuse_uv=true\fR in a config file. Not compatible with \fB--pip-options\fR/\fB--venv-options\fR.
+
+.TP
+.BR --uv-path =\fIUV_PATH\fR
+Path to the \fBuv\fR executable to use (implies \fB--use-uv\fR). If not given, \fBuv\fR is looked up in \fBPATH\fR.
+
+.TP
+.BR --uv-pip-options =\fIUV_PIP_OPTION\fR
+Extra options to be supplied to \fBuv pip install\fR (this option can be used multiple times); only valid together with \fB--use-uv\fR.
 
 
 .SH EXAMPLES

@@ -394,21 +394,37 @@ Examples:
 Using uv as backend
 -------------------
 
-If a `uv <https://github.com/astral-sh/uv>`_ binary is found in ``PATH``, fades automatically uses it as a faster backend to create the virtual environment and install the dependencies (instead of ``venv`` and ``pip``). Nothing else changes: fades keeps doing its own dependency parsing, venv indexing, garbage collection, etc.
+fades can optionally use `uv <https://github.com/astral-sh/uv>`_ as a (much faster) backend to create the virtual environment and install the dependencies, instead of ``venv`` and ``pip``. This is **opt-in**: fades does not change its behaviour just because ``uv`` happens to be installed, because ``uv`` produces slightly different virtual environments than ``pip``.
 
-uv is detected as a binary in ``PATH`` (installed via your system package manager, the standalone installer, etc.); fades does not depend on the ``uv`` PyPI package.
+Enable it per run with ``--use-uv``::
 
-fades runs ``uv venv --seed``, so the virtual environment ships ``pip`` and ``setuptools`` just like the classic ``venv`` backend, keeping packages that expect them present working.
+    fades --use-uv -d requests -x python
 
-If you want to force the classic ``pip`` backend even when uv is available, use ``--no-uv``:
+``uv`` must be available: fades looks it up in ``PATH`` (installed via your system package manager, the standalone installer, etc.; fades does not depend on the ``uv`` PyPI package). You can point at a specific executable with ``--uv-path /path/to/uv`` (which also implies ``--use-uv``). If ``uv`` is requested but can't be found, fades errors out.
 
-``fades --no-uv -d requests -x python``
+Everything else stays fades: dependency parsing (``# fades`` comments, docstring, ``-d``/``-r``), venv indexing and reuse, ``--where``/``--rm``/``--clean-unused-venvs``, config files, the REPL and ``--autoimport``, etc.
+
+Some notes when using ``uv``:
+
+- fades runs ``uv venv --seed``, so the virtual environment ships ``pip`` (and ``setuptools``, depending on the Python version) just like the classic ``venv`` backend, keeping packages that expect them present working.
+- The PyPI availability pre-check is skipped (``uv`` resolves directly and fails early on its own).
+- ``--pip-options`` and ``--venv-options`` are **not** valid together with ``--use-uv`` (they target ``pip``/``venv``); use ``--uv-pip-options`` to pass extra options to ``uv pip install`` instead.
+
+Enabling uv permanently (via config)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you always want the uv backend, set ``use_uv=true`` under the ``[fades]`` section of any fades config file. fades reads (in increasing priority) ``/etc/fades/fades.ini`` (machine-wide), the per-user config (``<xdg-config>/fades/fades.ini``) and a repo-local ``./.fades.ini`` (handy to enable uv for a single project). A ``--use-uv``/``--no``-style flag on the command line still wins over the config.
+
+To turn it on for your user without editing files by hand, run::
+
+    python -c "import configparser; from fades.helpers import get_confdir; \
+    p = get_confdir() / 'fades.ini'; c = configparser.ConfigParser(); c.read(p); \
+    c.has_section('fades') or c.add_section('fades'); c.set('fades', 'use_uv', 'true'); \
+    c.write(p.open('w')); print('uv enabled by default in', p)"
 
 A note about ``pkg_resources``: some packages (e.g. ``azure-cli``) still import the long-deprecated ``pkg_resources``, which was **removed** in ``setuptools >= 81``. uv (and the classic backend on Python 3.12+) installs a recent ``setuptools`` that no longer provides it, so those imports fail. This is not specific to the uv backend; if you hit it, add an older setuptools as an explicit dependency::
 
-    fades -d azure-cli -d "setuptools<81" -x az --help
-
-(or use ``--no-uv`` on a Python version old enough to seed an old setuptools).
+    fades --use-uv -d azure-cli -d "setuptools<81" -x az --help
 
 
 Setting options using config files

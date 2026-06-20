@@ -145,18 +145,18 @@ def create_with_uv(interpreter, is_current, venv_options, uv_exe):
 
 
 def create_venv(requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade,
-                use_uv=False):
-    """Create a new virtualvenv with the requirements of this script."""
-    # decide the backend; only use uv if requested *and* actually available
-    uv_exe = helpers.get_uv_exe() if use_uv else None
-    use_uv = uv_exe is not None
+                use_uv=False, uv_exe=None, uv_pip_options=None):
+    """Create a new virtualvenv with the requirements of this script.
 
+    When ``use_uv`` is True the caller must provide ``uv_exe`` (the resolved uv binary).
+    """
     # create virtual environment
     if use_uv:
         logger.debug("Creating virtual environment with uv backend")
         env_path, env_bin_path = create_with_uv(
             interpreter, is_current, options['venv_options'], uv_exe)
-        pip_installed = False
+        # 'uv venv --seed' installs pip in the venv, so it's available like in the classic path
+        pip_installed = True
     else:
         env = _FadesEnvBuilder()
         env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current, options)
@@ -170,7 +170,7 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options, a
     for repo in requested_deps.keys():
         if repo in (REPO_PYPI, REPO_VCS):
             if use_uv:
-                mgr = UvManager(env_bin_path, options=pip_options, uv_exe=uv_exe)
+                mgr = UvManager(env_bin_path, options=uv_pip_options, uv_exe=uv_exe)
             else:
                 mgr = PipManager(
                     env_bin_path, pip_installed=pip_installed, options=pip_options,
