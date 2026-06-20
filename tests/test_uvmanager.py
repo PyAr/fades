@@ -115,12 +115,30 @@ def test_freeze(tmp_path):
 
     mgr = get_manager()
     with patch.object(helpers, "logged_exec") as mock:
-        mock.return_value = ['moño>11', 'foo==1.2']  # "bad" order, on purpose
+        # include uv's informational header line; it must be filtered out (not '--quiet'-ed,
+        # which would empty the whole output on some uv versions)
+        mock.return_value = [
+            'Using Python 3.13.1 environment at: /tmp/x', 'moño>11', 'foo==1.2']
         mgr.freeze(tmp_file)
 
-    mock.assert_called_with([UV, "pip", "freeze", "--quiet", "--python", PYTHON_PATH])
+    mock.assert_called_with([UV, "pip", "freeze", "--python", PYTHON_PATH])
 
-    # check results were stored properly (sorted)
+    # check results were stored properly (sorted, info line dropped)
     with open(tmp_file, 'rt', encoding='utf8') as fh:
         stored = fh.read()
     assert stored == 'foo==1.2\nmoño>11\n'
+
+
+def test_python_exe_resolves_windows_exe(tmp_path):
+    # on Windows the venv interpreter is 'python.exe' (no extension-less 'python'); UvManager
+    # must point uv's --python at the file that actually exists
+    (tmp_path / "python.exe").touch()
+    mgr = UvManager(tmp_path, uv_exe=UV)
+    assert mgr.python_exe == tmp_path / "python.exe"
+
+
+def test_python_exe_defaults_to_python(tmp_path):
+    # POSIX (and the mocked tests above): plain 'python' is used
+    (tmp_path / "python").touch()
+    mgr = UvManager(tmp_path, uv_exe=UV)
+    assert mgr.python_exe == tmp_path / "python"
