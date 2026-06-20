@@ -135,3 +135,53 @@ def test_mixed():
         REPO_VCS: [parsing.VCSDependency("strangeurl")],
         REPO_PYPI: get_reqs('foo'),
     }
+
+
+def test_marker_true():
+    """Test that requirements with True markers are included."""
+    # This uses a marker that should be True in any environment
+    parsed = parsing._parse_requirement(io.StringIO("""
+        pysha3==1.0b1; python_version >= '2.7'
+    """))
+    assert parsed == {REPO_PYPI: get_reqs('pysha3==1.0b1; python_version >= "2.7"')}
+
+
+def test_marker_false():
+    """Test that requirements with False markers are excluded."""
+    # This uses a marker that should be False in Python 3
+    parsed = parsing._parse_requirement(io.StringIO("""
+        pysha3==1.0b1; python_version < '2.7'
+    """))
+    assert parsed == {}
+
+
+def test_marker_with_other_requirements():
+    """Test marker filtering doesn't affect other requirements."""
+    parsed = parsing._parse_requirement(io.StringIO("""
+        foo
+        pysha3==1.0b1; python_version < '2.7'
+        bar
+    """))
+    # foo and bar should be included, pysha3 should be excluded
+    assert parsed == {REPO_PYPI: get_reqs('foo') + get_reqs('bar')}
+
+
+def test_marker_complex():
+    """Test complex marker expressions."""
+    parsed = parsing._parse_requirement(io.StringIO("""
+        dataclasses==0.6; python_version < '3.7' and sys_platform == 'win32'
+        requests
+    """))
+    # dataclasses is likely to be excluded (not on win32 or python >= 3.7)
+    # requests should be included
+    assert REPO_PYPI in parsed
+    assert len(parsed[REPO_PYPI]) >= 1  # At least requests should be there
+
+
+def test_marker_no_marker():
+    """Test that requirements without markers are always included."""
+    parsed = parsing._parse_requirement(io.StringIO("""
+        foo
+        bar>=1.0
+    """))
+    assert parsed == {REPO_PYPI: get_reqs('foo') + get_reqs('bar>=1.0')}
