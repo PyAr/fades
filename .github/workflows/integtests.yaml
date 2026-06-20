@@ -165,18 +165,23 @@ jobs:
           # <venv>\Scripts\python.exe'. If the python/python.exe resolution were wrong, uv would
           # fail to find the interpreter and the install (hence this step) would fail.
           which uv && uv --version
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d six -x python -c "import six" > uv.log 2>&1 || { cat uv.log; exit 1; }
+          # single-quote to keep the backslashes, then turn them into forward slashes so bash
+          # (Git Bash) doesn't strip them out of the Windows path
+          PY='${{ steps.matrixpy.outputs.python-path }}'; PY="${PY//\\//}"
+          "$PY" bin/fades -v -d six -x python -c "import six" > uv.log 2>&1 || { cat uv.log; exit 1; }
           cat uv.log
           grep -q "Using uv backend" uv.log
       - name: pip backend still works with --no-uv (Windows)
         shell: bash
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --no-uv -d six -x python -c "import six" > nouv.log 2>&1
+          PY='${{ steps.matrixpy.outputs.python-path }}'; PY="${PY//\\//}"
+          "$PY" bin/fades -v --no-uv -d six -x python -c "import six" > nouv.log 2>&1
           ! grep -q "Using uv backend" nouv.log
       - name: --freeze works on a uv-built venv (Windows)
         shell: bash
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --no-uv -d six --freeze=frozen.txt -x python -c "import six" > freeze.log 2>&1 || { cat freeze.log; exit 1; }
+          PY='${{ steps.matrixpy.outputs.python-path }}'; PY="${PY//\\//}"
+          "$PY" bin/fades -v --no-uv -d six --freeze=frozen.txt -x python -c "import six" > freeze.log 2>&1 || { cat freeze.log; exit 1; }
           cat frozen.txt
           grep -q "^six==" frozen.txt
 
