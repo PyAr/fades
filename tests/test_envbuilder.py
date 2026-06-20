@@ -136,6 +136,21 @@ class EnvCreationTestCase(unittest.TestCase):
         self.assertTrue(mock_mgr_c.called)
         self.assertFalse(mock_uv_c.called)
 
+    def test_create_with_uv_seeds_and_passes_options(self):
+        # the uv venv command must seed pip/setuptools and forward the python + venv options
+        with patch.object(envbuilder.helpers, 'get_basedir', return_value=Path('/base')):
+            with patch.object(envbuilder.helpers, 'logged_exec') as mock_exec:
+                with patch.object(envbuilder.helpers, 'get_env_bin_path',
+                                  return_value=Path('/base/x/bin')):
+                    envbuilder.create_with_uv(
+                        '/usr/bin/python3', False, ['--system-site-packages'], '/bin/uv')
+
+        cmd = mock_exec.call_args[0][0]
+        self.assertEqual(cmd[:3], ['/bin/uv', 'venv', '--seed'])
+        self.assertIn('--python', cmd)
+        self.assertIn('/usr/bin/python3', cmd)
+        self.assertIn('--system-site-packages', cmd)
+
     def test_create_vcs(self):
         requested = {
             REPO_VCS: [parsing.VCSDependency("someurl")]
