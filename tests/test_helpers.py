@@ -787,3 +787,18 @@ class GetInterpreterFullVersionTestCase(unittest.TestCase):
         with patch.object(helpers, 'logged_exec', return_value=[]):
             with pytest.raises(FadesError):
                 helpers._get_interpreter_full_version('/usr/bin/python3.12')
+
+
+class GetUvExeTestCase(unittest.TestCase):
+    """Tests for the uv binary detection."""
+
+    def test_uv_present(self):
+        with patch.object(helpers.shutil, 'which', return_value='/usr/bin/uv') as mock:
+            result = helpers.get_uv_exe()
+        assert result == '/usr/bin/uv'
+        mock.assert_called_once_with('uv')
+
+    def test_uv_absent(self):
+        with patch.object(helpers.shutil, 'which', return_value=None):
+            result = helpers.get_uv_exe()
+        assert result is None

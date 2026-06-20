@@ -19,6 +19,7 @@
 import logging
 import os
 import shutil
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -27,6 +28,7 @@ from venv import EnvBuilder
 from fades import FadesError, REPO_PYPI, REPO_VCS
 from fades import helpers, cache
 from fades.pipmanager import PipManager
+from fades.uvmanager import UvManager
 from fades.multiplatform import filelock
 
 logger = logging.getLogger(__name__)
@@ -115,11 +117,46 @@ class _FadesEnvBuilder(EnvBuilder):
         self.env_bin_path = Path(context.bin_path)
 
 
-def create_venv(requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade):
+def create_with_uv(interpreter, is_current, venv_options, uv_exe):
+    """Create a virtual environment using uv, returning its path and bin path."""
+    env_path = helpers.get_basedir() / str(uuid4())
+    logger.debug("Env will be created at: %s (with uv)", env_path)
+
+    # when there's no explicitly requested interpreter (current Python), point uv at fades'
+    # own interpreter so the venv matches what the cache was keyed on
+    python = interpreter if (interpreter is not None and not is_current) else sys.executable
+    args = [uv_exe, "venv", str(env_path), "--python", str(python)]
+    args.extend(venv_options)
+
+    try:
+        helpers.logged_exec(args)
+    except helpers.ExecutionError as error:
+        error.dump_to_log(logger)
+        raise FadesError("Failed to create virtual environment with uv")
+    except Exception as error:
+        logger.exception("Error creating virtual environment with uv:  %s", error)
+        raise FadesError("General error while creating venv with uv")
+
+    env_bin_path = helpers.get_env_bin_path(env_path)
+    return env_path, env_bin_path
+
+
+def create_venv(requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade,
+                use_uv=False):
     """Create a new virtualvenv with the requirements of this script."""
+    # decide the backend; only use uv if requested *and* actually available
+    uv_exe = helpers.get_uv_exe() if use_uv else None
+    use_uv = uv_exe is not None
+
     # create virtual environment
-    env = _FadesEnvBuilder()
-    env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current, options)
+    if use_uv:
+        logger.debug("Creating virtual environment with uv backend")
+        env_path, env_bin_path = create_with_uv(
+            interpreter, is_current, options['venv_options'], uv_exe)
+        pip_installed = False
+    else:
+        env = _FadesEnvBuilder()
+        env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current, options)
     venv_data = {}
     venv_data['env_path'] = env_path
     venv_data['env_bin_path'] = env_bin_path
@@ -129,9 +166,12 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options, a
     installed = {}
     for repo in requested_deps.keys():
         if repo in (REPO_PYPI, REPO_VCS):
-            mgr = PipManager(
-                env_bin_path, pip_installed=pip_installed, options=pip_options,
-                avoid_pip_upgrade=avoid_pip_upgrade)
+            if use_uv:
+                mgr = UvManager(env_bin_path, options=pip_options, uv_exe=uv_exe)
+            else:
+                mgr = PipManager(
+                    env_bin_path, pip_installed=pip_installed, options=pip_options,
+                    avoid_pip_upgrade=avoid_pip_upgrade)
         else:
             logger.warning("Install from %r not implemented", repo)
             continue

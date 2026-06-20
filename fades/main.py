@@ -37,6 +37,7 @@ from fades import (
     parsing,
     pipmanager,
     pkgnamesdb,
+    uvmanager,
 )
 from fades.logger import set_up as logger_set_up
 
@@ -284,6 +285,10 @@ def go():
         '--avoid-pip-upgrade', action='store_true',
         help="disable the automatic pip upgrade that happens after the virtualenv is created "
              "and before the dependencies begin to be installed.")
+    parser.add_argument(
+        '--no-uv', action='store_true',
+        help="don't use uv as the backend to create the virtualenv and install dependencies, "
+             "even if a uv binary is available in PATH (use pip instead).")
 
     mutexg = parser.add_mutually_exclusive_group()
     mutexg.add_argument(
@@ -408,6 +413,12 @@ def go():
     if args.system_site_packages:
         options['venv_options'].append("--system-site-packages")
 
+    # use uv as the backend when it's available and the user didn't opt out
+    uv_exe = None if args.no_uv else helpers.get_uv_exe()
+    use_uv = uv_exe is not None
+    if use_uv:
+        logger.debug("Using uv backend found at %r", uv_exe)
+
     create_venv = False
     venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
     if venv_data:
@@ -433,7 +444,7 @@ def go():
         # Create a new venv
         venv_data, installed = envbuilder.create_venv(
             indicated_deps, python_interpreter, is_current, options, pip_options,
-            args.avoid_pip_upgrade)
+            args.avoid_pip_upgrade, use_uv)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
 
@@ -443,8 +454,12 @@ def go():
         return 0
 
     if args.freeze:
-        # beyond all the rest of work, dump the dependencies versions to a file
-        mgr = pipmanager.PipManager(venv_data['env_bin_path'])
+        # beyond all the rest of work, dump the dependencies versions to a file; use the uv
+        # backend when active (a uv-built venv has no pip to run 'pip freeze' with)
+        if use_uv:
+            mgr = uvmanager.UvManager(venv_data['env_bin_path'], uv_exe=uv_exe)
+        else:
+            mgr = pipmanager.PipManager(venv_data['env_bin_path'])
         mgr.freeze(args.freeze)
 
     # run forest run!!

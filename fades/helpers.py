@@ -17,9 +17,9 @@
 """A collection of utilities for fades."""
 
 import json
-import shutil
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -92,6 +92,16 @@ def logged_exec(cmd):
     if retcode:
         raise ExecutionError(retcode, cmd, stdout)
     return stdout
+
+
+def get_uv_exe():
+    """Return the path to the ``uv`` binary if available on PATH, else None.
+
+    fades runs against the system Python (it is not installed inside a venv), so we rely on a
+    ``uv`` *binary* found in PATH rather than the ``uv`` PyPI package, which would require
+    polluting the system Python.
+    """
+    return shutil.which("uv")
 
 
 def _get_basedirectory():
