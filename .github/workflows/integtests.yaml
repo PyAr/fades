@@ -54,8 +54,18 @@ jobs:
       - name: pip backend still works with --no-uv
         run: |
           cd /fades
-          # even with uv present, --no-uv must fall back to pip (no uv-backend log line)
-          ! bin/fades -v --no-uv -d six -x python -c "import six" 2>&1 | grep -q "Using uv backend"
+          # fades itself must succeed (so a --no-uv crash can't silently pass the negated grep),
+          # and the uv-backend log line must be absent
+          bin/fades -v --no-uv -d six -x python -c "import six" > nouv.log 2>&1
+          ! grep -q "Using uv backend" nouv.log
+      - name: --freeze works on a uv-built venv (even with --no-uv)
+        run: |
+          cd /fades
+          # the 'six' venv was built by uv above (no pip); freezing it must still produce a
+          # non-empty pinned file -- fades has to pick the freeze backend from the venv, not the
+          # --no-uv flag, and must not silence the freeze output
+          bin/fades -v --no-uv -d six --freeze=frozen.txt -x python -c "import six"
+          grep -q "^six==" frozen.txt
       - name: Using the oldest supported Python
         env:
           OLDEST: ${{ needs.min-python.outputs.version }}
@@ -92,8 +102,18 @@ jobs:
       - name: pip backend still works with --no-uv
         run: |
           cd /fades
-          # even with uv present, --no-uv must fall back to pip (no uv-backend log line)
-          ! bin/fades -v --no-uv -d six -x python -c "import six" 2>&1 | grep -q "Using uv backend"
+          # fades itself must succeed (so a --no-uv crash can't silently pass the negated grep),
+          # and the uv-backend log line must be absent
+          bin/fades -v --no-uv -d six -x python -c "import six" > nouv.log 2>&1
+          ! grep -q "Using uv backend" nouv.log
+      - name: --freeze works on a uv-built venv (even with --no-uv)
+        run: |
+          cd /fades
+          # the 'six' venv was built by uv above (no pip); freezing it must still produce a
+          # non-empty pinned file -- fades has to pick the freeze backend from the venv, not the
+          # --no-uv flag, and must not silence the freeze output
+          bin/fades -v --no-uv -d six --freeze=frozen.txt -x python -c "import six"
+          grep -q "^six==" frozen.txt
       - name: Using the oldest supported Python
         env:
           OLDEST: ${{ needs.min-python.outputs.version }}

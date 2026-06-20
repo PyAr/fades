@@ -38,7 +38,13 @@ class UvManager():
     def __init__(self, env_bin_path: Path, options: list = None, uv_exe: str = None):
         self.env_bin_path = env_bin_path
         self.options = options
-        self.python_exe = self.env_bin_path / "python"
+        # uv parses the '--python' value as a literal path (no Windows PATHEXT resolution like
+        # subprocess does for pip), so point it at the right interpreter file: 'python' on POSIX,
+        # 'python.exe' on Windows (mirrors the pip/pip.exe probe in envbuilder.create_env)
+        python_exe = self.env_bin_path / "python"
+        if not python_exe.exists() and (self.env_bin_path / "python.exe").exists():
+            python_exe = self.env_bin_path / "python.exe"
+        self.python_exe = python_exe
         self.uv_exe = uv_exe or helpers.get_uv_exe()
 
     def install(self, dependency):
@@ -82,7 +88,11 @@ class UvManager():
     def freeze(self, filepath: Path):
         """Dump venv contents to the indicated filepath."""
         logger.debug("running freeze to store in %r", filepath)
+        # note: no '--quiet' here; depending on the uv version it silences the *whole* freeze
+        # output (producing an empty file), so instead we drop uv's informational
+        # "Using Python ... environment at:" line explicitly
         stdout = helpers.logged_exec(
-            [self.uv_exe, "pip", "freeze", "--quiet", "--python", str(self.python_exe)])
+            [self.uv_exe, "pip", "freeze", "--python", str(self.python_exe)])
+        lines = [line for line in stdout if not line.startswith("Using Python")]
         with open(filepath, "wt", encoding='utf8') as fh:
-            fh.writelines(line + '\n' for line in sorted(stdout))
+            fh.writelines(line + '\n' for line in sorted(lines))
