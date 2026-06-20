@@ -491,9 +491,9 @@ Execute the Python interactive interpreter in a virtual environment after instal
 
     fades -r requirements.txt -r requirements_devel.txt
 
-Use the ``django-admin.py`` script to start a new project named ``foo``, without having to have django previously installed::
+Use the ``django-admin`` script to start a new project named ``foo``, without having to have django previously installed::
 
-    fades -d django -x django-admin.py startproject foo
+    fades -d django -x django-admin startproject foo
 
 Remove a virtual environment matching the given uuid from disk and cache index::
 
