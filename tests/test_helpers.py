@@ -384,6 +384,35 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
         self.assertTrue(exists)
         self.assertLoggedWarning("Got a (unexpected) HTTP_STATUS")
 
+    def test_exact_version_uses_version_url(self):
+        deps = parsing.parse_manual(["foo==2.0"])
+
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.status = HTTPStatus.OK
+                mock_urlopen.return_value = mock_http_response
+
+                exists = helpers.check_pypi_exists(deps)
+
+        self.assertTrue(exists)
+        req = mock_urlopen.call_args[0][0]
+        self.assertEqual(req.full_url, "https://pypi.org/pypi/foo/2.0/json")
+
+    def test_range_version_uses_name_url(self):
+        # A range specifier must be checked by package name, not by an inexistent "version".
+        deps = parsing.parse_manual(["foo<3"])
+
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            with patch('http.client.HTTPResponse') as mock_http_response:
+                mock_http_response.status = HTTPStatus.OK
+                mock_urlopen.return_value = mock_http_response
+
+                exists = helpers.check_pypi_exists(deps)
+
+        self.assertTrue(exists)
+        req = mock_urlopen.call_args[0][0]
+        self.assertEqual(req.full_url, "https://pypi.org/pypi/foo/json")
+
 
 class ScriptDownloaderTestCase(unittest.TestCase):
     """Check the script downloader."""

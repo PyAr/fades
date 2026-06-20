@@ -310,9 +310,12 @@ def check_pypi_updates(dependencies):
 
 def _pypi_head_package(dependency):
     """Hit pypi with a http HEAD to check if pkg_name exists."""
-    if dependency.specifier:
-        spec = list(dependency.specifier)[0]
-        version = spec.version
+    # Only an exact pin (== or ===) maps to a version-specific URL; range specifiers
+    # like '<3' or '>=2' must be checked by package name, otherwise we'd query a
+    # non-existent "version" and wrongly conclude the package is missing.
+    exact_specs = [spec for spec in dependency.specifier if spec.operator in ("==", "===")]
+    if exact_specs:
+        version = exact_specs[0].version
         url = BASE_PYPI_URL_WITH_VERSION.format(name=dependency.name, version=version)
     else:
         url = BASE_PYPI_URL.format(name=dependency.name)
