@@ -45,6 +45,10 @@ from fades.logger import set_up as logger_set_up
 # the rest of the module just fine
 logger = logging.getLogger('fades')
 
+# sentinel used as the '--rm' value when it's given as a bare flag (no UUID), meaning
+# "remove the virtualenv that matches the indicated dependencies"
+REMOVE_BY_DEPS = object()
+
 # the signals to redirect to the child process (note: only these are
 # allowed in Windows, see 'signal' doc).
 REDIRECTED_SIGNALS = [
@@ -260,8 +264,10 @@ def go():
         '--python-options', action='append', default=[],
         help="extra options to be supplied to python (this option can be used multiple times)")
     parser.add_argument(
-        '--rm', dest='remove', metavar='UUID',
-        help="remove a virtualenv by UUID; see --where option to easily find out the UUID")
+        '--rm', dest='remove', metavar='UUID', nargs='?', const=REMOVE_BY_DEPS, default=None,
+        help="remove a virtualenv: by UUID if one is given (see --where to easily find out the "
+             "UUID), or by the indicated dependencies if no UUID is passed "
+             "(e.g. 'fades --rm -d django')")
     parser.add_argument(
         '--clean-unused-venvs', action='store',
         help="remove venvs that haven't been used for more than the indicated days and compact "
@@ -360,22 +366,6 @@ def go():
         usage_manager.clean_unused_venvs(max_days_to_keep)
         return 0
 
-    uuid = args.remove
-    if uuid:
-        venv_data = venvscache.get_venv(uuid=uuid)
-        if venv_data:
-            # remove this venv from the cache
-            env_path = venv_data.get('env_path')
-            if env_path:
-                envbuilder.destroy_venv(env_path, venvscache)
-            else:
-                logger.warning(
-                    "Invalid 'env_path' found in virtualenv metadata: %r. "
-                    "Not removing virtualenv.", env_path)
-        else:
-            logger.warning('No virtualenv found with uuid: %s.', uuid)
-        return 0
-
     # decided which the child program really is
     analyzable_child_program, child_program = decide_child_program(
         args.executable, args.module, args.child_program)
@@ -383,10 +373,6 @@ def go():
     # Group and merge dependencies
     indicated_deps = consolidate_dependencies(
         args.ipython, analyzable_child_program, args.requirement, args.dependency)
-
-    # Check for packages updates
-    if args.check_updates:
-        helpers.check_pypi_updates(indicated_deps)
 
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(args.python)
@@ -399,8 +385,33 @@ def go():
     if args.system_site_packages:
         options['venv_options'].append("--system-site-packages")
 
+    # remove a virtualenv, either by the given UUID or by the indicated dependencies
+    if args.remove is not None:
+        if args.remove is REMOVE_BY_DEPS:
+            venv_data = venvscache.get_venv(indicated_deps, interpreter, options=options)
+            descriptor = "the indicated dependencies"
+        else:
+            venv_data = venvscache.get_venv(uuid=args.remove)
+            descriptor = "uuid: {}".format(args.remove)
+        if venv_data:
+            # remove this venv from the cache
+            env_path = venv_data.get('env_path')
+            if env_path:
+                envbuilder.destroy_venv(env_path, venvscache)
+            else:
+                logger.warning(
+                    "Invalid 'env_path' found in virtualenv metadata: %r. "
+                    "Not removing virtualenv.", env_path)
+        else:
+            logger.warning('No virtualenv found with %s.', descriptor)
+        return 0
+
+    # Check for packages updates
+    if args.check_updates:
+        helpers.check_pypi_updates(indicated_deps)
+
     create_venv = False
-    venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
+    venv_data = venvscache.get_venv(indicated_deps, interpreter, options=options)
     if venv_data:
         env_path = venv_data['env_path']
         # A venv was found in the cache check if its valid or re-generate it.
