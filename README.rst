@@ -417,8 +417,8 @@ If you always want the uv backend, set ``use_uv=true`` under the ``[fades]`` sec
 
 To turn it on for your user without editing files by hand, run::
 
-    python -c "import configparser; from fades.helpers import get_confdir; \
-    p = get_confdir() / 'fades.ini'; c = configparser.ConfigParser(); c.read(p); \
+    python -W ignore -c "import configparser; from pathlib import Path; from fades.helpers import get_confdir; \
+    p = Path(get_confdir()) / 'fades.ini'; c = configparser.ConfigParser(); c.read(p); \
     c.has_section('fades') or c.add_section('fades'); c.set('fades', 'use_uv', 'true'); \
     c.write(p.open('w')); print('uv enabled by default in', p)"
 
