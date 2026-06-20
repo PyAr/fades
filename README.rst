@@ -391,6 +391,18 @@ Examples:
 ``fades --python-options=-B foo.py``
 
 
+Using uv as backend
+-------------------
+
+If a `uv <https://github.com/astral-sh/uv>`_ binary is found in ``PATH``, fades automatically uses it as a faster backend to create the virtual environment and install the dependencies (instead of ``venv`` and ``pip``). Nothing else changes: fades keeps doing its own dependency parsing, venv indexing, garbage collection, etc.
+
+uv is detected as a binary in ``PATH`` (installed via your system package manager, the standalone installer, etc.); fades does not depend on the ``uv`` PyPI package.
+
+If you want to force the classic ``pip`` backend even when uv is available, use ``--no-uv``:
+
+``fades --no-uv -d requests -x python``
+
+
 Setting options using config files
 ----------------------------------
 

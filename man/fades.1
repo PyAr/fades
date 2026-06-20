@@ -27,6 +27,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB--freeze\fR]
 [\fB-m\fR][\fB--module\fR]
 [\fB--avoid-pip-upgrade\fR]
+[\fB--no-uv\fR]
 [child_program [child_options]]
 
 \fBfades\fR can be used to execute directly your script, or put it with a #! at your script's beginning.
@@ -141,6 +142,10 @@ Run library module as a script (same behaviour than Python's \fB-m\fR parameter)
 .TP
 .BR --avoid-pip-upgrade
 Disable the automatic \fBpip\fR upgrade that happens after the virtual environment is created and before the dependencies begin to be installed.
+
+.TP
+.BR --no-uv
+Don't use \fBuv\fR as the backend to create the virtual environment and install dependencies, even if a \fBuv\fR binary is available in \fBPATH\fR (use \fBpip\fR instead). By default, when a \fBuv\fR binary is found in \fBPATH\fR, fades uses it as a faster backend.
 
 
 .SH EXAMPLES
