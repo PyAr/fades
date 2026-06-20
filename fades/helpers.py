@@ -350,14 +350,15 @@ def download_remote_script(url):
     """Download the content of a remote script to a local temp file."""
     temp_fh = tempfile.NamedTemporaryFile('wt', encoding='utf8', suffix=".py", delete=False)
     downloader = _ScriptDownloader(url)
+    filepath = Path(temp_fh.name)
     logger.info(
-        "Downloading remote script from %r (using %r downloader) to %r",
-        url, downloader.name, temp_fh.name)
+        "Downloading remote script from %r (using %r downloader) to %s",
+        url, downloader.name, filepath)
 
     content = downloader.get()
     temp_fh.write(content)
     temp_fh.close()
-    return Path(temp_fh.name)
+    return filepath
 
 
 def get_env_bin_path(base_env_path):
