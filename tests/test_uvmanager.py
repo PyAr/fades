@@ -110,25 +110,6 @@ def test_install_raise_error(logs):
     assert "Error installing foo: Kapow!" in logs.error
 
 
-def test_freeze(tmp_path):
-    tmp_file = tmp_path / "reqtest.txt"
-
-    mgr = get_manager()
-    with patch.object(helpers, "logged_exec") as mock:
-        # include uv's informational header line; it must be filtered out (not '--quiet'-ed,
-        # which would empty the whole output on some uv versions)
-        mock.return_value = [
-            'Using Python 3.13.1 environment at: /tmp/x', 'moño>11', 'foo==1.2']
-        mgr.freeze(tmp_file)
-
-    mock.assert_called_with([UV, "pip", "freeze", "--python", PYTHON_PATH])
-
-    # check results were stored properly (sorted, info line dropped)
-    with open(tmp_file, 'rt', encoding='utf8') as fh:
-        stored = fh.read()
-    assert stored == 'foo==1.2\nmoño>11\n'
-
-
 def test_python_exe_resolves_windows_exe(tmp_path):
     # on Windows the venv interpreter is 'python.exe' (no extension-less 'python'); UvManager
     # must point uv's --python at the file that actually exists

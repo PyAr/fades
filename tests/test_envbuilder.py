@@ -101,40 +101,23 @@ class EnvCreationTestCase(unittest.TestCase):
         avoid_pip_upgrade = False
         options = {"venv_options": []}
         pip_options = []
-        with patch.object(envbuilder.helpers, 'get_uv_exe', return_value='/bin/uv'):
-            with patch.object(envbuilder, 'create_with_uv') as mock_create:
-                with patch.object(envbuilder, 'UvManager') as mock_mgr_c:
-                    mock_create.return_value = ('env_path', 'env_bin_path')
-                    mock_mgr_c.return_value = fake_manager = self.FakeManager()
-                    fake_manager.really_installed = {'dep1': 'v1'}
-                    venv_data, installed = envbuilder.create_venv(
-                        requested, interpreter, is_current, options, pip_options,
-                        avoid_pip_upgrade, use_uv=True)
+        with patch.object(envbuilder, 'create_with_uv') as mock_create:
+            with patch.object(envbuilder, 'UvManager') as mock_mgr_c:
+                mock_create.return_value = ('env_path', 'env_bin_path')
+                mock_mgr_c.return_value = fake_manager = self.FakeManager()
+                fake_manager.really_installed = {'dep1': 'v1'}
+                venv_data, installed = envbuilder.create_venv(
+                    requested, interpreter, is_current, options, pip_options,
+                    avoid_pip_upgrade, use_uv=True, uv_exe='/bin/uv',
+                    uv_pip_options=['--foo'])
 
-        # the uv venv creator was used, and a UvManager (not PipManager) installed the deps
+        # the uv venv creator was used, and a UvManager (not PipManager) installed the deps with
+        # the uv-specific options; the seeded venv reports pip as available
         mock_create.assert_called_once_with(interpreter, is_current, [], '/bin/uv')
         self.assertEqual(
-            mock_mgr_c.call_args, call('env_bin_path', options=[], uv_exe='/bin/uv'))
+            mock_mgr_c.call_args, call('env_bin_path', options=['--foo'], uv_exe='/bin/uv'))
+        self.assertTrue(venv_data['pip_installed'])
         self.assertDictEqual(installed, {REPO_PYPI: {'dep1': 'v1'}})
-
-    def test_create_uv_requested_but_unavailable_falls_back_to_pip(self):
-        requested = {
-            REPO_PYPI: [get_req('dep1 == v1')]
-        }
-        options = {"venv_options": []}
-        with patch.object(envbuilder.helpers, 'get_uv_exe', return_value=None):
-            with patch.object(envbuilder._FadesEnvBuilder, 'create_env') as mock_create:
-                with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
-                    with patch.object(envbuilder, 'UvManager') as mock_uv_c:
-                        mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
-                        mock_mgr_c.return_value = fake_manager = self.FakeManager()
-                        fake_manager.really_installed = {'dep1': 'v1'}
-                        envbuilder.create_venv(
-                            requested, 'python3', True, options, [], False, use_uv=True)
-
-        # uv was requested but not present: pip backend used instead
-        self.assertTrue(mock_mgr_c.called)
-        self.assertFalse(mock_uv_c.called)
 
     def test_create_with_uv_seeds_and_passes_options(self):
         # the uv venv command must seed pip/setuptools and forward the python + venv options

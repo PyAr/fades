@@ -84,15 +84,3 @@ class UvManager():
             logger.error('Fades is having problems getting the installed version. '
                          'Run with -v or check the logs for details')
             return ''
-
-    def freeze(self, filepath: Path):
-        """Dump venv contents to the indicated filepath."""
-        logger.debug("running freeze to store in %r", filepath)
-        # note: no '--quiet' here; depending on the uv version it silences the *whole* freeze
-        # output (producing an empty file), so instead we drop uv's informational
-        # "Using Python ... environment at:" line explicitly
-        stdout = helpers.logged_exec(
-            [self.uv_exe, "pip", "freeze", "--python", str(self.python_exe)])
-        lines = [line for line in stdout if not line.startswith("Using Python")]
-        with open(filepath, "wt", encoding='utf8') as fh:
-            fh.writelines(line + '\n' for line in sorted(lines))
