@@ -64,3 +64,4 @@ pkg/archlinux/*
 # Ides
 .vscode/
 .idea/
+.claude/worktrees/*
