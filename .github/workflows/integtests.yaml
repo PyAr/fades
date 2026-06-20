@@ -151,10 +151,28 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} -m pip install -U packaging
+          ${{ steps.matrixpy.outputs.python-path }} -m pip install -U packaging uv
       - name: Simple fades run
         run: |
           ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version
+
+      - name: uv backend is auto-detected and used (Windows)
+        shell: bash
+        run: |
+          # this exercises the whole uv path on Windows: 'uv venv' + 'uv pip install --python
+          # <venv>\Scripts\python.exe'. If the python/python.exe resolution were wrong, uv would
+          # fail to find the interpreter and the install (hence this step) would fail.
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d six -x python -c "import six" 2>&1 | grep -q "Using uv backend"
+      - name: pip backend still works with --no-uv (Windows)
+        shell: bash
+        run: |
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --no-uv -d six -x python -c "import six" > nouv.log 2>&1
+          ! grep -q "Using uv backend" nouv.log
+      - name: --freeze works on a uv-built venv (Windows)
+        shell: bash
+        run: |
+          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --no-uv -d six --freeze=frozen.txt -x python -c "import six"
+          grep -q "^six==" frozen.txt
 
       - name: Using a different Python
         run: |
