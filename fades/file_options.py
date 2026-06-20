@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 CONFIG_FILES = (Path("/etc/fades/fades.ini"), get_confdir() / 'fades.ini', Path(".fades.ini"))
 
-MERGEABLE_CONFIGS = ("dependency", "pip_options", "venv-options")
+MERGEABLE_CONFIGS = ("dependency", "pip_options", "venv-options", "uv_pip_options")
 
 
 def options_from_file(args):

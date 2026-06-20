@@ -46,6 +46,30 @@ jobs:
         run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
+      - name: default backend is pip (uv NOT used without opt-in)
+        run: |
+          cd /fades
+          # even with uv on PATH, the default must stay pip -- the uv-backend log line is absent
+          bin/fades -v -d six -x python -c "import six" > default.log 2>&1
+          ! grep -q "Using uv backend" default.log
+      - name: uv backend is used with --use-uv
+        run: |
+          cd /fades
+          bin/fades -v --use-uv -d six -x python -c "import six" 2>&1 | grep -q "Using uv backend"
+      - name: --use-uv with --pip-options is an error
+        run: |
+          cd /fades
+          ! bin/fades --use-uv --pip-options="--foo" -d six -x python -c "import six"
+      - name: --use-uv with a bogus --uv-path is an error
+        run: |
+          cd /fades
+          ! bin/fades --use-uv --uv-path /no/such/uv -d six -x python -c "import six"
+      - name: --freeze on a uv venv produces a pinned file
+        run: |
+          cd /fades
+          # uv venvs are seeded with pip, so --freeze yields a normal requirements file
+          bin/fades -v --use-uv -d six --freeze=frozen.txt -x python -c "import six"
+          grep -q "^six==" frozen.txt
       - name: Using the oldest supported Python
         env:
           OLDEST: ${{ needs.min-python.outputs.version }}
@@ -74,6 +98,30 @@ jobs:
         run: |
           cd /fades
           bin/fades -v -d pytest -x pytest --version
+      - name: default backend is pip (uv NOT used without opt-in)
+        run: |
+          cd /fades
+          # even with uv on PATH, the default must stay pip -- the uv-backend log line is absent
+          bin/fades -v -d six -x python -c "import six" > default.log 2>&1
+          ! grep -q "Using uv backend" default.log
+      - name: uv backend is used with --use-uv
+        run: |
+          cd /fades
+          bin/fades -v --use-uv -d six -x python -c "import six" 2>&1 | grep -q "Using uv backend"
+      - name: --use-uv with --pip-options is an error
+        run: |
+          cd /fades
+          ! bin/fades --use-uv --pip-options="--foo" -d six -x python -c "import six"
+      - name: --use-uv with a bogus --uv-path is an error
+        run: |
+          cd /fades
+          ! bin/fades --use-uv --uv-path /no/such/uv -d six -x python -c "import six"
+      - name: --freeze on a uv venv produces a pinned file
+        run: |
+          cd /fades
+          # uv venvs are seeded with pip, so --freeze yields a normal requirements file
+          bin/fades -v --use-uv -d six --freeze=frozen.txt -x python -c "import six"
+          grep -q "^six==" frozen.txt
       - name: Using the oldest supported Python
         env:
           OLDEST: ${{ needs.min-python.outputs.version }}
@@ -112,9 +160,38 @@ jobs:
       - name: Install dependencies
         run: |
           ${{ steps.matrixpy.outputs.python-path }} -m pip install -U packaging
+      - name: Install uv (on PATH for all following steps)
+        uses: astral-sh/setup-uv@v6
       - name: Simple fades run
         run: |
           ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version
+
+      - name: uv backend works on Windows with --use-uv
+        shell: bash
+        run: |
+          # this exercises the whole uv path on Windows: 'uv venv' + 'uv pip install --python
+          # <venv>\Scripts\python.exe'. If the python/python.exe resolution were wrong, uv would
+          # fail to find the interpreter and the install (hence this step) would fail.
+          which uv && uv --version
+          # single-quote to keep the backslashes, then turn them into forward slashes so bash
+          # (Git Bash) doesn't strip them out of the Windows path
+          PY='${{ steps.matrixpy.outputs.python-path }}'; PY="${PY//\\//}"
+          "$PY" bin/fades -v --use-uv -d six -x python -c "import six" > uv.log 2>&1 || { cat uv.log; exit 1; }
+          cat uv.log
+          grep -q "Using uv backend" uv.log
+      - name: default backend is pip on Windows (no opt-in)
+        shell: bash
+        run: |
+          PY='${{ steps.matrixpy.outputs.python-path }}'; PY="${PY//\\//}"
+          "$PY" bin/fades -v -d six -x python -c "import six" > default.log 2>&1
+          ! grep -q "Using uv backend" default.log
+      - name: --freeze on a uv venv produces a pinned file (Windows)
+        shell: bash
+        run: |
+          PY='${{ steps.matrixpy.outputs.python-path }}'; PY="${PY//\\//}"
+          "$PY" bin/fades -v --use-uv -d six --freeze=frozen.txt -x python -c "import six" > freeze.log 2>&1 || { cat freeze.log; exit 1; }
+          cat frozen.txt
+          grep -q "^six==" frozen.txt
 
       - name: Using a different Python
         run: |

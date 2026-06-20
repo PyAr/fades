@@ -92,6 +92,48 @@ class EnvCreationTestCase(unittest.TestCase):
             avoid_pip_upgrade=avoid_pip_upgrade)
         self.assertEqual(mock_mgr_c.call_args, expected_pipmanager_call)
 
+    def test_create_with_uv_backend(self):
+        requested = {
+            REPO_PYPI: [get_req('dep1 == v1')]
+        }
+        interpreter = 'python3'
+        is_current = False
+        avoid_pip_upgrade = False
+        options = {"venv_options": []}
+        pip_options = []
+        with patch.object(envbuilder, 'create_with_uv') as mock_create:
+            with patch.object(envbuilder, 'UvManager') as mock_mgr_c:
+                mock_create.return_value = ('env_path', 'env_bin_path')
+                mock_mgr_c.return_value = fake_manager = self.FakeManager()
+                fake_manager.really_installed = {'dep1': 'v1'}
+                venv_data, installed = envbuilder.create_venv(
+                    requested, interpreter, is_current, options, pip_options,
+                    avoid_pip_upgrade, use_uv=True, uv_exe='/bin/uv',
+                    uv_pip_options=['--foo'])
+
+        # the uv venv creator was used, and a UvManager (not PipManager) installed the deps with
+        # the uv-specific options; the seeded venv reports pip as available
+        mock_create.assert_called_once_with(interpreter, is_current, [], '/bin/uv')
+        self.assertEqual(
+            mock_mgr_c.call_args, call('env_bin_path', options=['--foo'], uv_exe='/bin/uv'))
+        self.assertTrue(venv_data['pip_installed'])
+        self.assertDictEqual(installed, {REPO_PYPI: {'dep1': 'v1'}})
+
+    def test_create_with_uv_seeds_and_passes_options(self):
+        # the uv venv command must seed pip/setuptools and forward the python + venv options
+        with patch.object(envbuilder.helpers, 'get_basedir', return_value=Path('/base')):
+            with patch.object(envbuilder.helpers, 'logged_exec') as mock_exec:
+                with patch.object(envbuilder.helpers, 'get_env_bin_path',
+                                  return_value=Path('/base/x/bin')):
+                    envbuilder.create_with_uv(
+                        '/usr/bin/python3', False, ['--system-site-packages'], '/bin/uv')
+
+        cmd = mock_exec.call_args[0][0]
+        self.assertEqual(cmd[:3], ['/bin/uv', 'venv', '--seed'])
+        self.assertIn('--python', cmd)
+        self.assertIn('/usr/bin/python3', cmd)
+        self.assertIn('--system-site-packages', cmd)
+
     def test_create_vcs(self):
         requested = {
             REPO_VCS: [parsing.VCSDependency("someurl")]

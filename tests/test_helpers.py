@@ -582,3 +582,30 @@ def test_getbinpath_windows(tmp_path):
 def test_getbinpath_missing(tmp_path):
     with pytest.raises(ValueError):
         helpers.get_env_bin_path(tmp_path)
+
+
+class GetUvExeTestCase(unittest.TestCase):
+    """Tests for the uv binary detection."""
+
+    def test_uv_present(self):
+        with patch.object(helpers.shutil, 'which', return_value='/usr/bin/uv') as mock:
+            result = helpers.get_uv_exe()
+        assert result == '/usr/bin/uv'
+        mock.assert_called_once_with('uv')
+
+    def test_uv_absent(self):
+        with patch.object(helpers.shutil, 'which', return_value=None):
+            result = helpers.get_uv_exe()
+        assert result is None
+
+    def test_uv_path_given_is_validated(self):
+        # an explicit path is looked up (validated) via shutil.which
+        with patch.object(helpers.shutil, 'which', return_value='/opt/uv') as mock:
+            result = helpers.get_uv_exe('/opt/uv')
+        assert result == '/opt/uv'
+        mock.assert_called_once_with('/opt/uv')
+
+    def test_uv_path_given_not_found(self):
+        with patch.object(helpers.shutil, 'which', return_value=None):
+            result = helpers.get_uv_exe('/no/such/uv')
+        assert result is None

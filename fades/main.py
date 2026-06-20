@@ -223,6 +223,33 @@ def detect_inside_virtualenv(prefix, real_prefix, base_prefix):
     return prefix != base_prefix
 
 
+def _resolve_uv_backend(args):
+    """Decide whether to use the uv backend, validating the related options.
+
+    Return a tuple ``(use_uv, uv_exe, uv_pip_options)``. uv is used only when explicitly
+    requested (``--use-uv``, ``--uv-path`` or ``use_uv`` in a config file). Raise FadesError if
+    uv is requested but can't be found, or if incompatible options were given.
+    """
+    use_uv = bool(args.use_uv or args.uv_path)
+    if not use_uv:
+        return False, None, []
+
+    uv_exe = helpers.get_uv_exe(args.uv_path)
+    if not uv_exe:
+        msg = ("uv was requested (--use-uv) but no usable uv binary was found; install uv or "
+               "indicate its location with --uv-path")
+        logger.error(msg)
+        raise FadesError(msg)
+
+    if args.pip_options or args.venv_options:
+        msg = ("--pip-options/--venv-options can't be used together with --use-uv; "
+               "use --uv-pip-options to pass options to uv")
+        logger.error(msg)
+        raise FadesError(msg)
+
+    return True, uv_exe, args.uv_pip_options
+
+
 def go():
     """Make the magic happen."""
     parser = argparse.ArgumentParser(
@@ -281,6 +308,18 @@ def go():
         '--avoid-pip-upgrade', action='store_true',
         help="disable the automatic pip upgrade that happens after the virtualenv is created "
              "and before the dependencies begin to be installed.")
+    parser.add_argument(
+        '--use-uv', action='store_true',
+        help="use uv (instead of venv/pip) to create the virtualenv and install dependencies; "
+             "uv must be available in PATH or indicated with --uv-path.")
+    parser.add_argument(
+        '--uv-path', action='store', metavar='UV_PATH',
+        help="path to the uv executable to use (implies --use-uv); if not given, uv is looked up "
+             "in PATH.")
+    parser.add_argument(
+        '--uv-pip-options', action='append', default=[],
+        help="extra options to be supplied to 'uv pip install' (this option can be used multiple "
+             "times); only valid together with --use-uv.")
 
     mutexg = parser.add_mutually_exclusive_group()
     mutexg.add_argument(
@@ -399,6 +438,11 @@ def go():
     if args.system_site_packages:
         options['venv_options'].append("--system-site-packages")
 
+    # use uv as the backend only when explicitly requested (flag, --uv-path or config)
+    use_uv, uv_exe, uv_pip_options = _resolve_uv_backend(args)
+    if use_uv:
+        logger.debug("Using uv backend found at %r", uv_exe)
+
     create_venv = False
     venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
     if venv_data:
@@ -412,8 +456,9 @@ def go():
         create_venv = True
 
     if create_venv:
-        # Check if the requested packages exists in pypi.
-        if not args.no_precheck_availability and indicated_deps.get('pypi'):
+        # Check if the requested packages exists in pypi. uv resolves directly and fails early
+        # by itself, so this extra check is skipped when using the uv backend.
+        if not args.no_precheck_availability and not use_uv and indicated_deps.get('pypi'):
             logger.info(
                 "Checking the availabilty of dependencies in PyPI. "
                 "You can use '--no-precheck-availability' to avoid it.")
@@ -423,7 +468,8 @@ def go():
 
         # Create a new venv
         venv_data, installed = envbuilder.create_venv(
-            indicated_deps, args.python, is_current, options, pip_options, args.avoid_pip_upgrade)
+            indicated_deps, args.python, is_current, options, pip_options,
+            args.avoid_pip_upgrade, use_uv, uv_exe, uv_pip_options)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
 
@@ -433,7 +479,9 @@ def go():
         return 0
 
     if args.freeze:
-        # beyond all the rest of work, dump the dependencies versions to a file
+        # beyond all the rest of work, dump the dependencies versions to a file; all venvs have
+        # pip available (the uv backend seeds it via 'uv venv --seed'), so a plain pip freeze
+        # gives a consistent requirements format regardless of the backend used
         mgr = pipmanager.PipManager(venv_data['env_bin_path'])
         mgr.freeze(args.freeze)
 
