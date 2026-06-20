@@ -438,6 +438,12 @@ virtual environment matching the provided UUID if such environment exists (one e
 way to find out the environment's UUID is calling *fades* with the
 ``--where`` option).
 
+Alternatively, you can pass ``--rm`` without a UUID and indicate the dependencies
+instead; *fades* will then remove the virtual environment that matches those
+dependencies, just like it would select it to run something::
+
+    fades --rm -d django
+
 Another way to clean up the cache is to remove all venvs that haven't been used for some time.
 In order to do this you need to call *fades* with ``--clean-unused-venvs``.
 When fades it's called with this option, it runs in mantain mode, this means that fades will exit
@@ -486,6 +492,10 @@ Use the ``django-admin.py`` script to start a new project named ``foo``, without
 Remove a virtual environment matching the given uuid from disk and cache index::
 
     fades --rm 89a2bf83-c280-4918-a78d-c35506efd69d
+
+Remove the virtual environment matching the indicated dependencies from disk and cache index::
+
+    fades --rm -d django
 
 Download the script from the given pastebin and executes it (previously building a virtual environment for the dependencies indicated in that pastebin, of course)::
 

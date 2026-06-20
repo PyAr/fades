@@ -19,7 +19,7 @@
 import os
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from packaging.requirements import Requirement
 
@@ -231,6 +231,57 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
         analyzable, child = main.decide_child_program(False, True, child_path)
         self.assertIsNone(analyzable)
         self.assertEqual(child, child_path)
+
+
+class RemoveVenvTestCase(unittest.TestCase):
+    """Check the '--rm' option, removing by uuid or by the indicated dependencies."""
+
+    def _run(self, cmdline_args, found_venv):
+        """Run go() with the given cli args, mocking the cache and the venv destruction.
+
+        'found_venv' is the metadata returned by the cache lookup (or None when nothing matches).
+        Returns the mocked cache and destroy_venv so the test can check how they were called.
+        """
+        venvscache = MagicMock()
+        venvscache.get_venv.return_value = found_venv
+        with patch('sys.argv', ['fades'] + cmdline_args), \
+                patch('fades.main.detect_inside_virtualenv', return_value=False), \
+                patch('fades.cache.VEnvsCache', return_value=venvscache), \
+                patch('fades.envbuilder.UsageManager'), \
+                patch('fades.helpers.get_basedir', return_value=Path('/tmp/fades-test')), \
+                patch('fades.envbuilder.destroy_venv') as destroy_venv:
+            result = main.go()
+        self.assertEqual(result, 0)
+        return venvscache, destroy_venv
+
+    def test_by_uuid_found(self):
+        venvscache, destroy_venv = self._run(
+            ['--rm', 'some-uuid'], found_venv={'env_path': '/path/to/venv'})
+        venvscache.get_venv.assert_called_once_with(uuid='some-uuid')
+        destroy_venv.assert_called_once_with('/path/to/venv', venvscache)
+
+    def test_by_uuid_not_found(self):
+        venvscache, destroy_venv = self._run(['--rm', 'some-uuid'], found_venv=None)
+        venvscache.get_venv.assert_called_once_with(uuid='some-uuid')
+        destroy_venv.assert_not_called()
+
+    def test_by_uuid_invalid_env_path(self):
+        _, destroy_venv = self._run(['--rm', 'some-uuid'], found_venv={'env_path': None})
+        destroy_venv.assert_not_called()
+
+    def test_by_dependencies_found(self):
+        venvscache, destroy_venv = self._run(
+            ['--rm', '-d', 'foo'], found_venv={'env_path': '/path/to/venv'})
+        # the lookup is done by the indicated dependencies, not by uuid
+        (_, kwargs) = venvscache.get_venv.call_args
+        self.assertNotIn('uuid', kwargs)
+        deps = venvscache.get_venv.call_args[0][0]
+        self.assertIn('foo', [req.name for req in deps[REPO_PYPI]])
+        destroy_venv.assert_called_once_with('/path/to/venv', venvscache)
+
+    def test_by_dependencies_not_found(self):
+        venvscache, destroy_venv = self._run(['--rm', '-d', 'foo'], found_venv=None)
+        destroy_venv.assert_not_called()
 
 
 # ---------------------------------------
