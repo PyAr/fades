@@ -506,3 +506,16 @@ def go():
     if rc:
         logger.debug("Child process not finished correctly: returncode=%d", rc)
     return rc
+
+
+def console_entry_point():
+    """Run fades as a command line program, handling its own errors.
+
+    This is the target of the 'fades' console script declared in
+    pyproject.toml and is also used to run fades as a module.
+    """
+    try:
+        rc = go()
+    except FadesError:
+        sys.exit(-1)
+    sys.exit(rc)

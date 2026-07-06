@@ -1,11 +1,10 @@
 Steps before a release is done
 ------------------------------
 
-Check all is crispy
+Check all is crispy (building needs the 'build' package: pip install build)
 
   rm -rf build dist
-  ./setup.py clean build
-  ./setup.py clean sdist
+  python3 -m fades -d build -m build
 
 
 Edit the ``fades/_version.py`` file properly, then tag and commit/push
@@ -21,7 +20,7 @@ How to release it to PyPI
 Dead simple:
 
   rm -rf build dist
-  ./setup.py clean sdist
+  python3 -m fades -d build -m build
   fades -d twine -x twine upload dist/fades-*
 
 
@@ -31,7 +30,7 @@ How to create a .deb
 Create the tarball:
 
   rm -rf build dist
-  ./setup.py clean sdist
+  python3 -m fades -d build -m build --sdist
 
 
 Copy this tarball to a clean dir, renaming as "orig"
@@ -155,9 +154,9 @@ Read the Docs
 - go and login there, go to "fades" project
 - in "Versions" tab, activate the new version (corresponding to the release in github)
 - in "Administrator" tab, go to option "Advanced configuration" at the left, choose latest release as "default version"
-- verify all latest is seen in 
+- verify all latest is seen in
 
-    http://fades.rtfd.org/ 
+    http://fades.rtfd.org/
 
 
 How to sign the files
