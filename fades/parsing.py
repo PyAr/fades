@@ -193,6 +193,18 @@ def _parse_content(fh):
         if parsed_req is None:
             continue
         repo, dependency = parsed_req
+
+        # Handle environment markers (PEP 508): if a requirement has markers,
+        # only include it if the markers evaluate to True in the current environment
+        if repo == REPO_PYPI and hasattr(dependency, 'marker') and dependency.marker is not None:
+            if not dependency.marker.evaluate():
+                logger.debug(
+                    "Skipping requirement %s due to environment marker: %s",
+                    dependency.name,
+                    dependency.marker
+                )
+                continue
+
         deps.setdefault(repo, []).append(dependency)
 
     return deps
@@ -252,6 +264,18 @@ def _parse_requirement(iterable):
         if parsed_req is None:
             continue
         repo, dependency = parsed_req
+
+        # Handle environment markers (PEP 508): if a requirement has markers,
+        # only include it if the markers evaluate to True in the current environment
+        if repo == REPO_PYPI and hasattr(dependency, 'marker') and dependency.marker is not None:
+            if not dependency.marker.evaluate():
+                logger.debug(
+                    "Skipping requirement %s due to environment marker: %s",
+                    dependency.name,
+                    dependency.marker
+                )
+                continue
+
         deps.setdefault(repo, []).append(dependency)
 
     return deps
