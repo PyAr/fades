@@ -1,2 +1,1 @@
-FADES='./bin/fades -r requirements.txt'
-python3 setup.py --long-description | $FADES -x rst2html5 > README.html
+python3 -m fades -r requirements.txt -x rst2html5 < README.rst > README.html

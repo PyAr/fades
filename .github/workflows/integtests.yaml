@@ -8,8 +8,8 @@ on:
 
 jobs:
 
-  # Single source of truth: the oldest supported Python is whatever setup.py
-  # declares in `python_requires`. Every job below derives its cross-version
+  # Single source of truth: the oldest supported Python is whatever pyproject.toml
+  # declares in `requires-python`. Every job below derives its cross-version
   # target from this output instead of hardcoding a version.
   min-python:
     runs-on: ubuntu-latest
@@ -17,10 +17,10 @@ jobs:
       version: ${{ steps.minpy.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - name: Read minimum supported Python from setup.py
+      - name: Read minimum supported Python from pyproject.toml
         id: minpy
         run: |
-          version=$(grep python_requires setup.py | grep -oE '[0-9]+\.[0-9]+' | head -1)
+          version=$(grep requires-python pyproject.toml | grep -oE '[0-9]+\.[0-9]+' | head -1)
           echo "Minimum supported Python: $version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
@@ -45,7 +45,7 @@ jobs:
       - name: Simple fades run (newest Python)
         run: |
           cd /fades
-          bin/fades -v -d pytest -x pytest --version
+          python3 -m fades -v -d pytest -x pytest --version
       - name: Using the oldest supported Python
         env:
           OLDEST: ${{ needs.min-python.outputs.version }}
@@ -53,7 +53,7 @@ jobs:
           cd /fades
           uv python install "$OLDEST"
           OLD=$(uv python find "$OLDEST")
-          python bin/fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion="$OLDEST" tests/integtest.py
+          python -m fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion="$OLDEST" tests/integtest.py
 
   fedora:
     needs: min-python
@@ -73,7 +73,7 @@ jobs:
       - name: Simple fades run
         run: |
           cd /fades
-          bin/fades -v -d pytest -x pytest --version
+          python3 -m fades -v -d pytest -x pytest --version
       - name: Using the oldest supported Python
         env:
           OLDEST: ${{ needs.min-python.outputs.version }}
@@ -81,7 +81,7 @@ jobs:
           cd /fades
           uv python install "$OLDEST"
           OLD=$(uv python find "$OLDEST")
-          python3 bin/fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion="$OLDEST" tests/integtest.py
+          python3 -m fades -v --python="$OLD" -d pytest -x pytest -v --integtest-pyversion="$OLDEST" tests/integtest.py
 
   native-windows:
     needs: min-python
@@ -89,7 +89,7 @@ jobs:
       matrix:
         # just a selection otherwise it's too much
         # - latest OS (left here even if it's only one to simplify upgrading later)
-        # - oldest (from setup.py) and newest Python
+        # - oldest (from pyproject.toml) and newest Python
         os: [windows-2025]
         python-version: ["${{ needs.min-python.outputs.version }}", "3.13"]
 
@@ -114,11 +114,11 @@ jobs:
           ${{ steps.matrixpy.outputs.python-path }} -m pip install -U packaging
       - name: Simple fades run
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version
+          ${{ steps.matrixpy.outputs.python-path }} -m fades -v -d pytest -x pytest --version
 
       - name: Using a different Python
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=${{ needs.min-python.outputs.version }} tests/integtest.py
+          ${{ steps.matrixpy.outputs.python-path }} -m fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=${{ needs.min-python.outputs.version }} tests/integtest.py
 
   native-generic:
     needs: min-python
@@ -126,7 +126,7 @@ jobs:
       matrix:
         # just a selection otherwise it's too much
         # - latest OSes
-        # - oldest (from setup.py) and newest Python
+        # - oldest (from pyproject.toml) and newest Python
         os: [ubuntu-24.04, macos-15]
         python-version: ["${{ needs.min-python.outputs.version }}", "3.13"]
 
@@ -151,8 +151,8 @@ jobs:
           ${{ steps.matrixpy.outputs.python-path }} -m pip install -U packaging
       - name: Simple fades run
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v -d pytest -x pytest --version
+          ${{ steps.matrixpy.outputs.python-path }} -m fades -v -d pytest -x pytest --version
 
       - name: Using a different Python
         run: |
-          ${{ steps.matrixpy.outputs.python-path }} bin/fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=${{ needs.min-python.outputs.version }} tests/integtest.py
+          ${{ steps.matrixpy.outputs.python-path }} -m fades -v --python=${{ steps.otherpy.outputs.python-path }} -d pytest -x pytest -v --integtest-pyversion=${{ needs.min-python.outputs.version }} tests/integtest.py

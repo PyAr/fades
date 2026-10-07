@@ -1,0 +1,90 @@
+# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/fades
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fades"
+dynamic = ["version"]
+description = "A system that automatically handles the virtualenvs in the cases normally found when writing scripts and simple programs, and even helps to administer big projects."
+readme = "README.rst"
+license = {text = "GPL-3"}
+authors = [
+    {name = "Facundo Batista", email = "facundo@taniquetil.com.ar"},
+    {name = "Nicolás Demarchi", email = "mail@gilgamezh.me"},
+]
+requires-python = ">=3.10"
+keywords = ["virtualenv", "utils", "utility", "scripts"]
+dependencies = ["packaging"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+
+    "Environment :: Console",
+
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+
+    "License :: OSI Approved :: GNU General Public License (GPL)",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+
+    "Natural Language :: English",
+    "Natural Language :: Spanish",
+
+    "Operating System :: MacOS",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation",
+    "Programming Language :: Python :: Implementation :: CPython",
+
+    "Topic :: Software Development",
+    "Topic :: Utilities",
+]
+
+[project.optional-dependencies]
+pyxdg = ["pyxdg"]
+
+[project.urls]
+Homepage = "https://github.com/PyAr/fades"
+Documentation = "https://fades.readthedocs.io/"
+Download = "https://github.com/PyAr/fades/releases"
+
+[project.scripts]
+fades = "fades.main:console_entry_point"
+
+[tool.setuptools]
+packages = ["fades"]
+
+[tool.setuptools.dynamic]
+version = {attr = "fades._version.__version__"}
+
+# NOTE: the man page is installed under <prefix>/share/man/man1 via data_files
+# declared in setup.py -- PEP 621 / pyproject.toml has no equivalent for it, and
+# modern setuptools no longer accepts data_files in this file. That tiny setup.py
+# is the only remaining piece of the legacy build; everything else lives here.
