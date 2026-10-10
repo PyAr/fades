@@ -14,7 +14,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB-r\fR][\fB--requirement\fR]
 [\fB-x\fR][\fB--exec\fR]
 [\fB-p\fR \fIversion\fR][\fB--python\fR=\fIversion\fR]
-[\fB--rm\fR=\fIUUID\fR]
+[\fB--rm\fR[=\fIUUID\fR]]
 [\fB--system-site-packages\fR]
 [\fB--venv-options\fR=\fIoptions\fR]
 [\fB--pip-options\fR=\fIoptions\fR]
@@ -91,8 +91,8 @@ The dependencies can be indicated in multiple places (in the Python source file,
 Execute the \fIchild_program\fR in the context of the virtual environment. The child_program, which in this case becomes a mandatory parameter, can be just the executable name (relative to the venv's bin directory) or an absolute path.
 
 .TP
-.BR --rm " " \fIUUID\fR
-Remove a virtual environment by UUID.  See \fB--get-venv-dir\fR option to easily find out the UUID.
+.BR --rm " " [\fIUUID\fR]
+Remove a virtual environment.  If a UUID is given, the environment with that UUID is removed (see \fB--get-venv-dir\fR option to easily find out the UUID); if no UUID is given, the environment matching the indicated dependencies is removed (e.g. \fBfades --rm -d django\fR).
 
 .TP
 .BR --system-site-packages ""
