@@ -264,7 +264,7 @@ def go():
         '--python-options', action='append', default=[],
         help="extra options to be supplied to python (this option can be used multiple times)")
     parser.add_argument(
-        '--rm', dest='remove', metavar='UUID', nargs='?', const=REMOVE_BY_DEPS, default=None,
+        '--rm', dest='remove', metavar='UUID', nargs='?', const=REMOVE_BY_DEPS,
         help="remove a virtualenv: by UUID if one is given (see --where to easily find out the "
              "UUID), or by the indicated dependencies if no UUID is passed "
              "(e.g. 'fades --rm -d django')")
