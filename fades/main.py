@@ -133,7 +133,7 @@ def consolidate_dependencies(needs_ipython, child_program, requirement_files, ma
         docstring_deps = parsing.parse_docstring(child_program)
         logger.debug("Dependencies from docstrings: %s", docstring_deps)
         pep723_deps, _ = parsing.parse_pep723(child_program)
-        logger.debug("Dependencies from PEP 723 metadata: %s", pep723_deps)
+        logger.debug("Dependencies from '# /// script' metadata block: %s", pep723_deps)
     else:
         srcfile_deps = {}
         docstring_deps = {}
@@ -391,10 +391,11 @@ def go():
     if args.check_updates:
         helpers.check_pypi_updates(indicated_deps)
 
-    # honor a PEP 723 'requires-python' (this may pick a different interpreter than the one
-    # explicitly requested with --python or fades' own)
-    _, requires_python = parsing.parse_pep723(analyzable_child_program)
-    python_interpreter = helpers.get_interpreter_for_requirement(requires_python, args.python)
+    # decide the interpreter to use, considering the one indicated with --python and the
+    # Python version the script declares it needs in its '# /// script' metadata block, if any
+    # (this may find in PATH a different interpreter than fades' own)
+    _, python_toml = parsing.parse_pep723(analyzable_child_program)
+    python_interpreter = helpers.get_interpreter_for_requirement(python_toml, args.python)
 
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(python_interpreter)

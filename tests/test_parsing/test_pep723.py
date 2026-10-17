@@ -1,4 +1,4 @@
-# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
+# Copyright 2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -14,13 +14,13 @@
 #
 # For further info, check  https://github.com/PyAr/fades
 
-"""Check the PEP 723 inline script metadata parsing."""
+"""Check the parsing of the '# /// script' metadata block (PEP 723)."""
 
 from unittest.mock import patch
 
 import pytest
 
-from fades import FadesError, parsing, REPO_PYPI
+from fades import FadesError, parsing, REPO_PYPI, REPO_VCS
 
 from tests import get_reqs
 
@@ -134,7 +134,7 @@ def test_invalid_toml(logs):
     )
     with pytest.raises(FadesError):
         parsing._parse_pep723(content)
-    assert "Invalid TOML in the PEP 723 metadata block" in logs.error
+    assert "Invalid TOML in the script's '# /// script' metadata block" in logs.error
 
 
 def test_invalid_dependency(logs):
@@ -147,7 +147,7 @@ def test_invalid_dependency(logs):
     )
     with pytest.raises(FadesError):
         parsing._parse_pep723(content)
-    assert "Invalid dependency in the PEP 723 metadata block" in logs.error
+    assert "Invalid dependency 'not a valid requirement!!'" in logs.error
 
 
 def test_dependencies_not_a_list(logs):
@@ -191,3 +191,70 @@ def test_parse_pep723_file_requires_python():
         "tests/test_files/pep723_requires_python.py")
     assert deps == {REPO_PYPI: get_reqs("requests<3")}
     assert requires_python == ">=3.11"
+
+
+def test_dependency_not_a_string(logs):
+    content = (
+        "# /// script\n"
+        "# dependencies = [3]\n"
+        "# ///\n"
+    )
+    with pytest.raises(FadesError):
+        parsing._parse_pep723(content)
+    assert "Invalid dependency 3" in logs.error
+
+
+def test_vcs_dependency():
+    content = (
+        "# /// script\n"
+        "# dependencies = [\n"
+        '#   "foo @ git+https://github.com/foo/foo.git@v1.0",\n'
+        "# ]\n"
+        "# ///\n"
+    )
+    deps, _ = parsing._parse_pep723(content)
+    assert deps == {
+        REPO_VCS: [parsing.VCSDependency("foo @ git+https://github.com/foo/foo.git@v1.0")],
+    }
+
+
+def test_path_dependency():
+    content = (
+        "# /// script\n"
+        "# dependencies = [\n"
+        '#   "foo @ file:///home/user/foo",\n'
+        "# ]\n"
+        "# ///\n"
+    )
+    deps, _ = parsing._parse_pep723(content)
+    assert deps == {REPO_VCS: [parsing.VCSDependency("foo @ file:///home/user/foo")]}
+
+
+def test_mixed_pypi_and_vcs_dependencies():
+    content = (
+        "# /// script\n"
+        "# dependencies = [\n"
+        '#   "requests<3",\n'
+        '#   "foo @ git+https://github.com/foo/foo.git",\n'
+        "# ]\n"
+        "# ///\n"
+    )
+    deps, _ = parsing._parse_pep723(content)
+    assert deps == {
+        REPO_PYPI: get_reqs("requests<3"),
+        REPO_VCS: [parsing.VCSDependency("foo @ git+https://github.com/foo/foo.git")],
+    }
+
+
+def test_parse_pep723_file_is_cached(tmp_path):
+    filepath = tmp_path / "script.py"
+    filepath.write_text(
+        "# /// script\n"
+        '# requires-python = ">=3.11"\n'
+        "# ///\n"
+    )
+    with patch.object(parsing, "_parse_pep723", wraps=parsing._parse_pep723) as mock:
+        first = parsing.parse_pep723(filepath)
+        second = parsing.parse_pep723(filepath)
+    assert first == second == ({}, ">=3.11")
+    assert mock.call_count == 1

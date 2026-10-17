@@ -1,4 +1,4 @@
-# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -188,15 +188,15 @@ class DepsMergingTestCase(unittest.TestCase):
 
 
 class PEP723RequiresPythonIntegrationTestCase(unittest.TestCase):
-    """End-to-end wiring of a PEP 723 requires-python into interpreter selection.
+    """End-to-end wiring of the Python version a script needs into interpreter selection.
 
-    This mirrors the two-step flow in main.go(): parse the requires-python out of the
-    script and then resolve which interpreter honors it.
+    This mirrors the two-step flow in main.go(): parse the needed Python version out of the
+    script's '# /// script' metadata block and then decide which interpreter to use.
     """
 
-    def _resolve(self, child_program, requested_python):
-        _, requires_python = parsing.parse_pep723(child_program)
-        return helpers.get_interpreter_for_requirement(requires_python, requested_python)
+    def _resolve(self, child_program, python_args):
+        _, python_toml = parsing.parse_pep723(child_program)
+        return helpers.get_interpreter_for_requirement(python_toml, python_args)
 
     def test_requires_python_picks_discovered_interpreter(self):
         # script asks for >=3.11; the default doesn't satisfy, so one is discovered
@@ -218,15 +218,17 @@ class PEP723RequiresPythonIntegrationTestCase(unittest.TestCase):
         self.assertEqual(result, '/some/python')
 
     def test_requires_python_conflicts_with_explicit_choice(self):
-        # an explicit --python that violates the script's requires-python is an error
+        # an explicit --python that doesn't satisfy what the script needs is still used
+        # (the conflict is just warned)
         child_program = 'tests/test_files/pep723_requires_python.py'
 
         with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
-            with self.assertRaises(FadesError):
-                self._resolve(child_program, '/some/python')
+            result = self._resolve(child_program, '/some/python')
+
+        self.assertEqual(result, '/some/python')
 
     def test_no_requires_python_keeps_interpreter(self):
-        # a PEP 723 block without requires-python leaves the chosen interpreter untouched
+        # a '# /// script' block without requires-python leaves the chosen interpreter as is
         child_program = 'tests/test_files/pep723_basic.py'
 
         with patch.object(helpers, '_get_interpreter_full_version') as mock:

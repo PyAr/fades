@@ -86,7 +86,7 @@ Select which Python version to be used; the argument can be just the number (3.1
 
 The dependencies can be indicated in multiple places (in the Python source file, with a comment besides the import, in a \fIrequirements\fRfile, and/or through command line. In case of multiple definitions of the same dependency, command line overrides everything else, and requirements file overrides what is specified in the source code.
 
-\fBfades\fR also understands the inline script metadata defined by PEP 723 (a \fB# /// script\fR block at the top of the script); its \fBdependencies\fR are installed, and if \fBrequires-python\fR is present it is used to select a suitable Python interpreter (failing if none is available).
+\fBfades\fR also understands the inline script metadata defined by PEP 723 (a \fB# /// script\fR block at the top of the script); its \fBdependencies\fR are installed, and its \fBrequires-python\fR (the Python version the script needs) is used to select the interpreter: one given with \fB--python\fR is always used (warning if it does not satisfy the script), otherwise fades uses its own Python if suitable, or the highest suitable \fBpythonX.Y\fR found in the PATH (failing if none is found).
 
 .TP
 .BR -x ", " --exec

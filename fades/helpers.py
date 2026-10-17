@@ -36,8 +36,8 @@ from fades import FadesError, _version
 
 logger = logging.getLogger(__name__)
 
-# range of CPython 3 minor versions probed when auto-selecting an interpreter to
-# satisfy a PEP 723 'requires-python' specifier
+# range of CPython 3 minor versions searched in PATH (as 'python3.X') when looking for an
+# interpreter that satisfies the Python version a script declares it needs
 PYTHON_MINOR_RANGE = range(6, 30)
 
 # command to retrieve the version from an external Python
@@ -210,48 +210,80 @@ def _find_interpreter(specifier):
     return candidates[-1][1]
 
 
-def get_interpreter_for_requirement(requires_python, requested_python):
-    """Honor a PEP 723 'requires-python' specifier, returning the interpreter to use.
+def get_interpreter_for_requirement(python_toml, python_args):
+    """Decide which Python interpreter to use for the child program.
 
-    The returned value is the python executable/path to use, which may be
-    'requested_python' unchanged or an auto-discovered one. Raises FadesError if no
-    available interpreter satisfies the specifier.
+    Two sources may indicate it:
+
+    - python_toml: the Python version the script declares it needs, written as a version
+      specifier (e.g. ">=3.11"); it comes from the 'requires-python' field of the
+      '# /// script' metadata block at the top of the script (this block is defined in
+      PEP 723). None if the script doesn't declare it.
+    - python_args: the interpreter explicitly indicated by the user in the command line
+      with --python. None if not given.
+
+    The command line is the most dynamic of the two, so it always has the last word:
+
+        --python  script declares     result
+        --------  ------------------  --------------------------------------------------
+        no        nothing             None (fades' own Python)
+        yes       nothing             the one from --python
+        yes       a version that      the one from --python (logged in DEBUG); this lets
+                  it satisfies        the user narrow a range declared by the script
+        yes       a version that it   the one from --python, but logging the conflict
+                  does NOT satisfy    in WARNING
+        no        a version           fades' own Python if it satisfies the version,
+                                      otherwise the highest satisfying one found in PATH;
+                                      error if none is found
+
+    Return the interpreter to use (None meaning fades' own Python).
     """
-    if not requires_python:
-        return requested_python
+    if python_toml is None:
+        return python_args
 
     try:
-        specifier = SpecifierSet(requires_python)
+        specifier = SpecifierSet(python_toml)
     except (InvalidSpecifier, TypeError) as error:
-        # TypeError happens when requires-python is not a string (e.g. a TOML number)
-        logger.error("Invalid PEP 723 requires-python %r: %s", requires_python, error)
-        raise FadesError("Invalid PEP 723 requires-python")
-    logger.debug("Honoring PEP 723 requires-python %r", requires_python)
+        # TypeError happens when the value is not a string (e.g. a TOML number like 3.11)
+        logger.error(
+            "The script declares an invalid needed Python version %r (in the "
+            "'requires-python' field of its '# /// script' block): %s", python_toml, error)
+        raise FadesError("Invalid Python version declared in the script")
 
-    # check the currently selected interpreter (explicit -p or fades' own)
-    major, minor, micro = _get_interpreter_full_version(requested_python)
-    current_version = Version("{}.{}.{}".format(major, minor, micro))
-    if specifier.contains(current_version, prereleases=True):
-        return requested_python
+    major, minor, micro = _get_interpreter_full_version(python_args)
+    version = Version("{}.{}.{}".format(major, minor, micro))
+    satisfies = specifier.contains(version, prereleases=True)
 
-    if requested_python is not None:
-        # the user explicitly chose an interpreter that conflicts with the script; don't
-        # silently override that choice, fail so they can resolve it
-        msg = ("The chosen Python interpreter (version {}) does not satisfy the script's "
-               "requires-python ({!r})".format(current_version, requires_python))
-        logger.error(msg)
-        raise FadesError(msg)
+    if python_args is not None:
+        if satisfies:
+            logger.debug(
+                "The script declares it needs Python %r; using the interpreter indicated "
+                "with --python (%s, version %s), which satisfies it",
+                python_toml, python_args, version)
+        else:
+            logger.warning(
+                "The script declares it needs Python %r, but the interpreter indicated "
+                "with --python (%s) is version %s; using it anyway, as requested",
+                python_toml, python_args, version)
+        return python_args
 
-    # nothing was explicitly requested and fades' own python doesn't satisfy the spec:
-    # try to discover a suitable interpreter in PATH
+    if satisfies:
+        logger.debug(
+            "The script declares it needs Python %r; fades' own Python (version %s) "
+            "satisfies it", python_toml, version)
+        return None
+
+    # fades' own Python is not suitable, look for one in PATH
     discovered = _find_interpreter(specifier)
     if discovered is None:
-        msg = ("No available Python interpreter satisfies the script's requires-python "
-               "({!r})".format(requires_python))
+        msg = ("The script declares it needs Python {!r}, but fades' own Python is version {} "
+               "and no other suitable interpreter was found in PATH; you can indicate one "
+               "with --python".format(python_toml, version))
         logger.error(msg)
         raise FadesError(msg)
-    logger.info("Using Python interpreter %r to satisfy requires-python %r",
-                discovered, requires_python)
+    logger.info(
+        "The script declares it needs Python %r, which fades' own Python (version %s) "
+        "doesn't satisfy; using %s", python_toml, version, discovered)
     return discovered
 
 

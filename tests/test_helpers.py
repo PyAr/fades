@@ -1,4 +1,4 @@
-# Copyright 2014-2026 Facundo Batista, Nicolás Demarchi
+# Copyright 2015-2026 Facundo Batista, Nicolás Demarchi
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -586,11 +586,11 @@ def test_getbinpath_missing(tmp_path):
 
 
 class GetInterpreterForRequirementTestCase(unittest.TestCase):
-    """Tests for honoring a PEP 723 requires-python."""
+    """Tests for deciding the interpreter from --python and the version the script needs."""
 
     def test_no_requirement(self):
-        # nothing to honor, the requested interpreter is returned unchanged (and no
-        # interpreter version is even probed)
+        # the script doesn't declare a version, the one from --python is returned unchanged
+        # (and no interpreter version is even probed)
         with patch.object(helpers, '_get_interpreter_full_version') as mock:
             result = helpers.get_interpreter_for_requirement(None, '/some/python')
         assert result == '/some/python'
@@ -601,15 +601,42 @@ class GetInterpreterForRequirementTestCase(unittest.TestCase):
             result = helpers.get_interpreter_for_requirement('>=3.11', None)
         assert result is None
 
+    def test_nothing_declared_nor_indicated(self):
+        with patch.object(helpers, '_get_interpreter_full_version') as mock:
+            result = helpers.get_interpreter_for_requirement(None, None)
+        assert result is None
+        assert mock.call_count == 0
+
     def test_explicit_satisfies(self):
+        logassert.setup(self, 'fades.helpers')
         with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
-            result = helpers.get_interpreter_for_requirement('>=3.11', '/some/python')
+            with patch.object(helpers, '_find_interpreter') as mock_find:
+                result = helpers.get_interpreter_for_requirement('>=3.11', '/some/python')
         assert result == '/some/python'
+        assert mock_find.call_count == 0
+        self.assertLoggedDebug("'>=3.11'", "--python", "/some/python", "3.12.0")
+        self.assertNotLoggedWarning("--python")
+
+    def test_explicit_narrows_the_range(self):
+        # the script declares a range and --python picks one inside it, which is used even
+        # if a higher suitable interpreter is available in PATH
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
+            with patch.object(helpers, '_find_interpreter',
+                              return_value='/usr/bin/python3.14') as mock_find:
+                result = helpers.get_interpreter_for_requirement('>=3.11', 'python3.12')
+        assert result == 'python3.12'
+        assert mock_find.call_count == 0
 
     def test_explicit_does_not_satisfy(self):
+        # a conflict: --python has the last word, but the situation is warned
+        logassert.setup(self, 'fades.helpers')
         with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
-            with pytest.raises(FadesError):
-                helpers.get_interpreter_for_requirement('>=3.11', '/some/python')
+            with patch.object(helpers, '_find_interpreter') as mock_find:
+                result = helpers.get_interpreter_for_requirement('>=3.11', '/some/python')
+        assert result == '/some/python'
+        assert mock_find.call_count == 0
+        self.assertLoggedWarning(
+            "needs Python '>=3.11'", "--python", "/some/python", "3.9.0", "using it anyway")
 
     def test_default_does_not_satisfy_discovers(self):
         with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
@@ -620,10 +647,12 @@ class GetInterpreterForRequirementTestCase(unittest.TestCase):
         assert mock_find.call_count == 1
 
     def test_default_does_not_satisfy_no_candidate(self):
+        logassert.setup(self, 'fades.helpers')
         with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
             with patch.object(helpers, '_find_interpreter', return_value=None):
                 with pytest.raises(FadesError):
                     helpers.get_interpreter_for_requirement('>=3.11', None)
+        self.assertLoggedError("needs Python '>=3.11'", "3.9.0", "--python")
 
     def test_bounded_range_current_satisfies(self):
         with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 11, 0)):
@@ -655,14 +684,14 @@ class GetInterpreterForRequirementTestCase(unittest.TestCase):
         logassert.setup(self, 'fades.helpers')
         with pytest.raises(FadesError):
             helpers.get_interpreter_for_requirement('not a spec!!', None)
-        self.assertLoggedError("Invalid PEP 723 requires-python", "not a spec!!")
+        self.assertLoggedError("invalid needed Python version", "not a spec!!")
 
     def test_invalid_requires_python_not_a_string(self):
         # a TOML number reaches us as a float, which is not a valid specifier
         logassert.setup(self, 'fades.helpers')
         with pytest.raises(FadesError):
             helpers.get_interpreter_for_requirement(3.11, None)
-        self.assertLoggedError("Invalid PEP 723 requires-python")
+        self.assertLoggedError("invalid needed Python version", "3.11")
 
 
 class FindInterpreterTestCase(unittest.TestCase):

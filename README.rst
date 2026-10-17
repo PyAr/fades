@@ -202,12 +202,21 @@ for other runners (like ``pipx`` or ``pip-run``) and vice versa. Just add a
     import requests
     from rich.pretty import pprint
 
-The ``dependencies`` are installed like any other dependency. If
-``requires-python`` is present, *fades* will use it to pick a suitable Python
-interpreter: if the one in use (the default, or the one given with
-``--python``) does not satisfy the requirement, *fades* will try to find an
-appropriate interpreter in the system, and fail if none is available (in that
-case, adjust the script's ``requires-python`` or install a matching Python).
+The ``dependencies`` are installed like any other dependency (the ones
+pointing to a URL, like ``foo @ git+https://...`` or ``foo @ file:///some/path``,
+are handled as VCS dependencies).
+
+The ``requires-python`` field declares which Python version the script needs,
+and *fades* uses it to pick the interpreter:
+
+- if you indicated one with ``--python``, that one is always used (if it doesn't
+  satisfy what the script declares, *fades* warns about it but respects your
+  choice); this is also useful to pick a specific version inside a range declared
+  by the script;
+- otherwise, *fades* uses its own Python if it satisfies the version, or else it
+  looks for the highest suitable ``pythonX.Y`` interpreter in the ``PATH``; if
+  none is found, it fails (in that case, install a matching Python or indicate
+  one with ``--python``).
 
 
 About different repositories
