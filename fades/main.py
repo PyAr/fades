@@ -239,13 +239,13 @@ def _resolve_uv_backend(args):
 
     uv_exe = helpers.get_uv_exe(args.uv_path)
     if not uv_exe:
-        msg = ("uv was requested (--use-uv) but no usable uv binary was found; install uv or "
+        msg = ("uv was requested but no usable uv binary was found; install uv or "
                "indicate its location with --uv-path")
         logger.error(msg)
         raise FadesError(msg)
 
     if args.pip_options or args.venv_options:
-        msg = ("--pip-options/--venv-options can't be used together with --use-uv; "
+        msg = ("--pip-options/--venv-options can't be used when uv is used; "
                "use --uv-pip-options to pass options to uv")
         logger.error(msg)
         raise FadesError(msg)
@@ -322,7 +322,7 @@ def go():
     parser.add_argument(
         '--uv-pip-options', action='append', default=[],
         help="extra options to be supplied to 'uv pip install' (this option can be used multiple "
-             "times); only valid together with --use-uv.")
+             "times); only valid when uv is used.")
 
     mutexg = parser.add_mutually_exclusive_group()
     mutexg.add_argument(
@@ -451,6 +451,8 @@ def go():
     use_uv, uv_exe, uv_pip_options = _resolve_uv_backend(args)
     if use_uv:
         logger.debug("Using uv backend found at %r", uv_exe)
+    else:
+        logger.debug("Using the classic backend (venv + pip)")
 
     create_venv = False
     venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
@@ -476,9 +478,13 @@ def go():
                 raise FadesError("Required dependency does not exist")
 
         # Create a new venv
-        venv_data, installed = envbuilder.create_venv(
-            indicated_deps, python_interpreter, is_current, options, pip_options,
-            args.avoid_pip_upgrade, use_uv, uv_exe, uv_pip_options)
+        if use_uv:
+            venv_data, installed = envbuilder.create_venv_uv(
+                indicated_deps, python_interpreter, is_current, options, uv_exe, uv_pip_options)
+        else:
+            venv_data, installed = envbuilder.create_venv_classic(
+                indicated_deps, python_interpreter, is_current, options, pip_options,
+                args.avoid_pip_upgrade)
         # store this new venv in the cache
         venvscache.store(installed, venv_data, interpreter, options)
 

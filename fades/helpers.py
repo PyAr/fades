@@ -102,7 +102,14 @@ def get_uv_exe(uv_path=None):
     installed inside a venv), so we rely on a ``uv`` *binary* rather than the ``uv`` PyPI package,
     which would require polluting the system Python.
     """
-    return shutil.which(uv_path) if uv_path else shutil.which("uv")
+    if uv_path:
+        uv_exe = shutil.which(uv_path)
+        logger.debug("Looking for uv at the path indicated with --uv-path (%r): %r",
+                     uv_path, uv_exe)
+    else:
+        uv_exe = shutil.which("uv")
+        logger.debug("Looking for uv in PATH: %r", uv_exe)
+    return uv_exe
 
 
 def _get_basedirectory():

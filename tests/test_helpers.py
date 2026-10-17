@@ -792,11 +792,15 @@ class GetInterpreterFullVersionTestCase(unittest.TestCase):
 class GetUvExeTestCase(unittest.TestCase):
     """Tests for the uv binary detection."""
 
+    def setUp(self):
+        logassert.setup(self, 'fades.helpers')
+
     def test_uv_present(self):
         with patch.object(helpers.shutil, 'which', return_value='/usr/bin/uv') as mock:
             result = helpers.get_uv_exe()
         assert result == '/usr/bin/uv'
         mock.assert_called_once_with('uv')
+        self.assertLoggedDebug("Looking for uv in PATH", "/usr/bin/uv")
 
     def test_uv_absent(self):
         with patch.object(helpers.shutil, 'which', return_value=None):
@@ -809,6 +813,7 @@ class GetUvExeTestCase(unittest.TestCase):
             result = helpers.get_uv_exe('/opt/uv')
         assert result == '/opt/uv'
         mock.assert_called_once_with('/opt/uv')
+        self.assertLoggedDebug("Looking for uv at the path indicated with --uv-path", "/opt/uv")
 
     def test_uv_path_given_not_found(self):
         with patch.object(helpers.shutil, 'which', return_value=None):
