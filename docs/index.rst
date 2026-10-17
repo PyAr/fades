@@ -14,7 +14,8 @@ Contents:
    :maxdepth: 2
 
    readme 
-   development 
+   development
+   uv_by_default
 
 
 

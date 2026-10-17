@@ -440,19 +440,12 @@ Some notes when using ``uv``:
 
 - fades runs ``uv venv --seed``, so the virtual environment ships ``pip`` (and ``setuptools``, depending on the Python version) just like the classic ``venv`` backend, keeping packages that expect them present working.
 - The PyPI availability pre-check is skipped (``uv`` resolves directly and fails early on its own).
-- ``--pip-options`` and ``--venv-options`` are **not** valid together with ``--use-uv`` (they target ``pip``/``venv``); use ``--uv-pip-options`` to pass extra options to ``uv pip install`` instead.
+- ``--pip-options`` and ``--venv-options`` are **not** valid when uv is used (they target ``pip``/``venv``); use ``--uv-pip-options`` to pass extra options to ``uv pip install`` instead.
 
 Enabling uv permanently (via config)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you always want the uv backend, set ``use_uv=true`` under the ``[fades]`` section of any fades config file. fades reads (in increasing priority) ``/etc/fades/fades.ini`` (machine-wide), the per-user config (``<xdg-config>/fades/fades.ini``) and a repo-local ``./.fades.ini`` (handy to enable uv for a single project). A ``--use-uv``/``--no``-style flag on the command line still wins over the config.
-
-To turn it on for your user without editing files by hand, run::
-
-    python -W ignore -c "import configparser; from pathlib import Path; from fades.helpers import get_confdir; \
-    p = Path(get_confdir()) / 'fades.ini'; c = configparser.ConfigParser(); c.read(p); \
-    c.has_section('fades') or c.add_section('fades'); c.set('fades', 'use_uv', 'true'); \
-    c.write(p.open('w')); print('uv enabled by default in', p)"
+To always use the uv backend, set ``use_uv=true`` in a fades config file (see `Setting options using config files`_). If you prefer a command that does it for you, check `this recipe <https://github.com/PyAr/fades/blob/master/docs/uv_by_default.rst>`_.
 
 A note about ``pkg_resources``: some packages (e.g. ``azure-cli``) still import the long-deprecated ``pkg_resources``, which was **removed** in ``setuptools >= 81``. uv (and the classic backend on Python 3.12+) installs a recent ``setuptools`` that no longer provides it, so those imports fail. This is not specific to the uv backend; if you hit it, add an older setuptools as an explicit dependency::
 
