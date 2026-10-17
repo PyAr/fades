@@ -176,20 +176,20 @@ jobs:
           # single-quote to keep the backslashes, then turn them into forward slashes so bash
           # (Git Bash) doesn't strip them out of the Windows path
           PY='${{ steps.matrixpy.outputs.python-path }}'; PY="${PY//\\//}"
-          "$PY" python3 -m fades -v --use-uv -d six -x python -c "import six" > uv.log 2>&1 || { cat uv.log; exit 1; }
+          "$PY" -m fades -v --use-uv -d six -x python -c "import six" > uv.log 2>&1 || { cat uv.log; exit 1; }
           cat uv.log
           grep -q "Using uv backend" uv.log
       - name: default backend is pip on Windows (no opt-in)
         shell: bash
         run: |
           PY='${{ steps.matrixpy.outputs.python-path }}'; PY="${PY//\\//}"
-          "$PY" python3 -m fades -v -d six -x python -c "import six" > default.log 2>&1
+          "$PY" -m fades -v -d six -x python -c "import six" > default.log 2>&1
           ! grep -q "Using uv backend" default.log
       - name: --freeze on a uv venv produces a pinned file (Windows)
         shell: bash
         run: |
           PY='${{ steps.matrixpy.outputs.python-path }}'; PY="${PY//\\//}"
-          "$PY" python3 -m fades -v --use-uv -d six --freeze=frozen.txt -x python -c "import six" > freeze.log 2>&1 || { cat freeze.log; exit 1; }
+          "$PY" -m fades -v --use-uv -d six --freeze=frozen.txt -x python -c "import six" > freeze.log 2>&1 || { cat freeze.log; exit 1; }
           cat frozen.txt
           grep -q "^six==" frozen.txt
 
