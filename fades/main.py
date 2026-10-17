@@ -25,6 +25,7 @@ import signal
 import sys
 import subprocess
 import tempfile
+import uuid
 from pathlib import Path
 
 import fades
@@ -44,10 +45,6 @@ from fades.logger import set_up as logger_set_up
 # Get the logger here; it will be properly setup at bootstrap, but can be used from
 # the rest of the module just fine
 logger = logging.getLogger('fades')
-
-# sentinel used as the '--rm' value when it's given as a bare flag (no UUID), meaning
-# "remove the virtualenv that matches the indicated dependencies"
-REMOVE_BY_DEPS = object()
 
 # the signals to redirect to the child process (note: only these are
 # allowed in Windows, see 'signal' doc).
@@ -267,7 +264,7 @@ def go():
         '--python-options', action='append', default=[],
         help="extra options to be supplied to python (this option can be used multiple times)")
     parser.add_argument(
-        '--rm', dest='remove', metavar='UUID', nargs='?', const=REMOVE_BY_DEPS,
+        '--rm', dest='remove', metavar='UUID', nargs='?', const='',
         help="remove a virtualenv: by UUID if one is given (see --where to easily find out the "
              "UUID), or by the indicated dependencies if no UUID is passed "
              "(e.g. 'fades --rm -d django')")
@@ -316,6 +313,18 @@ def go():
 
     # update args from config file (if needed).
     args = file_options.options_from_file(cli_args)
+
+    # '--rm' takes an optional UUID, so in 'fades --rm script.py' argparse grabs the script as
+    # its value; venv UUIDs are always valid UUIDs, so anything else is really the child program
+    if args.remove is not None:
+        try:
+            uuid.UUID(args.remove)
+        except ValueError:
+            if args.remove:
+                if args.child_program is not None:
+                    args.child_options.insert(0, args.child_program)
+                args.child_program = args.remove
+                args.remove = ''
 
     # validate input, parameters, and support some special options
     if args.version:
@@ -396,12 +405,12 @@ def go():
 
     # remove a virtualenv, either by the given UUID or by the indicated dependencies
     if args.remove is not None:
-        if args.remove is REMOVE_BY_DEPS:
-            venv_data = venvscache.get_venv(indicated_deps, interpreter, options=options)
-            descriptor = "the indicated dependencies"
-        else:
+        if args.remove:
             venv_data = venvscache.get_venv(uuid=args.remove)
             descriptor = "uuid: {}".format(args.remove)
+        else:
+            venv_data = venvscache.get_venv(indicated_deps, interpreter, options=options)
+            descriptor = "the indicated dependencies"
         if venv_data:
             # remove this venv from the cache
             env_path = venv_data.get('env_path')
