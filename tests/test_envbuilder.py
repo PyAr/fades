@@ -73,7 +73,7 @@ class EnvCreationTestCase(unittest.TestCase):
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
                 fake_manager.really_installed = {'dep1': 'v1', 'dep2': 'v2'}
-                venv_data, installed = envbuilder.create_venv(
+                venv_data, installed = envbuilder.create_venv_classic(
                     requested, interpreter, is_current, options, pip_options, avoid_pip_upgrade)
 
         self.assertEqual(venv_data, {
@@ -91,6 +91,7 @@ class EnvCreationTestCase(unittest.TestCase):
             'env_bin_path', pip_installed='pip_installed', options=[],
             avoid_pip_upgrade=avoid_pip_upgrade)
         self.assertEqual(mock_mgr_c.call_args, expected_pipmanager_call)
+        self.assertLoggedDebug("Creating virtual environment with the classic backend")
 
     def test_create_with_uv_backend(self):
         requested = {
@@ -98,17 +99,14 @@ class EnvCreationTestCase(unittest.TestCase):
         }
         interpreter = 'python3'
         is_current = False
-        avoid_pip_upgrade = False
         options = {"venv_options": []}
-        pip_options = []
         with patch.object(envbuilder, 'create_with_uv') as mock_create:
             with patch.object(envbuilder, 'UvManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
                 fake_manager.really_installed = {'dep1': 'v1'}
-                venv_data, installed = envbuilder.create_venv(
-                    requested, interpreter, is_current, options, pip_options,
-                    avoid_pip_upgrade, use_uv=True, uv_exe='/bin/uv',
+                venv_data, installed = envbuilder.create_venv_uv(
+                    requested, interpreter, is_current, options, uv_exe='/bin/uv',
                     uv_pip_options=['--foo'])
 
         # the uv venv creator was used, and a UvManager (not PipManager) installed the deps with
@@ -118,6 +116,7 @@ class EnvCreationTestCase(unittest.TestCase):
             mock_mgr_c.call_args, call('env_bin_path', options=['--foo'], uv_exe='/bin/uv'))
         self.assertTrue(venv_data['pip_installed'])
         self.assertDictEqual(installed, {REPO_PYPI: {'dep1': 'v1'}})
+        self.assertLoggedDebug("Creating virtual environment with the uv backend", "/bin/uv")
 
     def test_create_with_uv_seeds_and_passes_options(self):
         # the uv venv command must seed pip/setuptools and forward the python + venv options
@@ -147,7 +146,7 @@ class EnvCreationTestCase(unittest.TestCase):
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FakeManager()
-                venv_data, installed = envbuilder.create_venv(
+                venv_data, installed = envbuilder.create_venv_classic(
                     requested, interpreter, is_current, options, pip_options, avoid_pip_upgrade)
 
         self.assertEqual(venv_data, {
@@ -170,7 +169,7 @@ class EnvCreationTestCase(unittest.TestCase):
             with patch.object(envbuilder, 'PipManager') as mock_mgr_c:
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = self.FakeManager()
-                envbuilder.create_venv(
+                envbuilder.create_venv_classic(
                     requested, interpreter, is_current, options, pip_options, avoid_pip_upgrade)
 
         self.assertLoggedWarning("Install from 'unknown' not implemented")
@@ -191,7 +190,7 @@ class EnvCreationTestCase(unittest.TestCase):
                 mock_mgr_c.return_value = self.FailInstallManager()
                 with patch.object(envbuilder, 'destroy_venv', spec=True) as mock_destroy:
                     with self.assertRaises(FadesError) as cm:
-                        envbuilder.create_venv(
+                        envbuilder.create_venv_classic(
                             requested, interpreter, is_current, options, pip_options,
                             avoid_pip_upgrade)
                     self.assertEqual(str(cm.exception), 'Dependency installation failed')
@@ -213,7 +212,7 @@ class EnvCreationTestCase(unittest.TestCase):
                 mock_create.return_value = ('env_path', 'env_bin_path', 'pip_installed')
                 mock_mgr_c.return_value = fake_manager = self.FakeManager()
                 fake_manager.really_installed = {'dep1': 'vX', 'dep2': 'v2'}
-                _, installed = envbuilder.create_venv(
+                _, installed = envbuilder.create_venv_classic(
                     requested, interpreter, is_current, options, pip_options, avoid_pip_upgrade)
 
         self.assertEqual(installed, {

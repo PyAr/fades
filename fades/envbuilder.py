@@ -144,22 +144,33 @@ def create_with_uv(interpreter, is_current, venv_options, uv_exe):
     return env_path, env_bin_path
 
 
-def create_venv(requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade,
-                use_uv=False, uv_exe=None, uv_pip_options=None):
-    """Create a new virtualvenv with the requirements of this script.
+def create_venv_classic(
+        requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade):
+    """Create a new virtualenv using venv, and install the dependencies with pip."""
+    logger.debug("Creating virtual environment with the classic backend (venv + pip)")
+    env = _FadesEnvBuilder()
+    env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current, options)
+    mgr = PipManager(
+        env_bin_path, pip_installed=pip_installed, options=pip_options,
+        avoid_pip_upgrade=avoid_pip_upgrade)
+    return _install_deps(requested_deps, env_path, env_bin_path, pip_installed, mgr)
 
-    When ``use_uv`` is True the caller must provide ``uv_exe`` (the resolved uv binary).
+
+def create_venv_uv(requested_deps, interpreter, is_current, options, uv_exe, uv_pip_options):
+    """Create a new virtualenv and install the dependencies, all using uv."""
+    logger.debug("Creating virtual environment with the uv backend (using %r)", uv_exe)
+    env_path, env_bin_path = create_with_uv(
+        interpreter, is_current, options['venv_options'], uv_exe)
+    mgr = UvManager(env_bin_path, options=uv_pip_options, uv_exe=uv_exe)
+    # 'uv venv --seed' installs pip in the venv, so it's available like in the classic backend
+    return _install_deps(requested_deps, env_path, env_bin_path, True, mgr)
+
+
+def _install_deps(requested_deps, env_path, env_bin_path, pip_installed, mgr):
+    """Install the dependencies in an already created virtualenv, using the given manager.
+
+    This is agnostic of the backend: the manager (PipManager or UvManager) does the work.
     """
-    # create virtual environment
-    if use_uv:
-        logger.debug("Creating virtual environment with uv backend")
-        env_path, env_bin_path = create_with_uv(
-            interpreter, is_current, options['venv_options'], uv_exe)
-        # 'uv venv --seed' installs pip in the venv, so it's available like in the classic path
-        pip_installed = True
-    else:
-        env = _FadesEnvBuilder()
-        env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current, options)
     venv_data = {}
     venv_data['env_path'] = env_path
     venv_data['env_bin_path'] = env_bin_path
@@ -168,20 +179,14 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options, a
     # install deps
     installed = {}
     for repo in requested_deps.keys():
-        if repo in (REPO_PYPI, REPO_VCS):
-            if use_uv:
-                mgr = UvManager(env_bin_path, options=uv_pip_options, uv_exe=uv_exe)
-            else:
-                mgr = PipManager(
-                    env_bin_path, pip_installed=pip_installed, options=pip_options,
-                    avoid_pip_upgrade=avoid_pip_upgrade)
-        else:
+        if repo not in (REPO_PYPI, REPO_VCS):
             logger.warning("Install from %r not implemented", repo)
             continue
         installed[repo] = {}
 
         repo_requested = requested_deps[repo]
-        logger.debug("Installing dependencies for repo %r: requested=%s", repo, repo_requested)
+        logger.debug("Installing dependencies for repo %r with %s: requested=%s",
+                     repo, type(mgr).__name__, repo_requested)
         for dependency in repo_requested:
             try:
                 mgr.install(dependency)
