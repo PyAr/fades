@@ -30,9 +30,10 @@ from urllib.request import Request
 
 import logassert
 import pytest
+from packaging.specifiers import SpecifierSet
 from xdg import BaseDirectory
 
-from fades import helpers, parsing
+from fades import helpers, parsing, FadesError
 
 
 PATH_TO_EXAMPLES = "tests/examples/"
@@ -582,3 +583,207 @@ def test_getbinpath_windows(tmp_path):
 def test_getbinpath_missing(tmp_path):
     with pytest.raises(ValueError):
         helpers.get_env_bin_path(tmp_path)
+
+
+class GetInterpreterForRequirementTestCase(unittest.TestCase):
+    """Tests for deciding the interpreter from --python and the version the script needs."""
+
+    def test_no_requirement(self):
+        # the script doesn't declare a version, the one from --python is returned unchanged
+        # (and no interpreter version is even probed)
+        with patch.object(helpers, '_get_interpreter_full_version') as mock:
+            result = helpers.get_interpreter_for_requirement(None, '/some/python')
+        assert result == '/some/python'
+        assert mock.call_count == 0
+
+    def test_current_satisfies(self):
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
+            result = helpers.get_interpreter_for_requirement('>=3.11', None)
+        assert result is None
+
+    def test_nothing_declared_nor_indicated(self):
+        with patch.object(helpers, '_get_interpreter_full_version') as mock:
+            result = helpers.get_interpreter_for_requirement(None, None)
+        assert result is None
+        assert mock.call_count == 0
+
+    def test_explicit_satisfies(self):
+        logassert.setup(self, 'fades.helpers')
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
+            with patch.object(helpers, '_find_interpreter') as mock_find:
+                result = helpers.get_interpreter_for_requirement('>=3.11', '/some/python')
+        assert result == '/some/python'
+        assert mock_find.call_count == 0
+        self.assertLoggedDebug("'>=3.11'", "--python", "/some/python", "3.12.0")
+        self.assertNotLoggedWarning("--python")
+
+    def test_explicit_narrows_the_range(self):
+        # the script declares a range and --python picks one inside it, which is used even
+        # if a higher suitable interpreter is available in PATH
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
+            with patch.object(helpers, '_find_interpreter',
+                              return_value='/usr/bin/python3.14') as mock_find:
+                result = helpers.get_interpreter_for_requirement('>=3.11', 'python3.12')
+        assert result == 'python3.12'
+        assert mock_find.call_count == 0
+
+    def test_explicit_does_not_satisfy(self):
+        # a conflict: --python has the last word, but the situation is warned
+        logassert.setup(self, 'fades.helpers')
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
+            with patch.object(helpers, '_find_interpreter') as mock_find:
+                result = helpers.get_interpreter_for_requirement('>=3.11', '/some/python')
+        assert result == '/some/python'
+        assert mock_find.call_count == 0
+        self.assertLoggedWarning(
+            "needs Python '>=3.11'", "--python", "/some/python", "3.9.0", "using it anyway")
+
+    def test_default_does_not_satisfy_discovers(self):
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
+            with patch.object(helpers, '_find_interpreter',
+                              return_value='/usr/bin/python3.12') as mock_find:
+                result = helpers.get_interpreter_for_requirement('>=3.11', None)
+        assert result == '/usr/bin/python3.12'
+        assert mock_find.call_count == 1
+
+    def test_default_does_not_satisfy_no_candidate(self):
+        logassert.setup(self, 'fades.helpers')
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
+            with patch.object(helpers, '_find_interpreter', return_value=None):
+                with pytest.raises(FadesError):
+                    helpers.get_interpreter_for_requirement('>=3.11', None)
+        self.assertLoggedError("needs Python '>=3.11'", "3.9.0", "--python")
+
+    def test_bounded_range_current_satisfies(self):
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 11, 0)):
+            result = helpers.get_interpreter_for_requirement('>=3.10,<3.12', None)
+        assert result is None
+
+    def test_bounded_range_current_excluded_discovers(self):
+        # the current interpreter is above the upper bound, so a suitable one is discovered
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
+            with patch.object(helpers, '_find_interpreter',
+                              return_value='/usr/bin/python3.11') as mock_find:
+                result = helpers.get_interpreter_for_requirement('>=3.10,<3.12', None)
+        assert result == '/usr/bin/python3.11'
+        assert mock_find.call_count == 1
+
+    def test_micro_version_pin_satisfies(self):
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 11, 4)):
+            result = helpers.get_interpreter_for_requirement('==3.11.4', None)
+        assert result is None
+
+    def test_micro_version_pin_does_not_satisfy(self):
+        # same major.minor but a different micro must not satisfy an exact pin
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 11, 5)):
+            with patch.object(helpers, '_find_interpreter', return_value=None):
+                with pytest.raises(FadesError):
+                    helpers.get_interpreter_for_requirement('==3.11.4', None)
+
+    def test_invalid_requires_python_string(self):
+        logassert.setup(self, 'fades.helpers')
+        with pytest.raises(FadesError):
+            helpers.get_interpreter_for_requirement('not a spec!!', None)
+        self.assertLoggedError("invalid needed Python version", "not a spec!!")
+
+    def test_invalid_requires_python_not_a_string(self):
+        # a TOML number reaches us as a float, which is not a valid specifier
+        logassert.setup(self, 'fades.helpers')
+        with pytest.raises(FadesError):
+            helpers.get_interpreter_for_requirement(3.11, None)
+        self.assertLoggedError("invalid needed Python version", "3.11")
+
+
+class FindInterpreterTestCase(unittest.TestCase):
+    """Tests for the PATH-based interpreter discovery."""
+
+    def test_picks_highest_satisfying(self):
+        whiches = {
+            'python3.10': '/usr/bin/python3.10',
+            'python3.11': '/usr/bin/python3.11',
+            'python3.12': '/usr/bin/python3.12',
+        }
+        versions = {
+            '/usr/bin/python3.10': (3, 10, 5),
+            '/usr/bin/python3.11': (3, 11, 2),
+            '/usr/bin/python3.12': (3, 12, 1),
+        }
+        with patch.object(helpers.shutil, 'which', side_effect=whiches.get):
+            with patch.object(helpers, '_get_interpreter_full_version',
+                              side_effect=lambda p: versions[p]):
+                result = helpers._find_interpreter(SpecifierSet('>=3.11'))
+        assert result == '/usr/bin/python3.12'
+
+    def test_picks_highest_within_bounded_range(self):
+        # with an upper bound, the highest *satisfying* one is picked, not the highest overall
+        whiches = {
+            'python3.10': '/usr/bin/python3.10',
+            'python3.11': '/usr/bin/python3.11',
+            'python3.12': '/usr/bin/python3.12',
+        }
+        versions = {
+            '/usr/bin/python3.10': (3, 10, 5),
+            '/usr/bin/python3.11': (3, 11, 2),
+            '/usr/bin/python3.12': (3, 12, 1),
+        }
+        with patch.object(helpers.shutil, 'which', side_effect=whiches.get):
+            with patch.object(helpers, '_get_interpreter_full_version',
+                              side_effect=lambda p: versions[p]):
+                result = helpers._find_interpreter(SpecifierSet('>=3.10,<3.12'))
+        assert result == '/usr/bin/python3.11'
+
+    def test_none_found(self):
+        with patch.object(helpers.shutil, 'which', return_value=None):
+            result = helpers._find_interpreter(SpecifierSet('>=3.11'))
+        assert result is None
+
+    def test_skips_unprobable_interpreters(self):
+        # a found interpreter that can't report its version is just skipped
+        def fake_version(path):
+            raise FadesError("boom")
+
+        with patch.object(helpers.shutil, 'which', return_value='/usr/bin/python3.12'):
+            with patch.object(helpers, '_get_interpreter_full_version',
+                              side_effect=fake_version):
+                result = helpers._find_interpreter(SpecifierSet('>=3.11'))
+        assert result is None
+
+    def test_skips_noisy_interpreter_without_crashing(self):
+        # a real interpreter that prints non-JSON noise first (e.g. a shim warning, which
+        # logged_exec merges from stderr) must be skipped, not crash the whole discovery
+        with patch.object(helpers.shutil, 'which', return_value='/usr/bin/python3.12'):
+            with patch.object(helpers, 'logged_exec',
+                              return_value=["Warning: this is not JSON"]):
+                result = helpers._find_interpreter(SpecifierSet('>=3.11'))
+        assert result is None
+
+
+class GetInterpreterFullVersionTestCase(unittest.TestCase):
+    """Tests for probing an interpreter's full version."""
+
+    def test_current_interpreter(self):
+        assert helpers._get_interpreter_full_version() == tuple(sys.version_info[:3])
+
+    def test_external_interpreter_ok(self):
+        response = ['{"path": "/usr/bin/python3.12", "major": 3, "minor": 12, "micro": 1}']
+        with patch.object(helpers, 'logged_exec', return_value=response):
+            assert helpers._get_interpreter_full_version('/usr/bin/python3.12') == (3, 12, 1)
+
+    def test_external_interpreter_exec_fails(self):
+        logassert.setup(self, 'fades.helpers')
+        with patch.object(helpers, 'logged_exec', side_effect=Exception("boom")):
+            with pytest.raises(FadesError):
+                helpers._get_interpreter_full_version('/usr/bin/python3.12')
+        self.assertLoggedError("Error getting requested interpreter version")
+
+    def test_external_interpreter_non_json_output(self):
+        # non-JSON first line must become a FadesError (not an uncaught JSONDecodeError)
+        with patch.object(helpers, 'logged_exec', return_value=["not json at all"]):
+            with pytest.raises(FadesError):
+                helpers._get_interpreter_full_version('/usr/bin/python3.12')
+
+    def test_external_interpreter_empty_output(self):
+        # no output at all must become a FadesError (not an uncaught IndexError)
+        with patch.object(helpers, 'logged_exec', return_value=[]):
+            with pytest.raises(FadesError):
+                helpers._get_interpreter_full_version('/usr/bin/python3.12')

@@ -17,6 +17,7 @@
 """A collection of utilities for fades."""
 
 import json
+import shutil
 import logging
 import os
 import subprocess
@@ -28,11 +29,16 @@ from urllib import request, parse
 from urllib.error import HTTPError
 
 from packaging.requirements import Requirement
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
 
 from fades import FadesError, _version
 
 logger = logging.getLogger(__name__)
+
+# range of CPython 3 minor versions searched in PATH (as 'python3.X') when looking for an
+# interpreter that satisfies the Python version a script declares it needs
+PYTHON_MINOR_RANGE = range(6, 30)
 
 # command to retrieve the version from an external Python
 SHOW_VERSION_CMD = """
@@ -160,6 +166,125 @@ def get_interpreter_version(requested_interpreter):
     logger.debug('Interpreter=%s. It is the same as fades?=%s',
                  requested_interpreter, is_current)
     return (requested_interpreter, is_current)
+
+
+def _get_interpreter_full_version(interpreter=None):
+    """Return the (major, minor, micro) version tuple of an interpreter."""
+    if interpreter is None:
+        return tuple(sys.version_info[:3])
+    args = [interpreter, '-c', SHOW_VERSION_CMD]
+    try:
+        raw = logged_exec(args)
+        # parse inside the try: a noisy interpreter (e.g. a shim printing to stderr, which
+        # logged_exec merges into stdout) can make raw[0] not be the expected JSON; turning
+        # any such failure into a FadesError lets _find_interpreter skip that candidate
+        info = json.loads(raw[0])
+        return (info['major'], info['minor'], info['micro'])
+    except Exception as error:
+        logger.error("Error getting requested interpreter version: %s", error)
+        raise FadesError("Could not get interpreter version")
+
+
+def _find_interpreter(specifier):
+    """Search PATH for a python interpreter whose version satisfies the specifier."""
+    candidate_names = ["python3.{}".format(minor) for minor in PYTHON_MINOR_RANGE]
+    candidate_names += ["python3", "python"]
+
+    found = {}  # path -> Version, to avoid probing the same interpreter twice
+    for name in candidate_names:
+        path = shutil.which(name)
+        if path is None or path in found:
+            continue
+        try:
+            major, minor, micro = _get_interpreter_full_version(path)
+        except FadesError:
+            continue
+        found[path] = Version("{}.{}.{}".format(major, minor, micro))
+
+    candidates = sorted(
+        (version, path) for path, version in found.items()
+        if specifier.contains(version, prereleases=True))
+    if not candidates:
+        return None
+    # pick the highest satisfying version
+    return candidates[-1][1]
+
+
+def get_interpreter_for_requirement(python_toml, python_args):
+    """Decide which Python interpreter to use for the child program.
+
+    Two sources may indicate it:
+
+    - python_toml: the Python version the script declares it needs, written as a version
+      specifier (e.g. ">=3.11"); it comes from the 'requires-python' field of the
+      '# /// script' metadata block at the top of the script (this block is defined in
+      PEP 723). None if the script doesn't declare it.
+    - python_args: the interpreter explicitly indicated by the user in the command line
+      with --python. None if not given.
+
+    The command line is the most dynamic of the two, so it always has the last word:
+
+        --python  script declares     result
+        --------  ------------------  --------------------------------------------------
+        no        nothing             None (fades' own Python)
+        yes       nothing             the one from --python
+        yes       a version that      the one from --python (logged in DEBUG); this lets
+                  it satisfies        the user narrow a range declared by the script
+        yes       a version that it   the one from --python, but logging the conflict
+                  does NOT satisfy    in WARNING
+        no        a version           fades' own Python if it satisfies the version,
+                                      otherwise the highest satisfying one found in PATH;
+                                      error if none is found
+
+    Return the interpreter to use (None meaning fades' own Python).
+    """
+    if python_toml is None:
+        return python_args
+
+    try:
+        specifier = SpecifierSet(python_toml)
+    except (InvalidSpecifier, TypeError) as error:
+        # TypeError happens when the value is not a string (e.g. a TOML number like 3.11)
+        logger.error(
+            "The script declares an invalid needed Python version %r (in the "
+            "'requires-python' field of its '# /// script' block): %s", python_toml, error)
+        raise FadesError("Invalid Python version declared in the script")
+
+    major, minor, micro = _get_interpreter_full_version(python_args)
+    version = Version("{}.{}.{}".format(major, minor, micro))
+    satisfies = specifier.contains(version, prereleases=True)
+
+    if python_args is not None:
+        if satisfies:
+            logger.debug(
+                "The script declares it needs Python %r; using the interpreter indicated "
+                "with --python (%s, version %s), which satisfies it",
+                python_toml, python_args, version)
+        else:
+            logger.warning(
+                "The script declares it needs Python %r, but the interpreter indicated "
+                "with --python (%s) is version %s; using it anyway, as requested",
+                python_toml, python_args, version)
+        return python_args
+
+    if satisfies:
+        logger.debug(
+            "The script declares it needs Python %r; fades' own Python (version %s) "
+            "satisfies it", python_toml, version)
+        return None
+
+    # fades' own Python is not suitable, look for one in PATH
+    discovered = _find_interpreter(specifier)
+    if discovered is None:
+        msg = ("The script declares it needs Python {!r}, but fades' own Python is version {} "
+               "and no other suitable interpreter was found in PATH; you can indicate one "
+               "with --python".format(python_toml, version))
+        logger.error(msg)
+        raise FadesError(msg)
+    logger.info(
+        "The script declares it needs Python %r, which fades' own Python (version %s) "
+        "doesn't satisfy; using %s", python_toml, version, discovered)
+    return discovered
 
 
 def get_latest_version_number(project_name):

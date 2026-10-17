@@ -16,18 +16,32 @@
 
 """Script parsing to get needed dependencies."""
 
+import functools
 import logging
 import re
 from pathlib import Path
 from typing import Generator
 
-from packaging.requirements import Requirement
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11
+    try:
+        import tomli as tomllib
+    except ModuleNotFoundError:
+        tomllib = None  # PEP 723 support degrades gracefully; warned at use site
+
+from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
 
-from fades import REPO_PYPI, REPO_VCS
+from fades import FadesError, REPO_PYPI, REPO_VCS
 from fades.pkgnamesdb import MODULE_TO_PACKAGE
 
 logger = logging.getLogger(__name__)
+
+# Canonical regular expression to find a '# /// script' metadata block, as defined by
+# PEP 723 (see https://peps.python.org/pep-0723/#reference-implementation).
+PEP723_REGEX = re.compile(
+    r'(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$')
 
 
 class _VCSSpecifier:
@@ -304,3 +318,89 @@ def parse_docstring(filepath: Path):
         return {}
     with open(filepath, 'rt', encoding='utf8') as fh:
         return _parse_docstring(fh)
+
+
+def _parse_pep723(content):
+    """Parse the '# /// script' metadata block of a script, if any.
+
+    This block (defined in PEP 723, and also understood by tools like pipx, pip-run and uv)
+    is a group of comment lines holding TOML content, e.g.:
+
+        # /// script
+        # requires-python = ">=3.11"
+        # dependencies = ["requests<3", "rich"]
+        # ///
+
+    Return a tuple ``(deps, python_toml)`` where ``deps`` is the usual repo->deps mapping and
+    ``python_toml`` is the raw Python version specifier the script declares it needs (its
+    'requires-python' field), or None.
+    """
+    matches = [m for m in PEP723_REGEX.finditer(content) if m.group('type') == 'script']
+    if not matches:
+        return {}, None
+    if len(matches) > 1:
+        # the PEP mandates that tools error when several blocks of the same type exist
+        logger.error(
+            "Found %d '# /// script' metadata blocks in the script, but only one is allowed",
+            len(matches))
+        raise FadesError("Multiple '# /// script' metadata blocks found")
+    logger.debug("Found a '# /// script' metadata block in the script")
+
+    if tomllib is None:
+        logger.warning(
+            "Found a '# /// script' metadata block in the script, but it can't be read "
+            "because no TOML parser is available; install the 'tomli' package to support "
+            "it in Python <3.11")
+        return {}, None
+
+    # rebuild the TOML content stripping the comment prefix of each line, as per the PEP
+    toml_content = ''.join(
+        line[2:] if line.startswith('# ') else line[1:]
+        for line in matches[0].group('content').splitlines(keepends=True))
+    try:
+        metadata = tomllib.loads(toml_content)
+    except tomllib.TOMLDecodeError as error:
+        logger.error("Invalid TOML in the script's '# /// script' metadata block: %s", error)
+        raise FadesError("Invalid TOML in the '# /// script' metadata block")
+    logger.debug("Parsed '# /// script' metadata: %s", metadata)
+
+    dependencies = metadata.get('dependencies', [])
+    if not isinstance(dependencies, list):
+        logger.error(
+            "The 'dependencies' field in the script's '# /// script' metadata block must be "
+            "a list, got %s", type(dependencies).__name__)
+        raise FadesError("The 'dependencies' field in '# /// script' must be a list")
+
+    # the dependencies are standard requirement strings (PEP 508); the ones pointing to a URL
+    # (e.g. 'foo @ git+https://...' or 'foo @ file:///some/path') are not from PyPI, and are
+    # handled like any other VCS dependency (pip understands them as they are)
+    deps = {}
+    for text in dependencies:
+        try:
+            requirement = Requirement(text)
+        except (InvalidRequirement, TypeError) as error:
+            logger.error(
+                "Invalid dependency %r in the script's '# /// script' metadata block: %s",
+                text, error)
+            raise FadesError("Invalid dependency in the '# /// script' metadata block")
+        if requirement.url:
+            deps.setdefault(REPO_VCS, []).append(VCSDependency(text.strip()))
+        else:
+            deps.setdefault(REPO_PYPI, []).append(requirement)
+
+    return deps, metadata.get('requires-python')
+
+
+@functools.lru_cache(maxsize=None)
+def parse_pep723(filepath):
+    """Parse the '# /// script' metadata block of a source file.
+
+    Return a tuple ``(deps, python_toml)``; see ``_parse_pep723``.
+
+    The result is cached because the file is analyzed twice (to get the dependencies, and
+    to get the Python version it needs); callers must not modify the returned values.
+    """
+    if filepath is None:
+        return {}, None
+    with open(filepath, 'rt', encoding='utf8') as fh:
+        return _parse_pep723(fh.read())

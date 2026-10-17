@@ -30,7 +30,7 @@ authors = [
 ]
 requires-python = ">=3.10"
 keywords = ["virtualenv", "utils", "utility", "scripts"]
-dependencies = ["packaging"]
+dependencies = ["packaging", "tomli; python_version < '3.11'"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
 

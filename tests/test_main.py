@@ -23,7 +23,7 @@ from unittest.mock import patch
 
 from packaging.requirements import Requirement
 
-from fades import VERSION, FadesError, __version__, main, parsing, REPO_PYPI, REPO_VCS
+from fades import VERSION, FadesError, __version__, helpers, main, parsing, REPO_PYPI, REPO_VCS
 from tests import create_tempfile
 
 
@@ -63,6 +63,14 @@ class DepsGatheringTestCase(unittest.TestCase):
                                           requirement_files=None, manual_dependencies=None)
 
         self.assertDictEqual(d, {'pypi': {Requirement('foo'), Requirement('bar')}})
+
+    def test_child_program_pep723(self):
+        child_program = 'tests/test_files/pep723_basic.py'
+
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
+                                          requirement_files=None, manual_dependencies=None)
+
+        self.assertDictEqual(d, {'pypi': {Requirement('requests<3'), Requirement('rich')}})
 
     def test_requirement_files(self):
         requirement_files = [create_tempfile(self, ['dep'])]
@@ -138,6 +146,32 @@ class DepsMergingTestCase(unittest.TestCase):
             'pypi': {Requirement('2')}
         })
 
+    def test_pep723_merges_with_comment_deps(self):
+        # a file carrying both a PEP 723 block and comment-style 'fades' marks contributes
+        # the deps from both sources
+        child_program = 'tests/test_files/pep723_and_comment.py'
+
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
+                                          requirement_files=None, manual_dependencies=None)
+
+        self.assertDictEqual(d, {
+            'pypi': {Requirement('requests<3'), Requirement('requests'), Requirement('rich')}
+        })
+
+    def test_pep723_merges_with_other_sources(self):
+        child_program = 'tests/test_files/pep723_basic.py'
+        requirement_files = [create_tempfile(self, ['from-reqfile'])]
+        manual_dependencies = ['from-manual']
+
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
+                                          requirement_files=requirement_files,
+                                          manual_dependencies=manual_dependencies)
+
+        self.assertDictEqual(d, {
+            'pypi': {Requirement('requests<3'), Requirement('rich'),
+                     Requirement('from-reqfile'), Requirement('from-manual')}
+        })
+
     def test_two_different_with_dups(self):
         requirement_files = [create_tempfile(self, ['1', '2', '2', '2'])]
         manual_dependencies = ['vcs::3', 'vcs::4', 'vcs::1', 'vcs::2']
@@ -151,6 +185,57 @@ class DepsMergingTestCase(unittest.TestCase):
             'vcs': {parsing.VCSDependency('1'), parsing.VCSDependency('2'),
                     parsing.VCSDependency('3'), parsing.VCSDependency('4')}
         })
+
+
+class PEP723RequiresPythonIntegrationTestCase(unittest.TestCase):
+    """End-to-end wiring of the Python version a script needs into interpreter selection.
+
+    This mirrors the two-step flow in main.go(): parse the needed Python version out of the
+    script's '# /// script' metadata block and then decide which interpreter to use.
+    """
+
+    def _resolve(self, child_program, python_args):
+        _, python_toml = parsing.parse_pep723(child_program)
+        return helpers.get_interpreter_for_requirement(python_toml, python_args)
+
+    def test_requires_python_picks_discovered_interpreter(self):
+        # script asks for >=3.11; the default doesn't satisfy, so one is discovered
+        child_program = 'tests/test_files/pep723_requires_python.py'
+
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
+            with patch.object(helpers, '_find_interpreter',
+                              return_value='/usr/bin/python3.12'):
+                result = self._resolve(child_program, None)
+
+        self.assertEqual(result, '/usr/bin/python3.12')
+
+    def test_requires_python_satisfied_keeps_interpreter(self):
+        child_program = 'tests/test_files/pep723_requires_python.py'
+
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
+            result = self._resolve(child_program, '/some/python')
+
+        self.assertEqual(result, '/some/python')
+
+    def test_requires_python_conflicts_with_explicit_choice(self):
+        # an explicit --python that doesn't satisfy what the script needs is still used
+        # (the conflict is just warned)
+        child_program = 'tests/test_files/pep723_requires_python.py'
+
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
+            result = self._resolve(child_program, '/some/python')
+
+        self.assertEqual(result, '/some/python')
+
+    def test_no_requires_python_keeps_interpreter(self):
+        # a '# /// script' block without requires-python leaves the chosen interpreter as is
+        child_program = 'tests/test_files/pep723_basic.py'
+
+        with patch.object(helpers, '_get_interpreter_full_version') as mock:
+            result = self._resolve(child_program, '/some/python')
+
+        self.assertEqual(result, '/some/python')
+        self.assertEqual(mock.call_count, 0)
 
 
 class MiscTestCase(unittest.TestCase):
