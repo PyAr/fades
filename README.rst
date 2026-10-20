@@ -672,11 +672,11 @@ it in the old fashion way::
 Can I try it without installing it?
 -----------------------------------
 
-Yes! Branch the project and use the executable::
+Yes! Branch the project and run it as a module::
 
     git clone https://github.com/PyAr/fades.git
     cd fades
-    bin/fades your_script.py
+    python3 -m fades your_script.py
 
 
 What about Windows?
@@ -731,7 +731,7 @@ Install dependencies
 
 To try it, just do::
 
-    bin/fades -V
+    python3 -m fades -V
 
 
 How to run the tests
