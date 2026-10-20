@@ -128,7 +128,7 @@ jobs:
         # - latest OSes
         # - oldest (from pyproject.toml) and newest Python
         os: [ubuntu-24.04, macos-15]
-        python-version: ["${{ needs.min-python.outputs.version }}", "3.13"]
+        python-version: ["${{ needs.min-python.outputs.version }}", "3.14"]
 
     runs-on: ${{ matrix.os }}
     steps:
