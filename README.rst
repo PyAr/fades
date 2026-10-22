@@ -525,9 +525,9 @@ Remove a virtual environment matching the given uuid from disk and cache index::
 
     fades --rm 89a2bf83-c280-4918-a78d-c35506efd69d
 
-Remove the virtual environment matching the indicated dependencies from disk and cache index::
+Remove the virtual environment built for the dependencies indicated inside a script, from disk and cache index::
 
-    fades --rm -d django
+    fades --rm script.py
 
 Download the script from the given pastebin and executes it (previously building a virtual environment for the dependencies indicated in that pastebin, of course)::
 
