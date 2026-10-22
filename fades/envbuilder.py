@@ -19,6 +19,7 @@
 import logging
 import os
 import shutil
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -27,6 +28,7 @@ from venv import EnvBuilder
 from fades import FadesError, REPO_PYPI, REPO_VCS
 from fades import helpers, cache
 from fades.pipmanager import PipManager
+from fades.uvmanager import UvManager
 from fades.multiplatform import filelock
 
 logger = logging.getLogger(__name__)
@@ -115,11 +117,60 @@ class _FadesEnvBuilder(EnvBuilder):
         self.env_bin_path = Path(context.bin_path)
 
 
-def create_venv(requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade):
-    """Create a new virtualvenv with the requirements of this script."""
-    # create virtual environment
+def create_with_uv(interpreter, is_current, venv_options, uv_exe):
+    """Create a virtual environment using uv, returning its path and bin path."""
+    env_path = helpers.get_basedir() / str(uuid4())
+    logger.debug("Env will be created at: %s (with uv)", env_path)
+
+    # when there's no explicitly requested interpreter (current Python), point uv at fades'
+    # own interpreter so the venv matches what the cache was keyed on
+    python = interpreter if (interpreter is not None and not is_current) else sys.executable
+    # '--seed' installs pip + setuptools (+ wheel) like the classic 'python -m venv' backend,
+    # so packages that expect those to be present in the venv keep working (uv seeds nothing
+    # by default); the cost is negligible
+    args = [uv_exe, "venv", "--seed", str(env_path), "--python", str(python)]
+    args.extend(venv_options)
+
+    try:
+        helpers.logged_exec(args)
+    except helpers.ExecutionError as error:
+        error.dump_to_log(logger)
+        raise FadesError("Failed to create virtual environment with uv")
+    except Exception as error:
+        logger.exception("Error creating virtual environment with uv:  %s", error)
+        raise FadesError("General error while creating venv with uv")
+
+    env_bin_path = helpers.get_env_bin_path(env_path)
+    return env_path, env_bin_path
+
+
+def create_venv_classic(
+        requested_deps, interpreter, is_current, options, pip_options, avoid_pip_upgrade):
+    """Create a new virtualenv using venv, and install the dependencies with pip."""
+    logger.debug("Creating virtual environment with the classic backend (venv + pip)")
     env = _FadesEnvBuilder()
     env_path, env_bin_path, pip_installed = env.create_env(interpreter, is_current, options)
+    mgr = PipManager(
+        env_bin_path, pip_installed=pip_installed, options=pip_options,
+        avoid_pip_upgrade=avoid_pip_upgrade)
+    return _install_deps(requested_deps, env_path, env_bin_path, pip_installed, mgr)
+
+
+def create_venv_uv(requested_deps, interpreter, is_current, options, uv_exe, uv_pip_options):
+    """Create a new virtualenv and install the dependencies, all using uv."""
+    logger.debug("Creating virtual environment with the uv backend (using %r)", uv_exe)
+    env_path, env_bin_path = create_with_uv(
+        interpreter, is_current, options['venv_options'], uv_exe)
+    mgr = UvManager(env_bin_path, options=uv_pip_options, uv_exe=uv_exe)
+    # 'uv venv --seed' installs pip in the venv, so it's available like in the classic backend
+    return _install_deps(requested_deps, env_path, env_bin_path, True, mgr)
+
+
+def _install_deps(requested_deps, env_path, env_bin_path, pip_installed, mgr):
+    """Install the dependencies in an already created virtualenv, using the given manager.
+
+    This is agnostic of the backend: the manager (PipManager or UvManager) does the work.
+    """
     venv_data = {}
     venv_data['env_path'] = env_path
     venv_data['env_bin_path'] = env_bin_path
@@ -128,17 +179,14 @@ def create_venv(requested_deps, interpreter, is_current, options, pip_options, a
     # install deps
     installed = {}
     for repo in requested_deps.keys():
-        if repo in (REPO_PYPI, REPO_VCS):
-            mgr = PipManager(
-                env_bin_path, pip_installed=pip_installed, options=pip_options,
-                avoid_pip_upgrade=avoid_pip_upgrade)
-        else:
+        if repo not in (REPO_PYPI, REPO_VCS):
             logger.warning("Install from %r not implemented", repo)
             continue
         installed[repo] = {}
 
         repo_requested = requested_deps[repo]
-        logger.debug("Installing dependencies for repo %r: requested=%s", repo, repo_requested)
+        logger.debug("Installing dependencies for repo %r with %s: requested=%s",
+                     repo, type(mgr).__name__, repo_requested)
         for dependency in repo_requested:
             try:
                 mgr.install(dependency)

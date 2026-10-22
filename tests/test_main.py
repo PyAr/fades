@@ -47,6 +47,61 @@ class VirtualenvCheckingTestCase(unittest.TestCase):
         self.assertTrue(resp)
 
 
+def _uv_args(**kwargs):
+    """Build a minimal args namespace for _resolve_uv_backend."""
+    from argparse import Namespace
+    base = dict(use_uv=False, uv_path=None, pip_options=[], venv_options=[], uv_pip_options=[])
+    base.update(kwargs)
+    return Namespace(**base)
+
+
+class ResolveUvBackendTestCase(unittest.TestCase):
+    """Tests for the opt-in uv backend resolution."""
+
+    def test_disabled_by_default(self):
+        use_uv, uv_exe, uv_pip_options = main._resolve_uv_backend(_uv_args())
+        self.assertFalse(use_uv)
+        self.assertIsNone(uv_exe)
+        self.assertEqual(uv_pip_options, [])
+
+    def test_enabled_finds_uv_in_path(self):
+        with patch.object(main.helpers, 'get_uv_exe', return_value='/usr/bin/uv'):
+            use_uv, uv_exe, uv_pip_options = main._resolve_uv_backend(
+                _uv_args(use_uv=True, uv_pip_options=['--foo']))
+        self.assertTrue(use_uv)
+        self.assertEqual(uv_exe, '/usr/bin/uv')
+        self.assertEqual(uv_pip_options, ['--foo'])
+
+    def test_uv_path_implies_use_uv_and_is_validated(self):
+        # --uv-path alone enables uv; the path is validated via get_uv_exe (must exist)
+        with patch.object(main.helpers, 'get_uv_exe',
+                          side_effect=lambda p=None: '/opt/uv' if p == '/opt/uv' else None):
+            use_uv, uv_exe, _ = main._resolve_uv_backend(_uv_args(uv_path='/opt/uv'))
+        self.assertTrue(use_uv)
+        self.assertEqual(uv_exe, '/opt/uv')
+
+    def test_uv_path_not_found(self):
+        # a bogus --uv-path that doesn't resolve to an executable is an error
+        with patch.object(main.helpers, 'get_uv_exe', return_value=None):
+            with self.assertRaises(FadesError):
+                main._resolve_uv_backend(_uv_args(uv_path='/no/such/uv'))
+
+    def test_enabled_but_uv_not_found(self):
+        with patch.object(main.helpers, 'get_uv_exe', return_value=None):
+            with self.assertRaises(FadesError):
+                main._resolve_uv_backend(_uv_args(use_uv=True))
+
+    def test_pip_options_conflict(self):
+        with patch.object(main.helpers, 'get_uv_exe', return_value='/usr/bin/uv'):
+            with self.assertRaises(FadesError):
+                main._resolve_uv_backend(_uv_args(use_uv=True, pip_options=['--foo']))
+
+    def test_venv_options_conflict(self):
+        with patch.object(main.helpers, 'get_uv_exe', return_value='/usr/bin/uv'):
+            with self.assertRaises(FadesError):
+                main._resolve_uv_backend(_uv_args(use_uv=True, venv_options=['--symlinks']))
+
+
 class DepsGatheringTestCase(unittest.TestCase):
     """Tests for the gathering stage of consolidate_dependencies."""
 

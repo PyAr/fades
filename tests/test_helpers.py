@@ -787,3 +787,35 @@ class GetInterpreterFullVersionTestCase(unittest.TestCase):
         with patch.object(helpers, 'logged_exec', return_value=[]):
             with pytest.raises(FadesError):
                 helpers._get_interpreter_full_version('/usr/bin/python3.12')
+
+
+class GetUvExeTestCase(unittest.TestCase):
+    """Tests for the uv binary detection."""
+
+    def setUp(self):
+        logassert.setup(self, 'fades.helpers')
+
+    def test_uv_present(self):
+        with patch.object(helpers.shutil, 'which', return_value='/usr/bin/uv') as mock:
+            result = helpers.get_uv_exe()
+        assert result == '/usr/bin/uv'
+        mock.assert_called_once_with('uv')
+        self.assertLoggedDebug("Looking for uv in PATH", "/usr/bin/uv")
+
+    def test_uv_absent(self):
+        with patch.object(helpers.shutil, 'which', return_value=None):
+            result = helpers.get_uv_exe()
+        assert result is None
+
+    def test_uv_path_given_is_validated(self):
+        # an explicit path is looked up (validated) via shutil.which
+        with patch.object(helpers.shutil, 'which', return_value='/opt/uv') as mock:
+            result = helpers.get_uv_exe('/opt/uv')
+        assert result == '/opt/uv'
+        mock.assert_called_once_with('/opt/uv')
+        self.assertLoggedDebug("Looking for uv at the path indicated with --uv-path", "/opt/uv")
+
+    def test_uv_path_given_not_found(self):
+        with patch.object(helpers.shutil, 'which', return_value=None):
+            result = helpers.get_uv_exe('/no/such/uv')
+        assert result is None
