@@ -445,7 +445,10 @@ Some notes when using ``uv``:
 Enabling uv permanently (via config)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To always use the uv backend, set ``use_uv=true`` in a fades config file (see `Setting options using config files`_). If you prefer a command that does it for you, check `this recipe <https://github.com/PyAr/fades/blob/master/docs/uv_by_default.rst>`_.
+To always use the uv backend, set ``use_uv=true`` in a fades config file (see `Setting options using config files`_). For example, your user's ``fades.ini`` (e.g. ``~/.config/fades/fades.ini``) could be::
+
+    [fades]
+    use_uv=true
 
 A note about ``pkg_resources``: some packages (e.g. ``azure-cli``) still import the long-deprecated ``pkg_resources``, which was **removed** in ``setuptools >= 81``. uv (and the classic backend on Python 3.12+) installs a recent ``setuptools`` that no longer provides it, so those imports fail. This is not specific to the uv backend; if you hit it, add an older setuptools as an explicit dependency::
 
