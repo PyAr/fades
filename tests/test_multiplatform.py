@@ -19,8 +19,8 @@
 
 import threading
 import time
-import unittest
-from pathlib import Path
+
+import pytest
 
 from fades.multiplatform import filelock
 
@@ -46,57 +46,56 @@ class LockChecker(threading.Thread):
             self.post_work = time.time()
 
 
-class LockCacheTestCase(unittest.TestCase):
-    """Tests for the locking utility."""
+@pytest.fixture
+def lock_path(tmp_path):
+    """Provide a path for the lock file."""
+    return tmp_path / "test_filelock"
 
-    def setUp(self):
-        self.test_path = Path("test_filelock")
 
-    def tearDown(self):
-        if self.test_path.exists():
-            self.test_path.unlink()
+def wait(lock_checker, attr_name):
+    """Wait at most a second for the LockChecker to end."""
+    for i in range(10):
+        attr = getattr(lock_checker, attr_name)
+        if attr is not None:
+            # ended!
+            return
+        time.sleep(.3)
+    pytest.fail("LC didnt end: %s" % (lock_checker,))
 
-    def wait(self, lock_checker, attr_name):
-        """Wait at most a second for the LockChecker to end."""
-        for i in range(10):
-            attr = getattr(lock_checker, attr_name)
-            if attr is not None:
-                # ended!
-                return
-            time.sleep(.3)
-        self.fail("LC didnt end: %s" % (lock_checker,))
 
-    def test_lock_alone(self):
-        lc = LockChecker(self.test_path)
-        lc.start()
-        lc.middle_work.set()
-        self.wait(lc, 'post_work')
+def test_lock_alone(lock_path):
+    lc = LockChecker(lock_path)
+    lc.start()
+    lc.middle_work.set()
+    wait(lc, 'post_work')
 
-    def test_lock_intermixed(self):
-        lc1 = LockChecker(self.test_path)
-        lc1.start()
-        self.wait(lc1, 'in_lock')
 
-        lc2 = LockChecker(self.test_path)
-        lc2.start()
+def test_lock_intermixed(lock_path):
+    lc1 = LockChecker(lock_path)
+    lc1.start()
+    wait(lc1, 'in_lock')
 
-        lc1.middle_work.set()
-        self.wait(lc1, 'post_work')
+    lc2 = LockChecker(lock_path)
+    lc2.start()
 
-        lc2.middle_work.set()
-        self.wait(lc2, 'post_work')
+    lc1.middle_work.set()
+    wait(lc1, 'post_work')
 
-        # check LC 2 waited to enter
-        self.assertGreater(lc2.in_lock, lc1.post_work)
+    lc2.middle_work.set()
+    wait(lc2, 'post_work')
 
-    def test_lock_exploding(self):
-        # get the lock and explode in the middle (then ignore the blast)
-        try:
-            with filelock(self.test_path):
-                raise ValueError("pumba")
-        except ValueError:
-            pass
+    # check LC 2 waited to enter
+    assert lc2.in_lock > lc1.post_work
 
-        # get the lock again
-        with filelock(self.test_path):
-            pass
+
+def test_lock_exploding(lock_path):
+    # get the lock and explode in the middle (then ignore the blast)
+    try:
+        with filelock(lock_path):
+            raise ValueError("pumba")
+    except ValueError:
+        pass
+
+    # get the lock again
+    with filelock(lock_path):
+        pass
