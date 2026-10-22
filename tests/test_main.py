@@ -18,12 +18,15 @@
 
 import os
 import unittest
+import uuid
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from packaging.requirements import Requirement
 
-from fades import VERSION, FadesError, __version__, helpers, main, parsing, REPO_PYPI, REPO_VCS
+from fades import (
+    VERSION, FadesError, __version__, file_options, helpers, main, parsing, REPO_PYPI,
+    REPO_VCS)
 from tests import create_tempfile
 
 
@@ -316,6 +319,94 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
         analyzable, child = main.decide_child_program(False, True, child_path)
         self.assertIsNone(analyzable)
         self.assertEqual(child, child_path)
+
+
+class RemoveVenvTestCase(unittest.TestCase):
+    """Check the '--rm' option, removing by uuid or by the indicated dependencies."""
+
+    def _run(self, cmdline_args, found_venv):
+        """Run go() with the given cli args, mocking the cache and the venv destruction.
+
+        'found_venv' is the metadata returned by the cache lookup (or None when nothing matches).
+        Returns the mocked cache and destroy_venv so the test can check how they were called,
+        and the parsed arguments.
+        """
+        venvscache = MagicMock()
+        venvscache.get_venv.return_value = found_venv
+        with patch('sys.argv', ['fades'] + cmdline_args), \
+                patch('fades.main.detect_inside_virtualenv', return_value=False), \
+                patch('fades.cache.VEnvsCache', return_value=venvscache), \
+                patch('fades.envbuilder.UsageManager'), \
+                patch('fades.helpers.get_basedir', return_value=Path('/tmp/fades-test')), \
+                patch('fades.file_options.options_from_file',
+                      wraps=file_options.options_from_file) as options_from_file, \
+                patch('fades.envbuilder.destroy_venv') as destroy_venv:
+            result = main.go()
+        self.assertEqual(result, 0)
+        # the parsed arguments are updated in place, so these are the final ones
+        (args,), _ = options_from_file.call_args
+        return venvscache, destroy_venv, args
+
+    def test_by_uuid_found(self):
+        venv_uuid = str(uuid.uuid4())
+        venvscache, destroy_venv, _ = self._run(
+            ['--rm', venv_uuid], found_venv={'env_path': '/path/to/venv'})
+        venvscache.get_venv.assert_called_once_with(uuid=venv_uuid)
+        destroy_venv.assert_called_once_with('/path/to/venv', venvscache)
+
+    def test_by_uuid_not_found(self):
+        venv_uuid = str(uuid.uuid4())
+        venvscache, destroy_venv, _ = self._run(['--rm', venv_uuid], found_venv=None)
+        venvscache.get_venv.assert_called_once_with(uuid=venv_uuid)
+        destroy_venv.assert_not_called()
+
+    def test_by_uuid_invalid_env_path(self):
+        _, destroy_venv, _ = self._run(
+            ['--rm', str(uuid.uuid4())], found_venv={'env_path': None})
+        destroy_venv.assert_not_called()
+
+    def _assert_removed_by_deps(self, venvscache, destroy_venv, dep_name):
+        """Check that the venv was looked up by the indicated dependencies and removed."""
+        # the lookup is done by the indicated dependencies, not by uuid
+        (_, kwargs) = venvscache.get_venv.call_args
+        self.assertNotIn('uuid', kwargs)
+        deps = venvscache.get_venv.call_args[0][0]
+        self.assertIn(dep_name, [req.name for req in deps[REPO_PYPI]])
+        destroy_venv.assert_called_once_with('/path/to/venv', venvscache)
+
+    def test_by_dependencies_found(self):
+        venvscache, destroy_venv, _ = self._run(
+            ['--rm', '-d', 'foo'], found_venv={'env_path': '/path/to/venv'})
+        self._assert_removed_by_deps(venvscache, destroy_venv, 'foo')
+
+    def test_by_dependencies_not_found(self):
+        venvscache, destroy_venv, _ = self._run(['--rm', '-d', 'foo'], found_venv=None)
+        destroy_venv.assert_not_called()
+
+    def test_by_dependencies_after_double_dash(self):
+        script = create_tempfile(self, ['import foo  # fades'])
+        venvscache, destroy_venv, args = self._run(
+            ['--rm', '--', script], found_venv={'env_path': '/path/to/venv'})
+        self._assert_removed_by_deps(venvscache, destroy_venv, 'foo')
+        self.assertEqual(args.child_program, script)
+
+    def test_by_script_dependencies(self):
+        # argparse takes the script as the '--rm' value, but it's not a UUID
+        script = create_tempfile(self, ['import foo  # fades'])
+        venvscache, destroy_venv, args = self._run(
+            ['--rm', script], found_venv={'env_path': '/path/to/venv'})
+        self._assert_removed_by_deps(venvscache, destroy_venv, 'foo')
+        self.assertEqual(args.child_program, script)
+        self.assertEqual(args.child_options, [])
+
+    def test_by_script_dependencies_with_options(self):
+        # the script options must not be taken as the child program
+        script = create_tempfile(self, ['import foo  # fades'])
+        venvscache, destroy_venv, args = self._run(
+            ['--rm', script, 'arg1', '--opt'], found_venv={'env_path': '/path/to/venv'})
+        self._assert_removed_by_deps(venvscache, destroy_venv, 'foo')
+        self.assertEqual(args.child_program, script)
+        self.assertEqual(args.child_options, ['arg1', '--opt'])
 
 
 # ---------------------------------------

@@ -25,6 +25,7 @@ import signal
 import sys
 import subprocess
 import tempfile
+import uuid
 from pathlib import Path
 
 import fades
@@ -263,8 +264,10 @@ def go():
         '--python-options', action='append', default=[],
         help="extra options to be supplied to python (this option can be used multiple times)")
     parser.add_argument(
-        '--rm', dest='remove', metavar='UUID',
-        help="remove a virtualenv by UUID; see --where option to easily find out the UUID")
+        '--rm', dest='remove', metavar='UUID', nargs='?', const='',
+        help="remove a virtualenv: by UUID if one is given (see --where to easily find out the "
+             "UUID), or by the indicated dependencies if no UUID is passed "
+             "(e.g. 'fades --rm -d django')")
     parser.add_argument(
         '--clean-unused-venvs', action='store',
         help="remove venvs that haven't been used for more than the indicated days and compact "
@@ -310,6 +313,18 @@ def go():
 
     # update args from config file (if needed).
     args = file_options.options_from_file(cli_args)
+
+    # '--rm' takes an optional UUID, so in 'fades --rm script.py' argparse grabs the script as
+    # its value; venv UUIDs are always valid UUIDs, so anything else is really the child program
+    if args.remove is not None:
+        try:
+            uuid.UUID(args.remove)
+        except ValueError:
+            if args.remove:
+                if args.child_program is not None:
+                    args.child_options.insert(0, args.child_program)
+                args.child_program = args.remove
+                args.remove = ''
 
     # validate input, parameters, and support some special options
     if args.version:
@@ -363,22 +378,6 @@ def go():
         usage_manager.clean_unused_venvs(max_days_to_keep)
         return 0
 
-    uuid = args.remove
-    if uuid:
-        venv_data = venvscache.get_venv(uuid=uuid)
-        if venv_data:
-            # remove this venv from the cache
-            env_path = venv_data.get('env_path')
-            if env_path:
-                envbuilder.destroy_venv(env_path, venvscache)
-            else:
-                logger.warning(
-                    "Invalid 'env_path' found in virtualenv metadata: %r. "
-                    "Not removing virtualenv.", env_path)
-        else:
-            logger.warning('No virtualenv found with uuid: %s.', uuid)
-        return 0
-
     # decided which the child program really is
     analyzable_child_program, child_program = decide_child_program(
         args.executable, args.module, args.child_program)
@@ -386,10 +385,6 @@ def go():
     # Group and merge dependencies
     indicated_deps = consolidate_dependencies(
         args.ipython, analyzable_child_program, args.requirement, args.dependency)
-
-    # Check for packages updates
-    if args.check_updates:
-        helpers.check_pypi_updates(indicated_deps)
 
     # decide the interpreter to use, considering the one indicated with --python and the
     # Python version the script declares it needs in its '# /// script' metadata block, if any
@@ -408,8 +403,33 @@ def go():
     if args.system_site_packages:
         options['venv_options'].append("--system-site-packages")
 
+    # remove a virtualenv, either by the given UUID or by the indicated dependencies
+    if args.remove is not None:
+        if args.remove:
+            venv_data = venvscache.get_venv(uuid=args.remove)
+            descriptor = "uuid: {}".format(args.remove)
+        else:
+            venv_data = venvscache.get_venv(indicated_deps, interpreter, options=options)
+            descriptor = "the indicated dependencies"
+        if venv_data:
+            # remove this venv from the cache
+            env_path = venv_data.get('env_path')
+            if env_path:
+                envbuilder.destroy_venv(env_path, venvscache)
+            else:
+                logger.warning(
+                    "Invalid 'env_path' found in virtualenv metadata: %r. "
+                    "Not removing virtualenv.", env_path)
+        else:
+            logger.warning('No virtualenv found with %s.', descriptor)
+        return 0
+
+    # Check for packages updates
+    if args.check_updates:
+        helpers.check_pypi_updates(indicated_deps)
+
     create_venv = False
-    venv_data = venvscache.get_venv(indicated_deps, interpreter, uuid, options)
+    venv_data = venvscache.get_venv(indicated_deps, interpreter, options=options)
     if venv_data:
         env_path = venv_data['env_path']
         # A venv was found in the cache check if its valid or re-generate it.
