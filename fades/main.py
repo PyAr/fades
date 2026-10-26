@@ -57,6 +57,10 @@ REDIRECTED_SIGNALS = [
     signal.SIGTERM,
 ]
 
+# special value for '--rm' to remove the virtualenv of the indicated dependencies (instead of
+# the one with the UUID given by the user)
+BY_DEPENDENCIES = object()
+
 HELP_EPILOG = """
 The "child program" is the script that fades will execute. It's an
 optional parameter, it will be the first thing received by fades that
@@ -264,7 +268,7 @@ def go():
         '--python-options', action='append', default=[],
         help="extra options to be supplied to python (this option can be used multiple times)")
     parser.add_argument(
-        '--rm', dest='remove', metavar='UUID', nargs='?', const='',
+        '--rm', dest='remove', metavar='UUID', nargs='?', const=BY_DEPENDENCIES,
         help="remove a virtualenv: by UUID if one is given (see --where to easily find out the "
              "UUID), or by the indicated dependencies if no UUID is passed "
              "(e.g. 'fades --rm -d django')")
@@ -314,17 +318,18 @@ def go():
     # update args from config file (if needed).
     args = file_options.options_from_file(cli_args)
 
-    # '--rm' takes an optional UUID, so in 'fades --rm script.py' argparse grabs the script as
-    # its value; venv UUIDs are always valid UUIDs, so anything else is really the child program
-    if args.remove is not None:
+    # what to remove (if '--rm' was given): the UUID indicated by the user, or BY_DEPENDENCIES
+    remove_flag = args.remove
+    if remove_flag is not None and remove_flag is not BY_DEPENDENCIES:
+        # '--rm' takes an optional UUID, so in 'fades --rm script.py' argparse grabs the script
+        # as its value; venv UUIDs are always valid UUIDs, so anything else is the child program
         try:
-            uuid.UUID(args.remove)
+            uuid.UUID(remove_flag)
         except ValueError:
-            if args.remove:
-                if args.child_program is not None:
-                    args.child_options.insert(0, args.child_program)
-                args.child_program = args.remove
-                args.remove = ''
+            if args.child_program is not None:
+                args.child_options.insert(0, args.child_program)
+            args.child_program = remove_flag
+            remove_flag = BY_DEPENDENCIES
 
     # validate input, parameters, and support some special options
     if args.version:
@@ -404,13 +409,13 @@ def go():
         options['venv_options'].append("--system-site-packages")
 
     # remove a virtualenv, either by the given UUID or by the indicated dependencies
-    if args.remove is not None:
-        if args.remove:
-            venv_data = venvscache.get_venv(uuid=args.remove)
-            descriptor = "uuid: {}".format(args.remove)
-        else:
+    if remove_flag is not None:
+        if remove_flag is BY_DEPENDENCIES:
             venv_data = venvscache.get_venv(indicated_deps, interpreter, options=options)
             descriptor = "the indicated dependencies"
+        else:
+            venv_data = venvscache.get_venv(uuid=remove_flag)
+            descriptor = "uuid: {}".format(remove_flag)
         if venv_data:
             # remove this venv from the cache
             env_path = venv_data.get('env_path')

@@ -25,8 +25,16 @@ from unittest.mock import MagicMock, patch
 from packaging.requirements import Requirement
 
 from fades import (
-    VERSION, FadesError, __version__, file_options, helpers, main, parsing, REPO_PYPI,
-    REPO_VCS)
+    FadesError,
+    REPO_PYPI,
+    REPO_VCS,
+    VERSION,
+    __version__,
+    file_options,
+    helpers,
+    main,
+    parsing,
+)
 from tests import create_tempfile
 
 
