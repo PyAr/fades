@@ -387,10 +387,11 @@ class ChildProgramDeciderTestCase(unittest.TestCase):
 class RemoveVenvTestCase(unittest.TestCase):
     """Check the '--rm' option, removing by uuid or by the indicated dependencies."""
 
-    def _run(self, cmdline_args, found_venv):
+    def _run(self, cmdline_args, found_venv, expected_rc=0):
         """Run go() with the given cli args, mocking the cache and the venv destruction.
 
-        'found_venv' is the metadata returned by the cache lookup (or None when nothing matches).
+        'found_venv' is the metadata returned by the cache lookup (or None when nothing matches),
+        and 'expected_rc' the return code go() must give.
         Returns the mocked cache and destroy_venv so the test can check how they were called,
         and the parsed arguments.
         """
@@ -405,7 +406,7 @@ class RemoveVenvTestCase(unittest.TestCase):
                       wraps=file_options.options_from_file) as options_from_file, \
                 patch('fades.envbuilder.destroy_venv') as destroy_venv:
             result = main.go()
-        self.assertEqual(result, 0)
+        self.assertEqual(result, expected_rc)
         # the parsed arguments are updated in place, so these are the final ones
         (args,), _ = options_from_file.call_args
         return venvscache, destroy_venv, args
@@ -419,13 +420,14 @@ class RemoveVenvTestCase(unittest.TestCase):
 
     def test_by_uuid_not_found(self):
         venv_uuid = str(uuid.uuid4())
-        venvscache, destroy_venv, _ = self._run(['--rm', venv_uuid], found_venv=None)
+        venvscache, destroy_venv, _ = self._run(
+            ['--rm', venv_uuid], found_venv=None, expected_rc=-1)
         venvscache.get_venv.assert_called_once_with(uuid=venv_uuid)
         destroy_venv.assert_not_called()
 
     def test_by_uuid_invalid_env_path(self):
         _, destroy_venv, _ = self._run(
-            ['--rm', str(uuid.uuid4())], found_venv={'env_path': None})
+            ['--rm', str(uuid.uuid4())], found_venv={'env_path': None}, expected_rc=-1)
         destroy_venv.assert_not_called()
 
     def _assert_removed_by_deps(self, venvscache, destroy_venv, dep_name):
@@ -443,7 +445,8 @@ class RemoveVenvTestCase(unittest.TestCase):
         self._assert_removed_by_deps(venvscache, destroy_venv, 'foo')
 
     def test_by_dependencies_not_found(self):
-        venvscache, destroy_venv, _ = self._run(['--rm', '-d', 'foo'], found_venv=None)
+        venvscache, destroy_venv, _ = self._run(
+            ['--rm', '-d', 'foo'], found_venv=None, expected_rc=-1)
         destroy_venv.assert_not_called()
 
     def test_by_dependencies_after_double_dash(self):

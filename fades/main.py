@@ -455,17 +455,18 @@ def go():
         else:
             venv_data = venvscache.get_venv(uuid=remove_flag)
             descriptor = "uuid: {}".format(remove_flag)
-        if venv_data:
-            # remove this venv from the cache
-            env_path = venv_data.get('env_path')
-            if env_path:
-                envbuilder.destroy_venv(env_path, venvscache)
-            else:
-                logger.warning(
-                    "Invalid 'env_path' found in virtualenv metadata: %r. "
-                    "Not removing virtualenv.", env_path)
-        else:
-            logger.warning('No virtualenv found with %s.', descriptor)
+        # nothing removed is an error, so callers can tell from the exit code
+        if not venv_data:
+            logger.error('No virtualenv found with %s.', descriptor)
+            return -1
+        env_path = venv_data.get('env_path')
+        if not env_path:
+            logger.error(
+                "Invalid 'env_path' found in virtualenv metadata: %r. "
+                "Not removing virtualenv.", env_path)
+            return -1
+        # remove this venv from the cache
+        envbuilder.destroy_venv(env_path, venvscache)
         return 0
 
     # Check for packages updates
