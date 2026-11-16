@@ -385,6 +385,45 @@ class CheckPackageExistenceTestCase(unittest.TestCase):
         self.assertLoggedWarning("Got a (unexpected) HTTP_STATUS")
 
 
+# the releases that the fake PyPI knows for the 'foo' project
+FAKE_PYPI_RELEASES = ["1.0", "2.0", "2.5"]
+
+
+def fake_pypi_urlopen(req):
+    """Emulate PyPI's JSON API: by name, or by an existing exact version."""
+    url = getattr(req, "full_url", req)
+    prefix = "https://pypi.org/pypi/foo/"
+    if url == prefix + "json":
+        body = {"releases": {version: [{}] for version in FAKE_PYPI_RELEASES}}
+    elif url.startswith(prefix) and url[len(prefix):-len("/json")] in FAKE_PYPI_RELEASES:
+        body = {"info": {"version": url[len(prefix):-len("/json")]}}
+    else:
+        raise HTTPError(url, HTTPStatus.NOT_FOUND, "Not Found", {}, None)
+    response = io.BytesIO(json.dumps(body).encode())
+    response.status = HTTPStatus.OK
+    return response
+
+
+@pytest.mark.parametrize("requirement, expected", [
+    ("foo", True),
+    ("foo==2.0", True),
+    ("foo==3.0", False),
+    ("foo<3", True),
+    ("foo>=2.1", True),
+    ("foo>=1.0", True),
+    ("foo>5", False),
+    ("foo>=1,<2", True),
+    ("foo~=3.0", False),
+    ("foo==2.*", True),
+    ("foo==3.*", False),
+    ("foo!=2.0", True),
+])
+def test_pypi_exists_honors_specifier(requirement, expected):
+    deps = parsing.parse_manual([requirement])
+    with patch("urllib.request.urlopen", side_effect=fake_pypi_urlopen):
+        assert helpers.check_pypi_exists(deps) is expected
+
+
 class ScriptDownloaderTestCase(unittest.TestCase):
     """Check the script downloader."""
 

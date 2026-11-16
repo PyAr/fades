@@ -358,11 +358,44 @@ def check_pypi_updates(dependencies):
     return dependencies
 
 
+def _get_exact_version(specifier):
+    """Return the version if the specifier pins an exact one (no wildcards), else None."""
+    specs = list(specifier)
+    if len(specs) == 1:
+        (spec,) = specs
+        if spec.operator == '===' or (spec.operator == '==' and not spec.version.endswith('.*')):
+            return spec.version
+    return None
+
+
+def _pypi_release_satisfies(dependency):
+    """Check in PyPI if any release of the dependency satisfies its version specifier."""
+    url = BASE_PYPI_URL.format(name=dependency.name)
+    logger.debug("Getting releases from %s", url)
+    try:
+        response = request.urlopen(url)
+    except HTTPError as http_error:
+        if http_error.code == HTTPStatus.NOT_FOUND:
+            return False
+        else:
+            raise
+    data = json.loads(response.read().decode("utf8"))
+
+    # only consider releases with something to install
+    versions = [version for version, files in data["releases"].items() if files]
+    if any(dependency.specifier.filter(versions)):
+        logger.debug("%r exists in PyPI.", dependency)
+        return True
+    return False
+
+
 def _pypi_head_package(dependency):
     """Hit pypi with a http HEAD to check if pkg_name exists."""
     if dependency.specifier:
-        spec = list(dependency.specifier)[0]
-        version = spec.version
+        version = _get_exact_version(dependency.specifier)
+        if version is None:
+            # a range of versions, need to check if any release satisfies it
+            return _pypi_release_satisfies(dependency)
         url = BASE_PYPI_URL_WITH_VERSION.format(name=dependency.name, version=version)
     else:
         url = BASE_PYPI_URL.format(name=dependency.name)
