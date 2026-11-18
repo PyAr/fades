@@ -320,6 +320,36 @@ def parse_docstring(filepath: Path):
         return _parse_docstring(fh)
 
 
+def _parse_dependency_list(dependencies, context):
+    """Convert a list of dependency strings (PEP 508) to the usual repo->deps structure.
+
+    The dependencies are standard requirement strings; the ones pointing to a URL
+    (e.g. 'foo @ git+https://...' or 'foo @ file:///some/path') are not from PyPI, and are
+    handled like any other VCS dependency (pip understands them as they are).
+
+    ``context`` describes where the dependencies come from; it's used in error messages.
+    """
+    if not isinstance(dependencies, list):
+        logger.error(
+            "The 'dependencies' field in %s must be a list, got %s",
+            context, type(dependencies).__name__)
+        raise FadesError("The 'dependencies' field must be a list")
+
+    deps = {}
+    for text in dependencies:
+        try:
+            requirement = Requirement(text)
+        except (InvalidRequirement, TypeError) as error:
+            logger.error("Invalid dependency %r in %s: %s", text, context, error)
+            raise FadesError("Invalid dependency found")
+        if requirement.url:
+            deps.setdefault(REPO_VCS, []).append(VCSDependency(text.strip()))
+        else:
+            deps.setdefault(REPO_PYPI, []).append(requirement)
+
+    return deps
+
+
 def _parse_pep723(content):
     """Parse the '# /// script' metadata block of a script, if any.
 
@@ -365,28 +395,7 @@ def _parse_pep723(content):
     logger.debug("Parsed '# /// script' metadata: %s", metadata)
 
     dependencies = metadata.get('dependencies', [])
-    if not isinstance(dependencies, list):
-        logger.error(
-            "The 'dependencies' field in the script's '# /// script' metadata block must be "
-            "a list, got %s", type(dependencies).__name__)
-        raise FadesError("The 'dependencies' field in '# /// script' must be a list")
-
-    # the dependencies are standard requirement strings (PEP 508); the ones pointing to a URL
-    # (e.g. 'foo @ git+https://...' or 'foo @ file:///some/path') are not from PyPI, and are
-    # handled like any other VCS dependency (pip understands them as they are)
-    deps = {}
-    for text in dependencies:
-        try:
-            requirement = Requirement(text)
-        except (InvalidRequirement, TypeError) as error:
-            logger.error(
-                "Invalid dependency %r in the script's '# /// script' metadata block: %s",
-                text, error)
-            raise FadesError("Invalid dependency in the '# /// script' metadata block")
-        if requirement.url:
-            deps.setdefault(REPO_VCS, []).append(VCSDependency(text.strip()))
-        else:
-            deps.setdefault(REPO_PYPI, []).append(requirement)
+    deps = _parse_dependency_list(dependencies, "the script's '# /// script' metadata block")
 
     return deps, metadata.get('requires-python')
 
@@ -404,3 +413,94 @@ def parse_pep723(filepath):
         return {}, None
     with open(filepath, 'rt', encoding='utf8') as fh:
         return _parse_pep723(fh.read())
+
+
+def parse_pyproject(filepath):
+    """Parse a pyproject.toml and return the dependencies declared by its [project] table.
+
+    Only the standard PEP 621 'dependencies' list is considered: neither
+    'optional-dependencies' nor '[build-system].requires' are taken, as they are not the
+    runtime dependencies of what fades will run; a [project] table that declares no
+    dependencies simply produces none.
+
+    Raise FadesError if the content is not valid TOML, there is no [project] table, or
+    any dependency is invalid.
+    """
+    if tomllib is None:
+        logger.warning(
+            "The dependencies of %r can't be read because no TOML parser is available; "
+            "install the 'tomli' package to support it in Python <3.11", filepath)
+        return {}
+
+    with open(filepath, 'rb') as fh:
+        try:
+            metadata = tomllib.load(fh)
+        except tomllib.TOMLDecodeError as error:
+            logger.error("Invalid TOML in %r: %s", filepath, error)
+            raise FadesError("Invalid TOML in pyproject.toml")
+
+    project = metadata.get('project')
+    if not isinstance(project, dict):
+        logger.error("No [project] table found in %r", filepath)
+        raise FadesError("No [project] table in pyproject.toml")
+
+    dependencies = project.get('dependencies', [])
+    return _parse_dependency_list(dependencies, "the [project] table of {!r}".format(filepath))
+
+
+def parse_deps_from(filepath):
+    """Parse a file indicated with --deps-from, guessing its format from the file name.
+
+    The supported formats are:
+
+    - ``.txt``: a requirements file, parsed exactly like the ones from -r/--requirement
+    - ``.py``: a Python script, from which dependencies are taken the same way as when
+      it's the program being run: its '# fades' comments, its docstring, and its
+      '# /// script' metadata block (PEP 723)
+    - ``pyproject.toml``: a PEP 621 project file, from which [project] dependencies
+      are taken
+
+    Return a tuple ``(deps, python_toml)`` where ``deps`` is the usual repo->deps mapping
+    and ``python_toml`` is the Python version the file declares it needs (only a .py
+    file, through its PEP 723 metadata block, may declare it), or None.
+
+    Raise FadesError if the file doesn't exist or its format is not a supported one.
+    """
+    filepath = Path(filepath)
+    if not filepath.is_file():
+        logger.error("File not found (to read dependencies from): %r", filepath)
+        raise FadesError("File not found: {!r}".format(filepath))
+
+    if filepath.name == 'pyproject.toml':
+        return parse_pyproject(filepath), None
+
+    suffix = filepath.suffix.lower()
+    if suffix == '.txt':
+        return parse_reqfile(filepath), None
+
+    if suffix == '.py':
+        srcfile_deps = parse_srcfile(filepath)
+        docstring_deps = parse_docstring(filepath)
+        pep723_deps, python_toml = parse_pep723(filepath)
+        deps = {}
+        for dep in (srcfile_deps, docstring_deps, pep723_deps):
+            for repo, info in dep.items():
+                deps.setdefault(repo, set()).update(info)
+        return deps, python_toml
+
+    logger.error(
+        "Unsupported file to read dependencies from %r: it must be a .txt requirements "
+        "file, a .py script, or a pyproject.toml", filepath)
+    raise FadesError("Unsupported file to read dependencies from: {!r}".format(filepath))
+
+
+def merge_requires_python(specifiers):
+    """Combine several 'requires-python' specifiers into a single one: their intersection.
+
+    None or empty items are ignored; return None if nothing remains, meaning no Python
+    version restriction at all.
+    """
+    cleaned = [spec.strip() for spec in specifiers if spec]
+    if not cleaned:
+        return None
+    return ', '.join(cleaned)

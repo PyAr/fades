@@ -17,6 +17,7 @@
 """Tests for some code in main."""
 
 import os
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -145,6 +146,21 @@ class DepsGatheringTestCase(unittest.TestCase):
 
         self.assertDictEqual(d, {'pypi': {Requirement('dep')}})
 
+    def test_deps_from_deps(self):
+        deps_from_deps = [
+            {'pypi': [Requirement('dep1')]},
+            {'vcs': [parsing.VCSDependency('dep2')]},
+        ]
+
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
+                                          requirement_files=None, manual_dependencies=None,
+                                          deps_from_deps=deps_from_deps)
+
+        self.assertEqual(d, {
+            'pypi': {Requirement('dep1')},
+            'vcs': {parsing.VCSDependency('dep2')},
+        })
+
 
 class DepsMergingTestCase(unittest.TestCase):
     """Tests for the merging stage of consolidate_dependencies."""
@@ -222,9 +238,26 @@ class DepsMergingTestCase(unittest.TestCase):
                                           requirement_files=requirement_files,
                                           manual_dependencies=manual_dependencies)
 
-        self.assertDictEqual(d, {
+        self.assertEqual(d, {
             'pypi': {Requirement('requests<3'), Requirement('rich'),
                      Requirement('from-reqfile'), Requirement('from-manual')}
+        })
+
+    def test_deps_from_merges_with_other_sources(self):
+        child_program = 'tests/test_files/pep723_basic.py'
+        requirement_files = [create_tempfile(self, ['from-reqfile'])]
+        manual_dependencies = ['from-manual']
+        deps_from_deps = [{'pypi': [Requirement('from-deps-from')]}]
+
+        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
+                                          requirement_files=requirement_files,
+                                          manual_dependencies=manual_dependencies,
+                                          deps_from_deps=deps_from_deps)
+
+        self.assertEqual(d, {
+            'pypi': {Requirement('requests<3'), Requirement('rich'),
+                     Requirement('from-reqfile'), Requirement('from-manual'),
+                     Requirement('from-deps-from')}
         })
 
     def test_two_different_with_dups(self):
@@ -291,6 +324,47 @@ class PEP723RequiresPythonIntegrationTestCase(unittest.TestCase):
 
         self.assertEqual(result, '/some/python')
         self.assertEqual(mock.call_count, 0)
+
+
+class DepsFromRequiresPythonIntegrationTestCase(unittest.TestCase):
+    """End-to-end wiring of the Python versions declared by the --deps-from files.
+
+    This mirrors the flow in main.go(): the 'requires-python' declared by each .py file
+    given to --deps-from combines with the child program's own declaration, and the
+    result drives the interpreter decision.
+    """
+
+    def _resolve(self, python_tomls, python_args):
+        merged = parsing.merge_requires_python(python_tomls)
+        return helpers.get_interpreter_for_requirement(merged, python_args)
+
+    def test_deps_from_combines_with_child_program(self):
+        # the child script declares '>=3.11' and the --deps-from file '>=3.9'; the
+        # combination is satisfied by fades' own Python
+        child_program = 'tests/test_files/pep723_requires_python.py'
+        descriptor, tempfile_name = tempfile.mkstemp(suffix=".py")
+        os.close(descriptor)
+        self.addCleanup(lambda: os.path.exists(tempfile_name) and os.remove(tempfile_name))
+        with open(tempfile_name, 'wt', encoding='utf8') as fh:
+            fh.write('# /// script\n'
+                     '# requires-python = ">=3.9"\n'
+                     '# dependencies = []\n'
+                     '# ///\n')
+
+        _, child_python = parsing.parse_pep723(child_program)
+        _, deps_from_python = parsing.parse_deps_from(Path(tempfile_name))
+
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
+            result = self._resolve([deps_from_python, child_python], None)
+
+        self.assertIsNone(result)
+
+    def test_deps_from_incompatible_declarations_error(self):
+        # no interpreter can satisfy the combination, so it's an error
+        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
+            with patch.object(helpers, '_find_interpreter', return_value=None):
+                with self.assertRaises(FadesError):
+                    self._resolve(['>=3.12', '<3.12'], None)
 
 
 class MiscTestCase(unittest.TestCase):

@@ -169,6 +169,28 @@ the ``--dependency`` parameter. This file is then indicated to fades
 through the ``--requirement`` parameter. This option can be specified
 multiple times.
 
+A more flexible alternative is ``--deps-from``, which indicates files to read
+dependencies from, no matter which of these formats they have (detected from
+the file itself):
+
+- requirements files (``.txt`` extension), parsed exactly like the files
+  given to ``--requirement``
+- Python scripts (``.py`` extension), from which dependencies are taken the
+  same way as when the script is the one being executed: marking the imports,
+  the docstring, and the ``# /// script`` metadata block
+- a ``pyproject.toml`` file, from which the standard `PEP 621
+  <https://peps.python.org/pep-0621/>`_ ``[project]`` dependencies are taken
+  (neither ``optional-dependencies`` nor ``build-system`` requirements are used)
+
+This option can be specified multiple times, and combined with the other ways
+of indicating dependencies, e.g.::
+
+    fades --deps-from pyproject.toml --deps-from checks.py -d koiframes myscript.py
+
+If a ``--deps-from`` Python script declares a needed Python version in its
+``# /// script`` metadata block, that declaration combines with the one of the
+script being executed (all the restrictions must be satisfied).
+
 In case of multiple definitions of the same dependency, command line
 overrides everything else, and requirements file overrides what is
 specified in the source code.
