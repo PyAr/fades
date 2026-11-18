@@ -464,12 +464,9 @@ def parse_deps_from(filepath):
     and ``python_toml`` is the Python version the file declares it needs (only a .py
     file, through its PEP 723 metadata block, may declare it), or None.
 
-    Raise FadesError if the file doesn't exist or its format is not a supported one.
+    Raise FadesError if the file format is not a supported one.
     """
     filepath = Path(filepath)
-    if not filepath.is_file():
-        logger.error("File not found (to read dependencies from): %r", filepath)
-        raise FadesError("File not found: {!r}".format(filepath))
 
     if filepath.name == 'pyproject.toml':
         return parse_pyproject(filepath), None

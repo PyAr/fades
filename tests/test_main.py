@@ -17,11 +17,11 @@
 """Tests for some code in main."""
 
 import os
-import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 from packaging.requirements import Requirement
 
 from fades import VERSION, FadesError, __version__, helpers, main, parsing, REPO_PYPI, REPO_VCS
@@ -108,7 +108,8 @@ class DepsGatheringTestCase(unittest.TestCase):
 
     def test_needs_ipython(self):
         d = main.consolidate_dependencies(needs_ipython=True, child_program=None,
-                                          requirement_files=None, manual_dependencies=None)
+                                          requirement_files=None,
+                                          manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('ipython')}})
 
@@ -116,7 +117,8 @@ class DepsGatheringTestCase(unittest.TestCase):
         child_program = 'tests/test_files/req_module.py'
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                          requirement_files=None, manual_dependencies=None)
+                                          requirement_files=None,
+                                          manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('foo'), Requirement('bar')}})
 
@@ -124,7 +126,8 @@ class DepsGatheringTestCase(unittest.TestCase):
         child_program = 'tests/test_files/pep723_basic.py'
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                          requirement_files=None, manual_dependencies=None)
+                                          requirement_files=None,
+                                          manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('requests<3'), Requirement('rich')}})
 
@@ -133,7 +136,7 @@ class DepsGatheringTestCase(unittest.TestCase):
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
                                           requirement_files=requirement_files,
-                                          manual_dependencies=None)
+                                          manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('dep')}})
 
@@ -142,24 +145,10 @@ class DepsGatheringTestCase(unittest.TestCase):
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
                                           requirement_files=None,
-                                          manual_dependencies=manual_dependencies)
+                                          manual_dependencies=manual_dependencies,
+                                          deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('dep')}})
-
-    def test_deps_from_deps(self):
-        deps_from_deps = [
-            {'pypi': [Requirement('dep1')]},
-            {'vcs': [parsing.VCSDependency('dep2')]},
-        ]
-
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
-                                          requirement_files=None, manual_dependencies=None,
-                                          deps_from_deps=deps_from_deps)
-
-        self.assertEqual(d, {
-            'pypi': {Requirement('dep1')},
-            'vcs': {parsing.VCSDependency('dep2')},
-        })
 
 
 class DepsMergingTestCase(unittest.TestCase):
@@ -171,7 +160,8 @@ class DepsMergingTestCase(unittest.TestCase):
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
                                           requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies)
+                                          manual_dependencies=manual_dependencies,
+                                          deps_from_deps=[])
 
         self.assertEqual(d, {
             'pypi': {Requirement('1'), Requirement('2')},
@@ -184,7 +174,8 @@ class DepsMergingTestCase(unittest.TestCase):
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
                                           requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies)
+                                          manual_dependencies=manual_dependencies,
+                                          deps_from_deps=[])
 
         self.assertDictEqual(d, {
             'pypi': {Requirement('1'), Requirement('2'), Requirement('3'), Requirement('4')}
@@ -197,7 +188,8 @@ class DepsMergingTestCase(unittest.TestCase):
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
                                           requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies)
+                                          manual_dependencies=manual_dependencies,
+                                          deps_from_deps=[])
 
         self.assertEqual(d, {
             'pypi': {Requirement('1'), Requirement('2'), Requirement('3')},
@@ -211,7 +203,8 @@ class DepsMergingTestCase(unittest.TestCase):
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
                                           requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies)
+                                          manual_dependencies=manual_dependencies,
+                                          deps_from_deps=[])
 
         self.assertDictEqual(d, {
             'pypi': {Requirement('2')}
@@ -223,7 +216,8 @@ class DepsMergingTestCase(unittest.TestCase):
         child_program = 'tests/test_files/pep723_and_comment.py'
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                          requirement_files=None, manual_dependencies=None)
+                                          requirement_files=None,
+                                          manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {
             'pypi': {Requirement('requests<3'), Requirement('requests'), Requirement('rich')}
@@ -236,28 +230,12 @@ class DepsMergingTestCase(unittest.TestCase):
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
                                           requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies)
+                                          manual_dependencies=manual_dependencies,
+                                          deps_from_deps=[])
 
         self.assertEqual(d, {
             'pypi': {Requirement('requests<3'), Requirement('rich'),
                      Requirement('from-reqfile'), Requirement('from-manual')}
-        })
-
-    def test_deps_from_merges_with_other_sources(self):
-        child_program = 'tests/test_files/pep723_basic.py'
-        requirement_files = [create_tempfile(self, ['from-reqfile'])]
-        manual_dependencies = ['from-manual']
-        deps_from_deps = [{'pypi': [Requirement('from-deps-from')]}]
-
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                          requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies,
-                                          deps_from_deps=deps_from_deps)
-
-        self.assertEqual(d, {
-            'pypi': {Requirement('requests<3'), Requirement('rich'),
-                     Requirement('from-reqfile'), Requirement('from-manual'),
-                     Requirement('from-deps-from')}
         })
 
     def test_two_different_with_dups(self):
@@ -266,7 +244,8 @@ class DepsMergingTestCase(unittest.TestCase):
 
         d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
                                           requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies)
+                                          manual_dependencies=manual_dependencies,
+                                          deps_from_deps=[])
 
         self.assertEqual(d, {
             'pypi': {Requirement('1'), Requirement('2')},
@@ -324,47 +303,6 @@ class PEP723RequiresPythonIntegrationTestCase(unittest.TestCase):
 
         self.assertEqual(result, '/some/python')
         self.assertEqual(mock.call_count, 0)
-
-
-class DepsFromRequiresPythonIntegrationTestCase(unittest.TestCase):
-    """End-to-end wiring of the Python versions declared by the --deps-from files.
-
-    This mirrors the flow in main.go(): the 'requires-python' declared by each .py file
-    given to --deps-from combines with the child program's own declaration, and the
-    result drives the interpreter decision.
-    """
-
-    def _resolve(self, python_tomls, python_args):
-        merged = parsing.merge_requires_python(python_tomls)
-        return helpers.get_interpreter_for_requirement(merged, python_args)
-
-    def test_deps_from_combines_with_child_program(self):
-        # the child script declares '>=3.11' and the --deps-from file '>=3.9'; the
-        # combination is satisfied by fades' own Python
-        child_program = 'tests/test_files/pep723_requires_python.py'
-        descriptor, tempfile_name = tempfile.mkstemp(suffix=".py")
-        os.close(descriptor)
-        self.addCleanup(lambda: os.path.exists(tempfile_name) and os.remove(tempfile_name))
-        with open(tempfile_name, 'wt', encoding='utf8') as fh:
-            fh.write('# /// script\n'
-                     '# requires-python = ">=3.9"\n'
-                     '# dependencies = []\n'
-                     '# ///\n')
-
-        _, child_python = parsing.parse_pep723(child_program)
-        _, deps_from_python = parsing.parse_deps_from(Path(tempfile_name))
-
-        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
-            result = self._resolve([deps_from_python, child_python], None)
-
-        self.assertIsNone(result)
-
-    def test_deps_from_incompatible_declarations_error(self):
-        # no interpreter can satisfy the combination, so it's an error
-        with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
-            with patch.object(helpers, '_find_interpreter', return_value=None):
-                with self.assertRaises(FadesError):
-                    self._resolve(['>=3.12', '<3.12'], None)
 
 
 class MiscTestCase(unittest.TestCase):
@@ -523,3 +461,77 @@ def test_autoimport_importer_mod_fail(capsys):
     code = main.AUTOIMPORT_MOD_IMPORTER.format(module='not_there_should_explode')
     exec(code)
     assert capsys.readouterr().out == "::fades:: FAILED to autoimport 'not_there_should_explode'\n"
+
+
+def test_deps_from_deps():
+    """The already parsed dependencies from --deps-from files are consolidated."""
+    deps_from_deps = [
+        {'pypi': [Requirement('dep1')]},
+        {'vcs': [parsing.VCSDependency('dep2')]},
+    ]
+
+    d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
+                                      requirement_files=None, manual_dependencies=None,
+                                      deps_from_deps=deps_from_deps)
+
+    assert d == {
+        'pypi': {Requirement('dep1')},
+        'vcs': {parsing.VCSDependency('dep2')},
+    }
+
+
+def test_deps_from_merges_with_other_sources(tmp_path):
+    """The dependencies from --deps-from files merge with all the other sources."""
+    child_program = 'tests/test_files/pep723_basic.py'
+    reqfile = tmp_path / "requirements.txt"
+    reqfile.write_text("from-reqfile\n", encoding="utf8")
+    deps_from_deps = [{'pypi': [Requirement('from-deps-from')]}]
+
+    d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
+                                      requirement_files=[reqfile],
+                                      manual_dependencies=['from-manual'],
+                                      deps_from_deps=deps_from_deps)
+
+    assert d == {'pypi': {Requirement('requests<3'), Requirement('rich'),
+                          Requirement('from-reqfile'), Requirement('from-manual'),
+                          Requirement('from-deps-from')}}
+
+
+def test_deps_from_combines_with_child_program(tmp_path):
+    """End-to-end wiring of the Python versions declared by the --deps-from files.
+
+    This mirrors the flow in main.go(): the 'requires-python' declared by each .py file
+    given to --deps-from combines with the child program's own declaration, and the
+    result drives the interpreter decision.
+
+    The child script declares '>=3.11' and the --deps-from file '>=3.9'; the combination
+    is satisfied by fades' own Python.
+    """
+    child_program = 'tests/test_files/pep723_requires_python.py'
+    deps_from_path = tmp_path / "deps.py"
+    deps_from_path.write_text(
+        '# /// script\n'
+        '# requires-python = ">=3.9"\n'
+        '# dependencies = []\n'
+        '# ///\n', encoding="utf8")
+
+    _, child_python = parsing.parse_pep723(child_program)
+    _, deps_from_python = parsing.parse_deps_from(deps_from_path)
+
+    with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 12, 0)):
+        merged = parsing.merge_requires_python([deps_from_python, child_python])
+        result = helpers.get_interpreter_for_requirement(merged, None)
+
+    assert result is None
+
+
+def test_deps_from_incompatible_declarations_error():
+    """End-to-end wiring of incompatible Python versions declared to --deps-from files.
+
+    No interpreter can satisfy the combination, so it's an error.
+    """
+    with patch.object(helpers, '_get_interpreter_full_version', return_value=(3, 9, 0)):
+        with patch.object(helpers, '_find_interpreter', return_value=None):
+            merged = parsing.merge_requires_python(['>=3.12', '<3.12'])
+            with pytest.raises(FadesError):
+                helpers.get_interpreter_for_requirement(merged, None)

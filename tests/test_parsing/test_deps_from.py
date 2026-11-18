@@ -25,12 +25,6 @@ from fades import FadesError, parsing, REPO_PYPI, REPO_VCS
 from tests import get_reqs
 
 
-def test_missing_file(tmp_path):
-    path = tmp_path / "nonexistent.txt"
-    with pytest.raises(FadesError):
-        parsing.parse_deps_from(path)
-
-
 def test_unsupported_file(tmp_path):
     for name in ("deps.toml", "deps.in", "deps.md", "deps"):
         path = tmp_path / name

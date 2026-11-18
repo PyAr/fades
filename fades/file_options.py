@@ -17,17 +17,24 @@
 """Parse fades options from config files."""
 
 import logging
+from argparse import ArgumentTypeError
 from pathlib import Path
 
 from configparser import ConfigParser, NoSectionError
 
-from fades.helpers import get_confdir
+from fades import FadesError
+from fades.helpers import existing_file, get_confdir
 
 logger = logging.getLogger(__name__)
 
 CONFIG_FILES = (Path("/etc/fades/fades.ini"), get_confdir() / 'fades.ini', Path(".fades.ini"))
 
 MERGEABLE_CONFIGS = ("dependency", "pip_options", "venv-options", "uv_pip_options")
+
+# mergeable options that hold file paths; their CLI counterparts validate the paths at
+# argparse level, so the values coming from config files are validated here, at the
+# point where they enter the system
+MERGEABLE_FILE_CONFIGS = ("requirement", "deps_from")
 
 
 def options_from_file(args):
@@ -54,6 +61,17 @@ def options_from_file(args):
                 if current_value is None:
                     current_value = []
                 current_value.append(config_value)
+                setattr(args, config_key, current_value)
+            if config_key in MERGEABLE_FILE_CONFIGS:
+                current_value = getattr(args, config_key, [])
+                if current_value is None:
+                    current_value = []
+                try:
+                    current_value.append(existing_file(config_value))
+                except ArgumentTypeError as error:
+                    logger.error("Invalid %r in config file %s: %s",
+                                 config_key, config_file, error)
+                    raise FadesError(str(error))
                 setattr(args, config_key, current_value)
             if not getattr(args, config_key, False) or config_key in updated_from_file:
                 # By default all 'store-true' arguments are False. So we only
