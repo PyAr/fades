@@ -67,8 +67,10 @@ def options_from_file(args):
                 try:
                     current_value.append(existing_file(config_value))
                 except ArgumentTypeError as error:
-                    logger.error("Invalid %r in config file %s: %s",
-                                 config_key, config_file, error)
+                    logger.error(
+                        "Invalid %r in config file %s: %s",
+                        config_key, config_file, error,
+                    )
                     raise FadesError(str(error))
                 setattr(args, config_key, current_value)
             if not getattr(args, config_key, False) or config_key in updated_from_file:

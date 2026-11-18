@@ -448,7 +448,7 @@ def parse_pyproject(filepath):
     return _parse_dependency_list(dependencies, "the [project] table of {!r}".format(filepath))
 
 
-def parse_deps_from(filepath):
+def parse_deps_from(filepath: Path) -> tuple[dict, str | None]:
     """Parse a file indicated with --deps-from, guessing its format from the file name.
 
     The supported formats are:
@@ -466,8 +466,6 @@ def parse_deps_from(filepath):
 
     Raise FadesError if the file format is not a supported one.
     """
-    filepath = Path(filepath)
-
     if filepath.name == 'pyproject.toml':
         return parse_pyproject(filepath), None
 

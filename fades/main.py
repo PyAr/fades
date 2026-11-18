@@ -119,8 +119,13 @@ def get_autoimport_scriptname(dependencies, is_ipython):
     return tempfilepath
 
 
-def consolidate_dependencies(needs_ipython, child_program, requirement_files,
-                             manual_dependencies, deps_from_deps):
+def consolidate_dependencies(
+    needs_ipython,
+    child_program,
+    requirement_files,
+    manual_dependencies,
+    deps_from_deps,
+):
     """Parse files, get deps and merge them. Deps read later overwrite those read earlier."""
     if needs_ipython:
         logger.debug("Adding ipython dependency because --ipython was detected")
@@ -271,9 +276,10 @@ def go():
         help="indicate files to read dependencies from (this option can be used multiple times)")
     parser.add_argument(
         '--deps-from', type=helpers.existing_file, action='append',
-        help="indicate files to read dependencies from, detecting the format from the file "
-             "itself: a requirements file (.txt), a Python script (.py), or a pyproject.toml "
-             "([project] dependencies) (this option can be used multiple times)")
+        help=(
+            "indicate files to read dependencies from, detecting the format from the file "
+            "itself: a requirements file (.txt), a Python script (.py), or a pyproject.toml "
+            "([project] dependencies) (this option can be used multiple times)"))
     parser.add_argument(
         '-p', '--python', action='store',
         help="specify the Python interpreter to use; the default is: {}".format(sys.executable))

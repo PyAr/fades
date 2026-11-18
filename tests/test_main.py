@@ -107,46 +107,48 @@ class DepsGatheringTestCase(unittest.TestCase):
     """Tests for the gathering stage of consolidate_dependencies."""
 
     def test_needs_ipython(self):
-        d = main.consolidate_dependencies(needs_ipython=True, child_program=None,
-                                          requirement_files=None,
-                                          manual_dependencies=None, deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=True, child_program=None, requirement_files=None,
+            manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('ipython')}})
 
     def test_child_program(self):
         child_program = 'tests/test_files/req_module.py'
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                          requirement_files=None,
-                                          manual_dependencies=None, deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=child_program,
+            requirement_files=None,
+            manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('foo'), Requirement('bar')}})
 
     def test_child_program_pep723(self):
         child_program = 'tests/test_files/pep723_basic.py'
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                          requirement_files=None,
-                                          manual_dependencies=None, deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=child_program,
+            requirement_files=None,
+            manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('requests<3'), Requirement('rich')}})
 
     def test_requirement_files(self):
         requirement_files = [create_tempfile(self, ['dep'])]
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
-                                          requirement_files=requirement_files,
-                                          manual_dependencies=None, deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=None,
+            requirement_files=requirement_files,
+            manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('dep')}})
 
     def test_manual_dependencies(self):
         manual_dependencies = ['dep']
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
-                                          requirement_files=None,
-                                          manual_dependencies=manual_dependencies,
-                                          deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=None, requirement_files=None,
+            manual_dependencies=manual_dependencies, deps_from_deps=[])
 
         self.assertDictEqual(d, {'pypi': {Requirement('dep')}})
 
@@ -158,10 +160,10 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = [create_tempfile(self, ['1', '2'])]
         manual_dependencies = ['vcs::3', 'vcs::4']
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
-                                          requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies,
-                                          deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=None,
+            requirement_files=requirement_files,
+            manual_dependencies=manual_dependencies, deps_from_deps=[])
 
         self.assertEqual(d, {
             'pypi': {Requirement('1'), Requirement('2')},
@@ -172,10 +174,10 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = [create_tempfile(self, ['1', '2'])]
         manual_dependencies = ['3', '4']
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
-                                          requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies,
-                                          deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=None,
+            requirement_files=requirement_files,
+            manual_dependencies=manual_dependencies, deps_from_deps=[])
 
         self.assertDictEqual(d, {
             'pypi': {Requirement('1'), Requirement('2'), Requirement('3'), Requirement('4')}
@@ -186,10 +188,10 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = [create_tempfile(self, ['3', 'vcs::5'])]
         manual_dependencies = ['vcs::4', 'vcs::6']
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                          requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies,
-                                          deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=child_program,
+            requirement_files=requirement_files,
+            manual_dependencies=manual_dependencies, deps_from_deps=[])
 
         self.assertEqual(d, {
             'pypi': {Requirement('1'), Requirement('2'), Requirement('3')},
@@ -201,10 +203,10 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = [create_tempfile(self, ['2', '2'])]
         manual_dependencies = None
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
-                                          requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies,
-                                          deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=None,
+            requirement_files=requirement_files,
+            manual_dependencies=manual_dependencies, deps_from_deps=[])
 
         self.assertDictEqual(d, {
             'pypi': {Requirement('2')}
@@ -215,9 +217,10 @@ class DepsMergingTestCase(unittest.TestCase):
         # the deps from both sources
         child_program = 'tests/test_files/pep723_and_comment.py'
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                          requirement_files=None,
-                                          manual_dependencies=None, deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=child_program,
+            requirement_files=None,
+            manual_dependencies=None, deps_from_deps=[])
 
         self.assertDictEqual(d, {
             'pypi': {Requirement('requests<3'), Requirement('requests'), Requirement('rich')}
@@ -228,10 +231,10 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = [create_tempfile(self, ['from-reqfile'])]
         manual_dependencies = ['from-manual']
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                          requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies,
-                                          deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=child_program,
+            requirement_files=requirement_files,
+            manual_dependencies=manual_dependencies, deps_from_deps=[])
 
         self.assertEqual(d, {
             'pypi': {Requirement('requests<3'), Requirement('rich'),
@@ -242,10 +245,10 @@ class DepsMergingTestCase(unittest.TestCase):
         requirement_files = [create_tempfile(self, ['1', '2', '2', '2'])]
         manual_dependencies = ['vcs::3', 'vcs::4', 'vcs::1', 'vcs::2']
 
-        d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
-                                          requirement_files=requirement_files,
-                                          manual_dependencies=manual_dependencies,
-                                          deps_from_deps=[])
+        d = main.consolidate_dependencies(
+            needs_ipython=False, child_program=None,
+            requirement_files=requirement_files,
+            manual_dependencies=manual_dependencies, deps_from_deps=[])
 
         self.assertEqual(d, {
             'pypi': {Requirement('1'), Requirement('2')},
@@ -470,9 +473,9 @@ def test_deps_from_deps():
         {'vcs': [parsing.VCSDependency('dep2')]},
     ]
 
-    d = main.consolidate_dependencies(needs_ipython=False, child_program=None,
-                                      requirement_files=None, manual_dependencies=None,
-                                      deps_from_deps=deps_from_deps)
+    d = main.consolidate_dependencies(
+        needs_ipython=False, child_program=None, requirement_files=None,
+        manual_dependencies=None, deps_from_deps=deps_from_deps)
 
     assert d == {
         'pypi': {Requirement('dep1')},
@@ -487,14 +490,17 @@ def test_deps_from_merges_with_other_sources(tmp_path):
     reqfile.write_text("from-reqfile\n", encoding="utf8")
     deps_from_deps = [{'pypi': [Requirement('from-deps-from')]}]
 
-    d = main.consolidate_dependencies(needs_ipython=False, child_program=child_program,
-                                      requirement_files=[reqfile],
-                                      manual_dependencies=['from-manual'],
-                                      deps_from_deps=deps_from_deps)
+    d = main.consolidate_dependencies(
+        needs_ipython=False, child_program=child_program, requirement_files=[reqfile],
+        manual_dependencies=['from-manual'], deps_from_deps=deps_from_deps)
 
-    assert d == {'pypi': {Requirement('requests<3'), Requirement('rich'),
-                          Requirement('from-reqfile'), Requirement('from-manual'),
-                          Requirement('from-deps-from')}}
+    assert d == {
+        'pypi': {
+            Requirement('requests<3'), Requirement('rich'),
+            Requirement('from-reqfile'), Requirement('from-manual'),
+            Requirement('from-deps-from'),
+        },
+    }
 
 
 def test_deps_from_combines_with_child_program(tmp_path):
