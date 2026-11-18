@@ -22,6 +22,7 @@ import os
 import sys
 import tempfile
 import unittest
+from argparse import ArgumentTypeError
 from http.server import HTTPStatus
 from pathlib import Path
 from unittest.mock import patch
@@ -819,3 +820,23 @@ class GetUvExeTestCase(unittest.TestCase):
         with patch.object(helpers.shutil, 'which', return_value=None):
             result = helpers.get_uv_exe('/no/such/uv')
         assert result is None
+
+
+def test_existing_file_ok(tmp_path):
+    """The path of an existing readable file is returned, as a Path."""
+    path = tmp_path / "file.txt"
+    path.write_text("x", encoding="utf8")
+
+    assert helpers.existing_file(path) == path
+
+
+def test_existing_file_missing(tmp_path):
+    """A path that can't be accessed is rejected."""
+    with pytest.raises(ArgumentTypeError):
+        helpers.existing_file(tmp_path / "nonexistent.txt")
+
+
+def test_existing_file_directory(tmp_path):
+    """A directory, even if accessible, is rejected."""
+    with pytest.raises(ArgumentTypeError):
+        helpers.existing_file(tmp_path)

@@ -119,7 +119,13 @@ def get_autoimport_scriptname(dependencies, is_ipython):
     return tempfilepath
 
 
-def consolidate_dependencies(needs_ipython, child_program, requirement_files, manual_dependencies):
+def consolidate_dependencies(
+    needs_ipython,
+    child_program,
+    requirement_files,
+    manual_dependencies,
+    deps_from_deps,
+):
     """Parse files, get deps and merge them. Deps read later overwrite those read earlier."""
     if needs_ipython:
         logger.debug("Adding ipython dependency because --ipython was detected")
@@ -146,6 +152,8 @@ def consolidate_dependencies(needs_ipython, child_program, requirement_files, ma
             rf_deps = parsing.parse_reqfile(rf_path)
             logger.debug('Dependencies from requirements file %r: %s', rf_path, rf_deps)
             all_dependencies.append(rf_deps)
+
+    all_dependencies.extend(deps_from_deps)
 
     manual_deps = parsing.parse_manual(manual_dependencies)
     logger.debug("Dependencies from parameters: %s", manual_deps)
@@ -264,8 +272,14 @@ def go():
         '-d', '--dependency', action='append',
         help="specify dependencies through command line (this option can be used multiple times)")
     parser.add_argument(
-        '-r', '--requirement', type=Path, action='append',
+        '-r', '--requirement', type=helpers.existing_file, action='append',
         help="indicate files to read dependencies from (this option can be used multiple times)")
+    parser.add_argument(
+        '--deps-from', type=helpers.existing_file, action='append',
+        help=(
+            "indicate files to read dependencies from, detecting the format from the file "
+            "itself: a requirements file (.txt), a Python script (.py), or a pyproject.toml "
+            "([project] dependencies) (this option can be used multiple times)"))
     parser.add_argument(
         '-p', '--python', action='store',
         help="specify the Python interpreter to use; the default is: {}".format(sys.executable))
@@ -422,19 +436,37 @@ def go():
     analyzable_child_program, child_program = decide_child_program(
         args.executable, args.module, args.child_program)
 
+    # parse the files indicated with --deps-from (if any): their dependencies join the
+    # rest of them, and the Python version any of them declares needing (only possible
+    # for .py files, in their '# /// script' metadata block) is combined below with the
+    # child program's own declaration
+    deps_from_deps = []
+    python_tomls = []
+    for deps_from_path in args.deps_from or []:
+        deps, python_toml = parsing.parse_deps_from(deps_from_path)
+        logger.debug('Dependencies from --deps-from file %r: %s', deps_from_path, deps)
+        deps_from_deps.append(deps)
+        if python_toml is not None:
+            python_tomls.append(python_toml)
+
     # Group and merge dependencies
     indicated_deps = consolidate_dependencies(
-        args.ipython, analyzable_child_program, args.requirement, args.dependency)
+        args.ipython, analyzable_child_program, args.requirement, args.dependency, deps_from_deps)
 
     # Check for packages updates
     if args.check_updates:
         helpers.check_pypi_updates(indicated_deps)
 
-    # decide the interpreter to use, considering the one indicated with --python and the
-    # Python version the script declares it needs in its '# /// script' metadata block, if any
-    # (this may find in PATH a different interpreter than fades' own)
+    # decide the interpreter to use, considering the one indicated with --python, the
+    # Python version the script declares it needs in its '# /// script' metadata block, if
+    # any, and also those declared by the --deps-from Python files (all of them are
+    # combined into a single version restriction); this may find in PATH a different
+    # interpreter than fades' own
     _, python_toml = parsing.parse_pep723(analyzable_child_program)
-    python_interpreter = helpers.get_interpreter_for_requirement(python_toml, args.python)
+    if python_toml is not None:
+        python_tomls.append(python_toml)
+    python_interpreter = helpers.get_interpreter_for_requirement(
+        parsing.merge_requires_python(python_tomls), args.python)
 
     # get the interpreter version requested for the child_program
     interpreter, is_current = helpers.get_interpreter_version(python_interpreter)

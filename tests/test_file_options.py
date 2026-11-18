@@ -21,7 +21,7 @@ from unittest.mock import patch
 
 import pytest
 
-from fades import file_options
+from fades import FadesError, file_options, helpers
 
 
 @pytest.fixture
@@ -31,6 +31,10 @@ def argparser():
     parser.add_argument('-f', '--foo', action='store_true')
     parser.add_argument('-b', '--bar', action='store')
     parser.add_argument('-d', '--dependency', action='append')
+    parser.add_argument(
+        '-r', '--requirement', action='append', type=helpers.existing_file)
+    parser.add_argument(
+        '--deps-from', action='append', type=helpers.existing_file)
     parser.add_argument('positional', nargs='?', default=None)
     return parser
 
@@ -155,3 +159,41 @@ def test_three_config_file_override(mocked_parser, argparser):
 
     assert result.bar == 'this'
     assert isinstance(args, argparse.Namespace)
+
+
+@patch("fades.file_options.CONFIG_FILES", ('mock.ini',))
+@patch("configparser.ConfigParser.items")
+def test_single_config_file_with_file_options(mocked_parser, argparser, tmp_path):
+    reqs_path = tmp_path / "reqs.txt"
+    reqs_path.write_text("x", encoding="utf8")
+    deps_path = tmp_path / "deps.py"
+    deps_path.write_text("x", encoding="utf8")
+    mocked_parser.return_value = [('requirement', str(reqs_path)), ('deps_from', str(deps_path))]
+    args = argparser.parse_args([])
+    result = file_options.options_from_file(args)
+
+    assert result.requirement == [reqs_path]
+    assert result.deps_from == [deps_path]
+
+
+@patch("fades.file_options.CONFIG_FILES", ('mock.ini',))
+@patch("configparser.ConfigParser.items")
+def test_file_options_merge_with_cli(mocked_parser, argparser, tmp_path):
+    cli_path = tmp_path / "from-cli.py"
+    cli_path.write_text("x", encoding="utf8")
+    config_path = tmp_path / "from-config.py"
+    config_path.write_text("x", encoding="utf8")
+    mocked_parser.return_value = [('deps_from', str(config_path))]
+    args = argparser.parse_args(['--deps-from', str(cli_path)])
+    result = file_options.options_from_file(args)
+
+    assert result.deps_from == [cli_path, config_path]
+
+
+@patch("fades.file_options.CONFIG_FILES", ('mock.ini',))
+@patch("configparser.ConfigParser.items")
+def test_file_options_missing_file_errors(mocked_parser, argparser, tmp_path):
+    mocked_parser.return_value = [('requirement', str(tmp_path / "nonexistent.txt"))]
+    args = argparser.parse_args([])
+    with pytest.raises(FadesError):
+        file_options.options_from_file(args)

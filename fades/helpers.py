@@ -16,6 +16,7 @@
 
 """A collection of utilities for fades."""
 
+import argparse
 import json
 import logging
 import os
@@ -92,6 +93,16 @@ def logged_exec(cmd):
     if retcode:
         raise ExecutionError(retcode, cmd, stdout)
     return stdout
+
+
+def existing_file(path):
+    """Return a valid Path only if the given path is an existing readable file."""
+    if not os.access(path, os.R_OK):
+        raise argparse.ArgumentTypeError("Cannot access {!r}.".format(str(path)))
+    path = Path(path)
+    if not path.is_file():
+        raise argparse.ArgumentTypeError("{!r} is not a file.".format(str(path)))
+    return path
 
 
 def get_uv_exe(uv_path=None):

@@ -12,6 +12,7 @@ fades - A system that automatically handles the virtualenvs in the cases normall
 [\fB-i\fR][\fB--ipython\fR]
 [\fB-d\fR][\fB--dependency\fR]
 [\fB-r\fR][\fB--requirement\fR]
+[\fB--deps-from\fR=\fIFILE\fR]
 [\fB-x\fR][\fB--exec\fR]
 [\fB-p\fR \fIversion\fR][\fB--python\fR=\fIversion\fR]
 [\fB--rm\fR=\fIUUID\fR]
@@ -82,6 +83,10 @@ See more examples below for real command line usage explanations.
 .TP
 .BR -r ", " --requirement
 Read the dependencies from a file. Format in each line is the same than dependencies specified with \fI--dependency\fR. This option can be specified multiple times.
+
+.TP
+.BR --deps-from " " \fIFILE\fR
+Read the dependencies from a file, detecting the format from the file itself: a requirements file (\fB.txt\fR extension, parsed like the files given to \fI--requirement\fR), a Python script (\fB.py\fR extension: its '# fades' comments, its docstring, and its '# /// script' metadata block are parsed), or a \fBpyproject.toml\fR (its standard PEP 621 \fB[project]\fR dependencies are taken). This option can be specified multiple times, and combined with the other ways of indicating dependencies. If a Python script given this way declares a needed Python version (in its '# /// script' metadata block), that declaration combines with the one of the script being executed.
 
 .TP
 .BR -p " " \fIversion\fR ", " --python=\fIversion\fR
@@ -191,6 +196,11 @@ Executes the Python interactive interpreter in a virtual environment after insta
 fades -r requirements.txt -r requirements_devel.txt
 
 Executes the Python interactive interpreter in a virtual environment after installing there all dependencies taken from files requirements.txt and requirements_devel.txt.
+
+.TP
+fades --deps-from pyproject.toml -d koiframes myscript.py
+
+Executes myscript.py in a virtual environment after installing there koiframes and all the dependencies taken from the pyproject.toml file of the current directory.
 
 .SH USING CONFIGURATION FILES
 
