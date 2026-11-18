@@ -31,9 +31,7 @@ CONFIG_FILES = (Path("/etc/fades/fades.ini"), get_confdir() / 'fades.ini', Path(
 
 MERGEABLE_CONFIGS = ("dependency", "pip_options", "venv-options", "uv_pip_options")
 
-# mergeable options that hold file paths; their CLI counterparts validate the paths at
-# argparse level, so the values coming from config files are validated here, at the
-# point where they enter the system
+# mergeable options that hold file paths
 MERGEABLE_FILE_CONFIGS = ("requirement", "deps_from")
 
 
