@@ -107,7 +107,7 @@ def test_install_with_options():
     pip_path = Path(BIN_PATH) / "pip"
     with patch.object(helpers, "logged_exec") as mock:
         mgr.install("foo")
-    mock.assert_called_with([pip_path, "install", "foo", "--bar", "baz"])
+    mock.assert_called_with([pip_path, "install", "--bar", "baz", "foo"])
 
 
 def test_install_with_options_using_equal():
@@ -115,7 +115,15 @@ def test_install_with_options_using_equal():
     pip_path = Path(BIN_PATH) / "pip"
     with patch.object(helpers, "logged_exec") as mock:
         mgr.install("foo")
-    mock.assert_called_with([pip_path, "install", "foo", "--bar=baz"])
+    mock.assert_called_with([pip_path, "install", "--bar=baz", "foo"])
+
+
+def test_install_with_option_using_the_dependency():
+    mgr = PipManager(BIN_PATH, pip_installed=True, options=["--editable"])
+    pip_path = Path(BIN_PATH) / "pip"
+    with patch.object(helpers, "logged_exec") as mock:
+        mgr.install("file:///tmp/project")
+    mock.assert_called_with([pip_path, "install", "--editable", "file:///tmp/project"])
 
 
 def test_install_raise_error(logs):

@@ -323,6 +323,11 @@ def get_latest_version_number(project_name):
 
 def check_pypi_updates(dependencies):
     """Return a list of dependencies to upgrade."""
+    if not dependencies.get('pypi'):
+        # nothing to check here (e.g. only VCS or local dependencies); note that an empty 'pypi'
+        # entry must not be added, as it would make fades to not find the already created venv
+        return dependencies
+
     dependencies_up_to_date = []
     for dependency in dependencies.get('pypi', []):
         # get latest version from PyPI api

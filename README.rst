@@ -259,6 +259,20 @@ because we're mixing the protocol indication with the path)::
 
     fades -d file:///home/crazyuser/myproject/allstars/
 
+Note that this way the project is copied into the virtual environment when it's
+created, so later changes to the project will not be seen (not even using
+``--check-updates``, which only applies to dependencies from PyPI). If you're
+working on that project, the best is to install it in *editable* mode, so the
+virtual environment always uses the project's current code::
+
+    fades -d file:///home/crazyuser/myproject/allstars/ --pip-options=--editable
+
+Take in consideration that the pip options apply to all the dependencies; if you
+need other dependencies besides the local project, just mark the latter as
+editable::
+
+    fades -d requests -d "-e file:///home/crazyuser/myproject/allstars/"
+
 
 How to control the virtual environment creation and usage?
 ----------------------------------------------------------

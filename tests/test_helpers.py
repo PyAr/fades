@@ -227,6 +227,20 @@ class CheckPyPIUpdatesTestCase(unittest.TestCase):
                 self.assertLoggedInfo(
                     "The requested version for django is the latest one in PyPI: 1.9")
 
+    def test_check_pypi_updates_only_vcs_dependencies(self):
+        requested = parsing.parse_manual(["file:///tmp/project"])
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            dependencies = helpers.check_pypi_updates(requested)
+        mock_urlopen.assert_not_called()
+        # no empty 'pypi' entry is added, so the already created venv is still found
+        self.assertEqual(dependencies, {'vcs': [parsing.VCSDependency("file:///tmp/project")]})
+
+    def test_check_pypi_updates_no_dependencies(self):
+        with patch('urllib.request.urlopen') as mock_urlopen:
+            dependencies = helpers.check_pypi_updates({})
+        mock_urlopen.assert_not_called()
+        self.assertEqual(dependencies, {})
+
 
 class GetDirsTestCase(unittest.TestCase):
     """Utilities to get dir."""

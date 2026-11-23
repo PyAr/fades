@@ -90,7 +90,7 @@ def test_install_with_options():
     with patch.object(helpers, "logged_exec") as mock:
         mgr.install("foo")
     mock.assert_called_with(
-        [UV, "pip", "install", "--python", PYTHON_PATH, "foo", "--bar", "baz"])
+        [UV, "pip", "install", "--python", PYTHON_PATH, "--bar", "baz", "foo"])
 
 
 def test_install_with_options_using_equal():
@@ -98,7 +98,15 @@ def test_install_with_options_using_equal():
     with patch.object(helpers, "logged_exec") as mock:
         mgr.install("foo")
     mock.assert_called_with(
-        [UV, "pip", "install", "--python", PYTHON_PATH, "foo", "--bar=baz"])
+        [UV, "pip", "install", "--python", PYTHON_PATH, "--bar=baz", "foo"])
+
+
+def test_install_with_option_using_the_dependency():
+    mgr = UvManager(BIN_PATH, options=["--editable"], uv_exe=UV)
+    with patch.object(helpers, "logged_exec") as mock:
+        mgr.install("file:///tmp/project")
+    mock.assert_called_with(
+        [UV, "pip", "install", "--python", PYTHON_PATH, "--editable", "file:///tmp/project"])
 
 
 def test_install_raise_error(logs):
