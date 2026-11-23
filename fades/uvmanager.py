@@ -52,11 +52,13 @@ class UvManager():
         # split to pass several tokens on multiword dependency (this is very specific for '-e' on
         # external requirements, but implemented generically; mirror PipManager.install)
         str_dep = str(dependency)
-        args = [self.uv_exe, "pip", "install", "--python", str(self.python_exe)] + str_dep.split()
+        args = [self.uv_exe, "pip", "install", "--python", str(self.python_exe)]
 
+        # the options go before the dependency, as in PipManager.install
         if self.options:
             for option in self.options:
                 args.extend(option.split())
+        args.extend(str_dep.split())
         logger.info("Installing dependency (with uv): %r", str_dep)
         try:
             helpers.logged_exec(args)

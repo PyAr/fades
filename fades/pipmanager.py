@@ -71,11 +71,14 @@ class PipManager():
         # normal reqs, because even if it originally is 'foo > 1.2', after parsing it loses the
         # internal spaces)
         str_dep = str(dependency)
-        args = [self.pip_exe, "install"] + str_dep.split()
+        args = [self.pip_exe, "install"]
 
+        # the options go before the dependency, so the ones that need it as their value
+        # work (e.g. '--editable', to install a local project in editable mode)
         if self.options:
             for option in self.options:
                 args.extend(option.split())
+        args.extend(str_dep.split())
         logger.info("Installing dependency: %r", str_dep)
         try:
             helpers.logged_exec(args)
